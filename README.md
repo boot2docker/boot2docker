@@ -60,7 +60,7 @@ $ sudo docker build -t boot2docker rootfs/
 Once that's done, to build a custom `boot2docker.iso`, just run the built rootfs image:
 ```
 $ sudo docker run --privileged boot2docker
-<COTAINER_ID>
+<CONTAINER_ID>
 $ sudo docker cp <CONTAINER_ID>:/boot2docker.iso .
 ```
 
