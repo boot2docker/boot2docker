@@ -1,4 +1,10 @@
 #!/bin/sh
 # Make sure IP forwarding is properly enabled
 sysctl -w net.ipv4.ip_forward=1
+if grep -q '^docker:' /etc/passwd; then
+  # if we have the docker user, let's create the docker group
+  /bin/addgroup -S docker
+  # ... and add our docker user to it!
+  /bin/addgroup docker docker
+fi
 /usr/local/etc/init.d/docker start
