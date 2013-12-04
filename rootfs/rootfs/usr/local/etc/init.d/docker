@@ -1,0 +1,37 @@
+#!/bin/sh
+# docker sshd start script
+[ $(id -u) = 0 ] || { echo "must be root" ; exit 1; }
+
+start(){
+    /usr/local/bin/docker -d 2> /var/lib/docker/docker.log &
+}
+
+stop(){
+   kill $(pidof docker)
+}
+
+restart(){
+   if pidof docker >/dev/null; then
+      stop && start
+   else
+      start
+   fi
+}
+
+status(){
+  if [ -f /var/run/docker.pid ]; then
+    echo "Docker daemon is running"
+    exit 0
+  else
+    echo "Docker daemon is not running"
+    exit 1
+  fi
+}
+
+case $1 in
+   start) start;;
+   stop) stop;;
+   restart) restart;;
+   status) status;;
+   *) echo "Usage $0 {start|stop|restart|status}"; exit 1
+esac

@@ -1,0 +1,4 @@
+#!/bin/sh
+# Make sure IP forwarding is properly enabled
+sysctl -w net.ipv4.ip_forward=1
+/usr/local/etc/init.d/docker start

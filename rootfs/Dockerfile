@@ -1,0 +1,74 @@
+FROM boot2docker-base
+MAINTAINER Steeve Morin "steeve.morin@gmail.com"
+
+ENV TCL_REPO_BASE   http://tinycorelinux.net/5.x/x86
+ENV ROOTFS          /rootfs
+
+RUN apt-get -y install  squashfs-tools \
+                        genisoimage \
+                        automake \
+                        pkg-config
+
+# Make the ROOTFS
+RUN mkdir -p $ROOTFS
+
+# Install the kernel modules in $ROOTFS
+RUN cd /linux-3.12.1 && \
+    make INSTALL_MOD_PATH=$ROOTFS modules_install
+# Here we could remove useless modules, but we'll do that later if there is such a need.
+
+# Install libcap
+RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
+    cd /libcap-2.22 && \
+    sed -i 's/LIBATTR := yes/LIBATTR := no/' Make.Rules && \
+    sed -i 's/\(^CFLAGS := .*\)/\1 -m32/' Make.Rules && \
+    make && \
+    mkdir -p output && \
+    make prefix=`pwd`/output install && \
+    mkdir -p $ROOTFS/usr/local/lib && \
+    cp -av `pwd`/output/lib64/* $ROOTFS/usr/local/lib
+
+# Download LXC, patch it with @sebp's patch to properly change root from a ramdisk, compile and install
+RUN curl -L https://github.com/lxc/lxc/archive/lxc-1.0.0.alpha3.tar.gz | tar -C / -xz && \
+    cd /lxc-lxc-1.0.0.alpha3 && \
+    curl -L https://github.com/spahl/lxc/commit/d6b2904d50cac7c44e6f490308b8dd1417281529.patch | patch -p1 && \
+    ./autogen.sh && \
+    LIBCAPLIB=/libcap-2.22/output/ CFLAGS="-m32 -I${LIBCAPLIB}/include -L${LIBCAPLIB}/lib64" ./configure prefix=/usr/local && \
+    make && \
+    make prefix=$ROOTFS install && \
+    mkdir -p $ROOTFS/usr/var/lib/lxc && \
+    mkdir -p $ROOTFS/usr/local/lib/lxc/rootfs && \
+    mkdir -p $ROOTFS/cgroup && \
+    mkdir -p $ROOTFS/dev/mqueue
+
+# Make sure the kernel headers are installed for aufs-util, and then build it
+RUN cd /linux-3.12.1 && \
+    make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
+    cd / && \
+    curl -L -o /aufs-util.zip 'http://sourceforge.net/code-snapshots/git/a/au/aufs/aufs-util.git/aufs-aufs-util-d43048872642b11f7c54979178d5762b34ee428c.zip' && \
+    unzip /aufs-util.zip && \
+    mv /aufs-aufs-util-d43048872642b11f7c54979178d5762b34ee428c /aufs-util && \
+    cd /aufs-util && \
+    CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
+    DESTDIR=$ROOTFS make install && \
+    rm -rf /tmp/kheaders
+
+# Download the rootfs, don't unpack it though:
+RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.gz
+
+# Install the TCZ dependencies
+RUN for dep in iptables openssl-1.0.0 openssh tar gcc_libs; do \
+        curl -L -o /tmp/$dep.tcz $TCL_REPO_BASE/tcz/$dep.tcz && \
+        unsquashfs -f -d $ROOTFS /tmp/$dep.tcz && \
+        rm -f /tmp/$dep.tcz ;\
+    done
+
+# Copy over out custom rootfs
+ADD rootfs $ROOTFS
+
+# Make sure init scripts are executable
+RUN find $ROOTFS/etc/rc.d/ -exec chmod +x {} \; && \
+    find $ROOTFS/usr/local/etc/init.d/ -exec chmod +x {} \;
+
+ADD isolinux /isolinux
+ADD make_iso.sh /

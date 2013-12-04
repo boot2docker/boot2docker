@@ -1,0 +1,2 @@
+cgroup  /cgroup     cgroup  defaults    0   0
+none    /dev/mqueue mqueue  defaults    0   0

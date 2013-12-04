@@ -1,0 +1,7 @@
+#!/bin/sh
+# This script mounts the first hard drive found on /var/lib/docker
+
+FIRST_HD=`autoscan-devices | cut -d' ' -f1`
+if [ -n "$FIRST_HD" ]; then
+    mount /dev/$FIRST_HD /var/lib/docker
+fi
