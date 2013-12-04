@@ -13,9 +13,10 @@ Simply boot from the ISO, and you're done. It runs on VMs and bare metal machine
 If you want your containers to persist accross reboots, just attach an ext4 formatted disk to your VM, and boot2docker will automount it on `/var/lib/docker`. It will also persist the SSH keys of the machine.
 
 boot2docker auto logs in, but if you want to SSH into the machine, the credentials are:
-login: `docker`
-pass: `tcuser`
-
+```
+login: docker
+pass: tcuser
+```
 
 Features
 --------
