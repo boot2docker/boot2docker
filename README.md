@@ -6,6 +6,12 @@ It runs completely from RAM, weights ~38mb and boots in ~5-6s (YMMV).
 
 It was made during the Global Docker Hack Day on Dec. 3, 2013.
 
+
+Download
+--------
+Head over to the [Relases Page](https://github.com/steeve/boot2docker/releases) to grab the ISO.
+
+
 How to use
 ----------
 Simply boot from the ISO, and you're done. It runs on VMs and bare metal machines.
