@@ -18,6 +18,14 @@ login: docker
 pass: tcuser
 ```
 
+Demo
+----
+http://www.youtube.com/watch?v=Z1bQyP4-Uvc
+[![boot2docker Demo Video](http://i.ytimg.com/vi/Z1bQyP4-Uvc/maxresdefault.jpg)](http://www.youtube.com/watch?v=Z1bQyP4-Uvc&hd=1)
+
+
+
+
 Features
 --------
 * Kernel 3.12.1 with AUFS
