@@ -70,4 +70,4 @@ FAQ
 
 **Why not CoreOS?**
 
-I got asked that question a lot, so I thought I should put it here. I liked the original idea of CoreOS: the smallest possible way to boot to docker. Unfortunately CoreOS has been growing larger and seems to be reinventing the wheel on a lot of features already implemented or planned for Docker. I just wanted the fastest way to boot to Docker.
+I got asked that question a lot, so I thought I should put it here once and for all. I liked the original idea of CoreOS: the smallest possible way to boot to docker. Unfortunately CoreOS has been growing larger and just too many things for me. I just wanted the fastest way to boot to Docker.
