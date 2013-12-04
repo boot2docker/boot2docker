@@ -72,3 +72,5 @@ RUN find $ROOTFS/etc/rc.d/ -exec chmod +x {} \; && \
 
 ADD isolinux /isolinux
 ADD make_iso.sh /
+
+CMD ["/bin/sh", "/make_iso.sh"]
