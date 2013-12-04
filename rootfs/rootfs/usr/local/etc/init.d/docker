@@ -1,25 +1,30 @@
 #!/bin/sh
-# docker sshd start script
+# docker daemon start script
 [ $(id -u) = 0 ] || { echo "must be root" ; exit 1; }
 
 start(){
-    /usr/local/bin/docker -d 2> /var/lib/docker/docker.log &
+    # TODO move this logfile out of /var/lib/docker
+    /usr/local/bin/docker -d > /var/lib/docker/docker.log 2>&1 &
 }
 
 stop(){
-   kill $(pidof docker)
+   kill $(cat /var/run/docker.pid)
 }
 
 restart(){
-   if pidof docker >/dev/null; then
-      stop && start
+   if check; then
+      stop && sleep 1 && start
    else
       start
    fi
 }
 
+check(){
+  [ -f /var/run/docker.pid ] && ps $(cat /var/run/docker.pid) > /dev/null 2>&1
+}
+
 status(){
-  if [ -f /var/run/docker.pid ]; then
+  if check; then
     echo "Docker daemon is running"
     exit 0
   else
