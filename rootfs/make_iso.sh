@@ -34,4 +34,10 @@ find | cpio -o -H newc | gzip -11 > /tmp/iso/boot/initrd.gz
 cd -
 
 # Make the ISO
-mkisofs -l -J -R -V boot2docker -no-emul-boot -boot-load-size 4 -boot-info-table -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -o /boot2docker.iso /tmp/iso
+# Note: only "-isohybrid-mbr /..." is specific to xorriso.
+# It builds an image that can be used as an ISO *and* a disk image.
+xorriso -as mkisofs \
+    -l -J -R -V boot2docker -no-emul-boot -boot-load-size 4 -boot-info-table \
+    -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat \
+    -isohybrid-mbr /usr/lib/syslinux/isohdpfx.bin \
+    -o /boot2docker.iso /tmp/iso
