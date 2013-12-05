@@ -9,4 +9,16 @@ if grep -q '^docker:' /etc/passwd; then
   /bin/addgroup docker docker
 fi
 
+# Load TCE extensions
+/etc/rc.d/tce-loader
+
+# Automount a hard drive
+/etc/rc.d/automount
+
+# Configure SSHD
+/etc/rc.d/sshd
+
+# Launch Docker
+/etc/rc.d/docker
+
 /opt/bootlocal.sh &
