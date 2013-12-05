@@ -6,6 +6,8 @@ ENV ROOTFS          /rootfs
 
 RUN apt-get -y install  squashfs-tools \
                         genisoimage \
+                        xorriso \
+                        syslinux \
                         automake \
                         pkg-config
 
