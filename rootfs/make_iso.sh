@@ -30,7 +30,7 @@ cp -vr /isolinux /tmp/iso/boot
 
 # Pack the rootfs
 cd $ROOTFS
-find | cpio -o -H newc | gzip -11 > /tmp/iso/boot/initrd.gz
+find | cpio -o -H newc | xz -9 --format=lzma > /tmp/iso/boot/initrd.img
 cd -
 
 # Make the ISO
