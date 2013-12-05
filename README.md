@@ -26,8 +26,8 @@ pass: tcuser
 
 Demo
 ----
-http://www.youtube.com/watch?v=Z1bQyP4-Uvc
-[![boot2docker Demo Video](http://i.ytimg.com/vi/Z1bQyP4-Uvc/maxresdefault.jpg)](http://www.youtube.com/watch?v=Z1bQyP4-Uvc&hd=1)
+http://www.youtube.com/watch?v=QzfddDvNVv0
+[![boot2docker Demo Video](http://i.ytimg.com/vi/QzfddDvNVv0/maxresdefault.jpg)](http://www.youtube.com/watch?v=QzfddDvNVv0&hd=1)
 
 
 
