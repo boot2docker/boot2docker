@@ -19,9 +19,11 @@ mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest
 chmod +x $ROOTFS/usr/local/bin/docker
 
-# Make sure we have the correct bootlocal
+# Make sure we have the correct bootlocal and bootsync
 mv $ROOTFS/bootlocal.sh $ROOTFS/opt/bootlocal.sh
 chmod +x $ROOTFS/opt/bootlocal.sh
+mv $ROOTFS/bootsync.sh $ROOTFS/opt/bootsync.sh
+chmod +x $ROOTFS/opt/bootsync.sh
 
 # Prepare the ISO directory with the kernel
 mkdir -p /tmp/iso/boot
