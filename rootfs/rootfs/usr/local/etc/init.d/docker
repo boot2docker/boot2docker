@@ -4,7 +4,10 @@
 
 start(){
     # TODO move this logfile out of /var/lib/docker
-    /usr/local/bin/docker -d > /var/lib/docker/docker.log 2>&1 &
+    # Capture docker0 IP address, in the extremely unlikely event it ever changes
+    DOCKER_ADDR = `/sbin/ifconfig docker0 | grep 'inet addr:' | cut -d: -f2| cut -d' ' -f1`
+    # Allow dockerd access from the container network (so that we can use shipyard, etc.)
+    /usr/local/bin/docker -d -H tcp://$DOCKER_ADDR:4243 -H unix:///var/run/docker.sock > /var/lib/docker/docker.log 2>&1 &
 }
 
 stop(){
