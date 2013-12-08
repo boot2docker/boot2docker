@@ -16,7 +16,7 @@ RUN mkdir -p $ROOTFS
 
 # Install the kernel modules in $ROOTFS
 RUN cd /linux-3.12.1 && \
-    make INSTALL_MOD_PATH=$ROOTFS modules_install
+    make INSTALL_MOD_PATH=$ROOTFS modules_install firmware_install
 # Here we could remove useless modules, but we'll do that later if there is such a need.
 
 # Install libcap
