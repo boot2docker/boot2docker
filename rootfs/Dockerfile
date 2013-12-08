@@ -1,4 +1,4 @@
-FROM boot2docker-base
+FROM steeve/boot2docker-base
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
 ENV TCL_REPO_BASE   http://tinycorelinux.net/5.x/x86
