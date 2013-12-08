@@ -2,10 +2,7 @@ boot2docker
 ===========
 
 boot2docker is a lightweight Linux distribution based on [Tiny Core Linux](http://tinycorelinux.net) made specifically to run Docker containers.
-It runs completely from RAM, weighs ~38MB and boots in ~5-6s (YMMV).
-
-It was made during the Global Docker Hack Day on Dec. 3, 2013.
-
+It runs completely from RAM, weighs ~23MB and boots in ~5-6s (YMMV).
 
 Download
 --------
