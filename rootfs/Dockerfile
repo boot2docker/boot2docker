@@ -47,10 +47,9 @@ RUN curl -L https://github.com/lxc/lxc/archive/lxc-1.0.0.alpha3.tar.gz | tar -C 
 RUN cd /linux-3.12.1 && \
     make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
     cd / && \
-    curl -L -o /aufs-util.zip 'http://sourceforge.net/code-snapshots/git/a/au/aufs/aufs-util.git/aufs-aufs-util-d43048872642b11f7c54979178d5762b34ee428c.zip' && \
-    unzip /aufs-util.zip && \
-    mv /aufs-aufs-util-d43048872642b11f7c54979178d5762b34ee428c /aufs-util && \
+    git clone git://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
+    git checkout aufs3.9 && \
     CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
     rm -rf /tmp/kheaders
