@@ -1,8 +1,9 @@
 FROM steeve/boot2docker-base
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
-ENV TCL_REPO_BASE   http://tinycorelinux.net/5.x/x86
 ENV ROOTFS          /rootfs
+ENV TCL_REPO_BASE   http://tinycorelinux.net/5.x/x86
+ENV TCZ_DEPS        iptables openssl-1.0.0 openssh tar gcc_libs libnl iw
 
 RUN apt-get -y install  squashfs-tools \
                         genisoimage \
@@ -58,7 +59,7 @@ RUN cd /linux-3.12.1 && \
 RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.gz
 
 # Install the TCZ dependencies
-RUN for dep in iptables openssl-1.0.0 openssh tar gcc_libs; do \
+RUN for dep in $TCZ_DEPS; do \
         curl -L -o /tmp/$dep.tcz $TCL_REPO_BASE/tcz/$dep.tcz && \
         unsquashfs -f -d $ROOTFS /tmp/$dep.tcz && \
         rm -f /tmp/$dep.tcz ;\
