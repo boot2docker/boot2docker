@@ -20,6 +20,7 @@ boot2docker auto logs in, but if you want to SSH into the machine, the credentia
 login: docker
 pass: tcuser
 ```
+Make sure to setup a port forward from host to guest port 22. Avoid bridged networking due to the static login and password.
 
 Demo
 ----
