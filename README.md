@@ -8,6 +8,8 @@ Download
 --------
 Head over to the [Releases Page](https://github.com/steeve/boot2docker/releases) to grab the ISO.
 
+To 'install' the ISO onto an sd card, USB-Stick or even empty hard disk, you can use ``dd if=boot2docker.iso of=/dev/sdx``.
+This will create the small boot partition, and install an MBR.
 
 How to use
 ----------
