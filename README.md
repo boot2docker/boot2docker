@@ -8,7 +8,7 @@ Download
 --------
 Head over to the [Releases Page](https://github.com/steeve/boot2docker/releases) to grab the ISO.
 
-To 'install' the ISO onto an sd card, USB-Stick or even empty hard disk, you can use ``dd if=boot2docker.iso of=/dev/sdx``.
+To 'install' the ISO onto an SD card, USB-Stick or even empty hard disk, you can use ``dd if=boot2docker.iso of=/dev/sdX``.
 This will create the small boot partition, and install an MBR.
 
 How to use
@@ -19,8 +19,8 @@ If you want your containers to persist accross reboots, just attach an ext4 form
 
 boot2docker auto logs in, but if you want to SSH into the machine, the credentials are:
 ```
-login: docker
-pass: tcuser
+    login: docker
+    pass: tcuser
 ```
 
 Demo
@@ -52,17 +52,22 @@ It is composed in three disctinct steps:
 
 So the build process goes like this:
 ```
-$ sudo docker build -t boot2docker-base base/
-$ sudo docker build -t boot2docker rootfs/
+    $ sudo docker build -t boot2docker-base base/
+    $ sudo docker build -t boot2docker rootfs/
 ```
 
 Once that's done, to build a custom `boot2docker.iso`, just run the built rootfs image:
 ```
-$ sudo docker run --privileged boot2docker
-<CONTAINER_ID>
-$ sudo docker cp <CONTAINER_ID>:/boot2docker.iso .
+    $ sudo docker rm build-boot2docker
+    $ sudo docker run --privileged -name build-boot2docker boot2docker
+    $ sudo docker cp build-boot2docker:/boot2docker.iso .
 ```
 
+Now you can install the iso to a USB drive, SD card, CD-Rom or hard-disk. The image contains
+a Master Boot Record, and a partition table, so can be written to a raw device.
+```
+    sudo dd if=boot2docker.iso of=/dev/sdX
+```
 
 FAQ
 ----
