@@ -3,13 +3,19 @@
 [ $(id -u) = 0 ] || { echo "must be root" ; exit 1; }
 
 start() {
+    # remove this softlink - the docker daemon recreates it and when its from the wrong os/docker version, things go boom
+    if [ -e /var/lib/docker/lxc-start-unconfined ]; then
+	    rm /var/lib/docker/lxc-start-unconfined
+    fi
     # TODO move this logfile out of /var/lib/docker
     /bin/dmesg | /bin/egrep '(VirtualBox|VMware|QEMU)' > /dev/null && EXPOSE_ALL="-H tcp://"
-    /usr/local/bin/docker -d -H unix:// $EXPOSE_ALL > /var/lib/docker/docker.log 2>&1 &
+    /var/lib/boot2docker/etc/docker-daemon
 }
 
 stop() {
     kill $(cat /var/run/docker.pid)
+   # remove this softlink - the docker daemon recreates it and when its from the wrong os/docker version, things go boom
+   rm /var/lib/docker/lxc-start-unconfined
 }
 
 restart() {
@@ -34,10 +40,27 @@ status() {
     fi
 }
 
+cleanghosts(){
+	if check; then
+		stop;
+	fi
+	#TODO: make it check to see if there is a PID, and test for it..
+	find /var/lib/docker/containers -name config.json -exec echo "mv '{}' '{}_' ; cat '{}_' | sed 's/\"Running\":true,/\"Running\":false,/' > '{}'" \; | sh
+}
+
+cleanghosts(){
+	if check; then
+		stop;
+	fi
+	#TODO: make it check to see if there is a PID, and test for it..
+	find /var/lib/docker/containers -name config.json -exec echo "mv '{}' '{}_' ; cat '{}_' | sed 's/\"Running\":true,/\"Running\":false,/' > '{}'" \; | sh
+}
+
 case $1 in
-    start) start;;
-    stop) stop;;
-    restart) restart;;
-    status) status;;
-    *) echo "Usage $0 {start|stop|restart|status}"; exit 1
+   start) start;;
+   stop) stop;;
+   restart) restart;;
+   status) status;;
+   cleanghosts) cleanghosts;;
+   *) echo "Usage $0 {start|stop|restart|status|cleanghosts}"; exit 1
 esac
