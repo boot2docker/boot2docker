@@ -45,7 +45,7 @@ How to build
 
 boot2docker is built with Docker, via Dockerfiles.
 
-It is composed in three disctinct steps:
+It is composed in three distinct steps:
 * `base`: fetches, patches with AUFS support and builds the 3.12.1 Linux Kernel with Tiny Core base configuration
 * `rootfs`: builds the base rootfs for boot2docker (not complete)
 * running `rootfs`: when you run this image, it will build the rootfs, download the latest Docker release and create the `.iso` file on `/` of the container. This way you can update Docker without having to completely rebuild everything.
