@@ -52,7 +52,9 @@ It is composed in three disctinct steps:
 
 So the build process goes like this:
 ```
-    $ sudo docker build -t boot2docker-base base/
+    # $ sudo docker build -t steeve/boot2docker-base base/
+    # OR for most uses, avoid re-building and downloading lots of ubuntu packages by:
+    $ sudo docker pull steeve/boot2docker-base
     $ sudo docker build -t boot2docker rootfs/
 ```
 
