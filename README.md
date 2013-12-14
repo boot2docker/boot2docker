@@ -15,7 +15,7 @@ How to use
 ----------
 Simply boot from the ISO, and you're done. It runs on VMs and bare-metal machines.
 
-If you want your containers to persist accross reboots, just attach an ext4 formatted disk to your VM, and boot2docker will automount it on `/var/lib/docker`. It will also persist the SSH keys of the machine.
+If you want your containers to persist across reboots, just attach an ext4 formatted disk to your VM, and boot2docker will automount it on `/var/lib/docker`. It will also persist the SSH keys of the machine.
 
 boot2docker auto logs in, but if you want to SSH into the machine, the credentials are:
 ```
@@ -36,8 +36,8 @@ Features
 * Kernel 3.12.1 with AUFS
 * Docker 0.7
 * LXC 1.0-alpha2
-* Container persistance via disk automount on `/var/lib/docker`
-* SSH keys persistance via disk automount
+* Container persistence via disk automount on `/var/lib/docker`
+* SSH keys persistence via disk automount
 
 
 How to build
