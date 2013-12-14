@@ -1,7 +1,7 @@
 boot2docker
 ===========
 
-boot2docker is a lightweight Linux distribution based on [Tiny Core Linux](http://tinycorelinux.net) made specifically to run Docker containers.
+boot2docker is a lightweight Linux distribution based on [Tiny Core Linux](http://tinycorelinux.net) made specifically to run [Docker](https://www.docker.io/) containers.
 It runs completely from RAM, weighs ~23MB and boots in ~5-6s (YMMV).
 
 Download
