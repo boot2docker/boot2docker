@@ -75,6 +75,10 @@ a Master Boot Record, and a partition table, so can be written to a raw device.
 FAQ
 ----
 
+**Login as root**
+
+Run `sudo -s` as the docker user.
+
 **Why not CoreOS?**
 
 I got asked that question a lot, so I thought I should put it here once and for all. [CoreOS](http://coreos.com/) is targeted at building infrastructure and distributed systems. I just wanted the fastest way to boot to Docker.
