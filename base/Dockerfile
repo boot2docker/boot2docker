@@ -30,7 +30,8 @@ RUN git clone git://git.code.sf.net/p/aufs/aufs3-standalone && \
 
 ADD kernel_config /linux-3.12.1/.config
 
-RUN cd /linux-3.12.1 && \
-    make oldconfig && \
-    make bzImage && \
-    make modules
+RUN jobs=$(nproc); \
+    cd /linux-3.12.1 && \
+    make -j ${jobs} oldconfig && \
+    make -j ${jobs} bzImage && \
+    make -j ${jobs} modules
