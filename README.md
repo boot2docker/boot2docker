@@ -24,6 +24,8 @@ boot2docker auto logs in, but if you want to SSH into the machine, the credentia
 ```
 Make sure to setup a port forward from host to guest port 22. Avoid bridged networking due to the static login and password.
 
+boot2docker is also available as a [Vagrant](http://www.vagrantup.com) box: https://github.com/mitchellh/boot2docker-vagrant-box
+
 Demo
 ----
 http://www.youtube.com/watch?v=QzfddDvNVv0
