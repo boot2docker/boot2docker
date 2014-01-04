@@ -1,0 +1,176 @@
+#!/bin/sh
+VM_NAME=boot2docker-vm
+VBM=VBoxManage
+
+DOCKER_PORT=4243
+SSH_HOST_PORT=2022
+
+get_latest_release_name() {
+    curl 'https://api.github.com/repos/steeve/boot2docker/releases' 2>/dev/null | grep "tag_name" | awk '{print $2}' | sed 's/[",]*//g' | head -1
+}
+
+download_latest() {
+    LATEST_RELEASE=`get_latest_release_name`
+    log "Latest version is $LATEST_RELEASE, downloading..."
+    curl -L -o boot2docker.iso "https://github.com/steeve/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
+    log "Done"
+}
+
+log() {
+    echo "[`date +"%Y-%m-%d %H:%M:%S"`] ${*}"
+}
+
+init() {
+    VM_MEM=1024
+    VM_OSTYPE=Linux26_64
+    VM_NIC=82540EM
+    VM_DISK=./boot2docker.vmdk
+    VM_DISK_SIZE=40000
+    VM_CPUS=`sysctl -n hw.physicalcpu`
+    BOOT2DOCKER_ISO=./boot2docker.iso
+
+    log "Creating VM $VM_NAME"
+    log $VBM createvm --name $VM_NAME --register
+
+    log "Setting VM settings"
+    $VBM modifyvm $VM_NAME \
+        --ostype $VM_OSTYPE \
+        --cpus $VM_CPUS \
+        --memory $VM_MEM \
+        --acpi on \
+        --hpet on \
+        --hwvirtex on \
+        --firmware bios \
+        --bioslogofadein off --bioslogofadeout off --bioslogodisplaytime 0 --biosbootmenu disabled \
+        --boot1 dvd
+
+    log "Setting VM networking"
+    $VBM modifyvm $VM_NAME \
+        --nic1 nat \
+        --nictype1 $VM_NIC \
+        --cableconnected1 on
+    $VBM modifyvm $VM_NAME \
+        --natpf1 delete "ssh" \
+        --natpf1 delete "docker"
+    $VBM modifyvm $VM_NAME \
+        --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
+        --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,$DOCKER_PORT"
+
+    if [ ! -e $BOOT2DOCKER_ISO ]; then
+        log "boot2docker.iso not found."
+        download_latest
+    fi
+
+    log "Setting VM disks"
+    $VBM storagectl $VM_NAME --name "SATA" --remove
+
+    if [ ! -e $VM_DISK ]; then
+        log "Creating $VM_HDSIZE hard drive..."
+        $VBM closemedium disk $VM_DISK
+        $VBM createhd --format VMDK --filename $VM_DISK --size $VM_DISK_SIZE
+    fi
+
+    $VBM storagectl $VM_NAME --name "SATA" --add sata --hostiocache on
+    $VBM storageattach $VM_NAME --storagectl "SATA" --port 0 --device 0 --type dvddrive --medium $BOOT2DOCKER_ISO
+    $VBM storageattach $VM_NAME --storagectl "SATA" --port 1 --device 0 --type hdd --medium $VM_DISK
+
+    log "Done."
+    log "You can now type boot2docker up and wait for the VM to start."
+}
+
+do_ssh() {
+    ssh -p $SSH_HOST_PORT docker@localhost
+}
+
+start() {
+    if ! is_running; then
+        if is_paused; then
+            log "Resuming $VM_NAME"
+            $VBM controlvm $VM_NAME resume > /dev/null
+            wait_vm
+            log "Resumed."
+        else
+            log "Starting $VM_NAME..."
+            $VBM startvm $VM_NAME --type headless > /dev/null &
+            wait_vm
+            log "Started."
+        fi
+    else
+        log "$VM_NAME is already running."
+    fi
+}
+
+wait_vm() {
+    while ! echo "ping" | nc localhost $SSH_HOST_PORT > /dev/null; do
+        sleep 1
+    done
+}
+
+pause() {
+    if is_running; then
+        log "Pausing $VM_NAME..."
+        $VBM controlvm $VM_NAME pause > /dev/null
+    else
+        log "$VM_NAME is not running."
+    fi
+}
+
+stop() {
+    if is_running; then
+        log "Shutting down $VM_NAME..."
+        $VBM controlvm $VM_NAME poweroff > /dev/null
+    else
+        log "$VM_NAME is not running."
+    fi
+}
+
+restart() {
+    if is_running; then
+        stop && sleep 1 && start
+    else
+        start
+    fi
+}
+
+info() {
+    $VBM showvminfo $VM_NAME
+}
+
+is_running() {
+    info | grep "State:\s\+running" > /dev/null
+}
+
+is_paused() {
+    info | grep "State:\s\+paused" > /dev/null
+}
+
+is_stopped() {
+    info | grep "State:\s\+powered off" > /dev/null
+}
+
+status() {
+    if is_running; then
+        log "$VM_NAME is running."
+        exit 0
+    elif is_paused; then
+        log "$VM_NAME is suspended."
+        exit 1
+    else
+        log "$VM_NAME is stopped."
+        exit 1
+    fi
+}
+
+case $1 in
+    init | setup) init;;
+    start | up) start;;
+    pause | suspend) pause;;
+    stop | halt | down) stop;;
+    restart) restart;;
+    status) status;;
+    info) info;;
+    delete) delete;;
+    ssh) do_ssh;;
+    download) download_latest;;
+    *) echo "Usage $0 {start|stop|restart|status}"; exit 1
+esac
