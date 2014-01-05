@@ -11,6 +11,11 @@ Head over to the [Releases Page](https://github.com/steeve/boot2docker/releases)
 To 'install' the ISO onto an SD card, USB-Stick or even empty hard disk, you can use ``dd if=boot2docker.iso of=/dev/sdX``.
 This will create the small boot partition, and install an MBR.
 
+Demo
+----
+http://www.youtube.com/watch?v=QzfddDvNVv0
+[![boot2docker Demo Video](http://i.imgur.com/hIwudK3.gif)](http://www.youtube.com/watch?v=QzfddDvNVv0&hd=1)
+
 How to use
 ----------
 Simply boot from the ISO, and you're done. It runs on VMs and bare-metal machines.
@@ -65,11 +70,6 @@ $ curl http://get.docker.io/builds/Darwin/x86_64/docker-0.7.3.tgz | tar xvz
 $ export DOCKER_HOST=localhost
 $ ./usr/local/bin/docker version
 ```
-
-Demo
-----
-http://www.youtube.com/watch?v=QzfddDvNVv0
-[![boot2docker Demo Video](http://i.ytimg.com/vi/QzfddDvNVv0/maxresdefault.jpg)](http://www.youtube.com/watch?v=QzfddDvNVv0&hd=1)
 
 Features
 --------
