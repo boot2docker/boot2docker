@@ -24,13 +24,52 @@ boot2docker auto logs in, but if you want to SSH into the machine, the credentia
 ```
 Make sure to setup a port forward from host to guest port 22. Avoid bridged networking due to the static login and password.
 
+Init Script (OSX only for now)
+------------------------------
+boot2docker now comes with a rather simple init script that leverage's VirtualBox's `VBoxManage`. Essentially, you can init, start, suspend and stop the boot2docker VM right from the command line.
+
+The VM has the following specs:
+
+* CPU Cores: same as host (physical, not logical)
+* 40gb HDD
+* 1gb memory
+* Autoboots to boot2docker
+* NAT networked (Docker `4243->4243` and SSH `22->2022` are forwarded to the host)
+
+Beware, this is work in progress. To use:
+
+```
+$ mkdir vm
+$ cd vm
+$ curl https://raw.github.com/steeve/boot2docker/master/boot2docker > boot2docker
+$ chmod +x boot2docker
+$ ./boot2docker init
+$ ./boot2docker up
+$ ./boot2docker ssh
+```
+
+If `ssh` complains about the keys:
+
+```
+$ ssh-keygen -R '[localhost]:2022'
+```
+
+If you want to use the brand new Docker OSX client, you'll need to restart the Docker daemon to listen on `0.0.0.0` (which is not done yet for security reason, eventually this step should disappear):
+
+```
+$ ./boot2docker ssh
+docker@boot2docker:~$ sudo /usr/local/etc/init.d/docker stop
+docker@boot2docker:~$ /usr/local/bin/docker -H tcp:// -d > /var/lib/docker/docker.log 2>&1 &
+docker@boot2docker:~$ exit
+$ curl http://get.docker.io/builds/Darwin/x86_64/docker-0.7.3.tgz | tar xvz
+$ export DOCKER_HOST=localhost
+$ ./usr/local/bin/docker version
+```
+
 Demo
 ----
 http://www.youtube.com/watch?v=QzfddDvNVv0
 [![boot2docker Demo Video](http://i.ytimg.com/vi/QzfddDvNVv0/maxresdefault.jpg)](http://www.youtube.com/watch?v=QzfddDvNVv0&hd=1)
-
-
-
 
 Features
 --------
