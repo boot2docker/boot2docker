@@ -30,7 +30,7 @@ init() {
     BOOT2DOCKER_ISO=./boot2docker.iso
 
     log "Creating VM $VM_NAME"
-    log $VBM createvm --name $VM_NAME --register
+    $VBM createvm --name $VM_NAME --register
 
     log "Setting VM settings"
     $VBM modifyvm $VM_NAME \
