@@ -64,7 +64,7 @@ If you want to use the brand new Docker OSX client, you'll need to restart the D
 ```
 $ ./boot2docker ssh
 docker@boot2docker:~$ sudo /usr/local/etc/init.d/docker stop
-docker@boot2docker:~$ /usr/local/bin/docker -H tcp:// -d > /var/lib/docker/docker.log 2>&1 &
+docker@boot2docker:~$ sudo sh -c "/usr/local/bin/docker -H tcp:// -d > /var/lib/docker/docker.log 2>&1 &"
 docker@boot2docker:~$ exit
 $ curl http://get.docker.io/builds/Darwin/x86_64/docker-0.7.3.tgz | tar xvz
 $ export DOCKER_HOST=localhost
