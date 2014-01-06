@@ -161,6 +161,14 @@ status() {
     fi
 }
 
+delete() {
+    if ! is_stopped; then
+	log "$VM_NAME needs to be stopped to delete it."
+	exit 1
+    fi
+    $VBM unregistervm --delete $VM_NAME
+}
+
 case $1 in
     init | setup) init;;
     start | up) start;;
