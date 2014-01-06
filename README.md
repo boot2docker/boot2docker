@@ -29,9 +29,9 @@ boot2docker auto logs in, but if you want to SSH into the machine, the credentia
 ```
 Make sure to setup a port forward from host to guest port 22. Avoid bridged networking due to the static login and password.
 
-Init Script (OSX only for now)
+Init Script (OSX and Linux)
 ------------------------------
-boot2docker now comes with a rather simple init script that leverage's VirtualBox's `VBoxManage`. Essentially, you can init, start, suspend and stop the boot2docker VM right from the command line.
+boot2docker now comes with a rather simple init script that leverage's VirtualBox's `VBoxManage`. Essentially, you can init (create), start, suspend, stop delete the boot2docker VM right from the command line.
 
 The VM has the following specs:
 

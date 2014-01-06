@@ -21,12 +21,23 @@ log() {
 }
 
 init() {
+
+    if `$VBM showvminfo $VM_NAME > /dev/null 2>&1`; then
+	    echo "$VM_NAME Virtual Box vm already exists"
+	    exit 1
+    fi
+
     VM_MEM=1024
     VM_OSTYPE=Linux26_64
     VM_NIC=82540EM
     VM_DISK=./boot2docker.vmdk
     VM_DISK_SIZE=40000
-    VM_CPUS=`sysctl -n hw.physicalcpu`
+    unamestr=`uname`
+    case $unamestr in
+        Linux) VM_CPUS=`nproc`;;
+        Darwin) VM_CPUS=`sysctl -n hw.physicalcpu`;;
+        *) echo "$unamestr not yet supported - please raise an issue" ; exit 1
+    esac
     BOOT2DOCKER_ISO=./boot2docker.iso
 
     log "Creating VM $VM_NAME"
@@ -49,9 +60,14 @@ init() {
         --nic1 nat \
         --nictype1 $VM_NIC \
         --cableconnected1 on
-    $VBM modifyvm $VM_NAME \
-        --natpf1 delete "ssh" \
-        --natpf1 delete "docker"
+    if `$VBM showvminfo $VM_NAME | grep Rule | grep ssh > /dev/null`; then
+	    $VBM modifyvm $VM_NAME \
+        	--natpf1 delete "ssh" 
+    fi
+    if `$VBM showvminfo $VM_NAME | grep Rule | grep docker > /dev/null`; then
+	    $VBM modifyvm $VM_NAME \
+        	--natpf1 delete "docker" 
+    fi
     $VBM modifyvm $VM_NAME \
         --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
         --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,$DOCKER_PORT"
@@ -62,11 +78,14 @@ init() {
     fi
 
     log "Setting VM disks"
-    $VBM storagectl $VM_NAME --name "SATA" --remove
+    if `$VBM showvminfo $VM_NAME | grep SATA > /dev/null`; then
+        $VBM storagectl $VM_NAME --name "SATA" --remove
+    fi
 
     if [ ! -e $VM_DISK ]; then
-        log "Creating $VM_HDSIZE hard drive..."
-        $VBM closemedium disk $VM_DISK
+        log "Creating $VM_DISK_SIZE Meg hard drive..."
+	# closemedium may complain when not needed
+        $VBM closemedium disk $VM_DISK > /dev/null 2>&1
         $VBM createhd --format VMDK --filename $VM_DISK --size $VM_DISK_SIZE
     fi
 
