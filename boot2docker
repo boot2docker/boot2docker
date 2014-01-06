@@ -26,7 +26,12 @@ init() {
     VM_NIC=82540EM
     VM_DISK=./boot2docker.vmdk
     VM_DISK_SIZE=40000
-    VM_CPUS=`sysctl -n hw.physicalcpu`
+    unamestr=`uname`
+    case $unamestr in
+        Linux) VM_CPUS=`nproc`;;
+        Darwin) VM_CPUS=`sysctl -n hw.physicalcpu`;;
+        *) echo "$unamestr not yet supported - please raise an issue" ; exit 1
+    esac
     BOOT2DOCKER_ISO=./boot2docker.iso
 
     log "Creating VM $VM_NAME"
