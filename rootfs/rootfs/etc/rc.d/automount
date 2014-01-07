@@ -3,5 +3,6 @@
 
 FIRST_HD=`autoscan-devices | cut -d' ' -f1`
 if [ -n "$FIRST_HD" ]; then
+    mkdir -p /var/lib/docker
     mount /dev/$FIRST_HD /var/lib/docker
 fi
