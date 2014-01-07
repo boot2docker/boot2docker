@@ -4,7 +4,8 @@
 
 start(){
     # TODO move this logfile out of /var/lib/docker
-    /usr/local/bin/docker -d > /var/lib/docker/docker.log 2>&1 &
+    /bin/dmesg | /bin/grep VirtualBox > /dev/null && EXPOSE_ALL="-H tcp://0.0.0.0:4243"
+    /usr/local/bin/docker -d -H unix:///var/run/docker.sock $EXPOSE_ALL > /var/lib/docker/docker.log 2>&1 &
 }
 
 stop(){
