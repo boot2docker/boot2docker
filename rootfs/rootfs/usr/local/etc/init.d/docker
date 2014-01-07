@@ -4,7 +4,7 @@
 
 start(){
     # TODO move this logfile out of /var/lib/docker
-    /usr/local/bin/docker -d > /var/lib/docker/docker.log 2>&1 &
+    /usr/local/bin/docker -d -H unix:///var/run/docker.sock -H tcp://0.0.0.0:4243 > /var/lib/docker/docker.log 2>&1 &
 }
 
 stop(){
