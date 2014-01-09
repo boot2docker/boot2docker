@@ -1,0 +1,5 @@
+# Enter the directories you want exported in this file.
+/var/lib/docker/share 172.0.0.0/24(rw,no_root_squash,async)
+/var/lib/docker/share 10.0.2.0/24(rw,no_root_squash,async)
+/var/lib/docker/share 127.0.0.0/24(rw,no_root_squash,async)
+/var/lib/docker/share 192.168.56.0/24(rw,no_root_squash,async)
