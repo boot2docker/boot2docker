@@ -69,6 +69,17 @@ If you want to use the brand new Docker OSX client, just tell it to connect to `
 $ ./boot2docker up
 $ export DOCKER_HOST=localhost
 $ ./docker version
+
+```
+
+You can install the Docker OSX client, you can either:
+
+```
+$ curl http://get.docker.io/builds/Darwin/x86_64/docker-latest.tgz | tar xvz
+$ chmod +x ./usr/local/bin/docker
+$ export DOCKER_HOST=localhost
+$ ./usr/local/bin/docker version
+$ sudo cp ./usr/local/bin/docker /usr/local/bin/
 ```
 
 Features
