@@ -59,16 +59,14 @@ If `ssh` complains about the keys:
 $ ssh-keygen -R '[localhost]:2022'
 ```
 
-If you want to use the brand new Docker OSX client, you'll need to restart the Docker daemon to listen on `0.0.0.0` (which is not done yet for security reason, eventually this step should disappear):
+If you want to use the brand new Docker OSX client:
 
 ```
-$ ./boot2docker ssh
-docker@boot2docker:~$ sudo /usr/local/etc/init.d/docker stop
-docker@boot2docker:~$ sudo sh -c "/usr/local/bin/docker -H tcp:// -d > /var/lib/docker/docker.log 2>&1 &"
-docker@boot2docker:~$ exit
-$ curl http://get.docker.io/builds/Darwin/x86_64/docker-0.7.3.tgz | tar xvz
+$ curl http://get.docker.io/builds/Darwin/x86_64/docker-latest.tgz | tar xvz
+$ chmod +x ./usr/local/bin/docker
 $ export DOCKER_HOST=localhost
 $ ./usr/local/bin/docker version
+$ sudo cp ./usr/local/bin/docker /usr/local/bin/
 ```
 
 Features
