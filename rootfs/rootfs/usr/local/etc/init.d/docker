@@ -2,42 +2,42 @@
 # docker daemon start script
 [ $(id -u) = 0 ] || { echo "must be root" ; exit 1; }
 
-start(){
+start() {
     # TODO move this logfile out of /var/lib/docker
-    /bin/dmesg | /bin/egrep '(VirtualBox|VMware|QEMU)' > /dev/null && EXPOSE_ALL="-H tcp://0.0.0.0:4243"
-    /usr/local/bin/docker -d -H unix:///var/run/docker.sock $EXPOSE_ALL > /var/lib/docker/docker.log 2>&1 &
+    /bin/dmesg | /bin/egrep '(VirtualBox|VMware|QEMU)' > /dev/null && EXPOSE_ALL="-H tcp://"
+    /usr/local/bin/docker -d -H unix:// $EXPOSE_ALL > /var/lib/docker/docker.log 2>&1 &
 }
 
-stop(){
-   kill $(cat /var/run/docker.pid)
+stop() {
+    kill $(cat /var/run/docker.pid)
 }
 
-restart(){
-   if check; then
-      stop && sleep 1 && start
-   else
-      start
-   fi
+restart() {
+    if check; then
+        stop && sleep 1 && start
+    else
+        start
+    fi
 }
 
-check(){
-  [ -f /var/run/docker.pid ] && ps $(cat /var/run/docker.pid) > /dev/null 2>&1
+check() {
+    [ -f /var/run/docker.pid ] && ps $(cat /var/run/docker.pid) > /dev/null 2>&1
 }
 
-status(){
-  if check; then
-    echo "Docker daemon is running"
-    exit 0
-  else
-    echo "Docker daemon is not running"
-    exit 1
-  fi
+status() {
+    if check; then
+        echo "Docker daemon is running"
+        exit 0
+    else
+        echo "Docker daemon is not running"
+        exit 1
+    fi
 }
 
 case $1 in
-   start) start;;
-   stop) stop;;
-   restart) restart;;
-   status) status;;
-   *) echo "Usage $0 {start|stop|restart|status}"; exit 1
+    start) start;;
+    stop) stop;;
+    restart) restart;;
+    status) status;;
+    *) echo "Usage $0 {start|stop|restart|status}"; exit 1
 esac
