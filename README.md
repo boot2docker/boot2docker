@@ -121,3 +121,18 @@ Run `sudo -s` as the docker user.
 **Why not CoreOS?**
 
 I got asked that question a lot, so I thought I should put it here once and for all. [CoreOS](http://coreos.com/) is targeted at building infrastructure and distributed systems. I just wanted the fastest way to boot to Docker.
+
+**Hard Disk Persistence using Virtualbox**
+
+```
+sudo -s
+fdisk /dev/sda
+n    # new primary partition
+p
+1   # first partition
+Enter  # default start
+Enter  # default end
+w  # write partition table and quit
+mkfs.ext4 /dev/sda1
+reboot
+```
