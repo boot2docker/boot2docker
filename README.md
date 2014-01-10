@@ -75,7 +75,7 @@ Features
 --------
 * Kernel 3.12.1 with AUFS
 * Docker 0.7
-* LXC 1.0-alpha2
+* LXC 1.0-beta1
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
