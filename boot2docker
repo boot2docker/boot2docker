@@ -49,6 +49,7 @@ init() {
         --cpus $VM_CPUS \
         --memory $VM_MEM \
         --acpi on \
+        --ioapic on \
         --hpet on \
         --hwvirtex on \
         --firmware bios \
