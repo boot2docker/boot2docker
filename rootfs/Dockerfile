@@ -32,8 +32,8 @@ RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.o
     cp -av `pwd`/output/lib64/* $ROOTFS/usr/local/lib
 
 # Download LXC, patch it with @sebp's patch to properly change root from a ramdisk, compile and install
-RUN curl -L https://github.com/lxc/lxc/archive/lxc-1.0.0.alpha3.tar.gz | tar -C / -xz && \
-    cd /lxc-lxc-1.0.0.alpha3 && \
+RUN curl -L https://github.com/lxc/lxc/archive/lxc-1.0.0.beta1.tar.gz | tar -C / -xz && \
+    cd /lxc-lxc-1.0.0.beta1 && \
     curl -L https://github.com/spahl/lxc/commit/d6b2904d50cac7c44e6f490308b8dd1417281529.patch | patch -p1 && \
     ./autogen.sh && \
     LIBCAPLIB=/libcap-2.22/output/ CFLAGS="-m32 -I${LIBCAPLIB}/include -L${LIBCAPLIB}/lib64" ./configure prefix=/usr/local && \
