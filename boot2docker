@@ -100,7 +100,7 @@ init() {
 }
 
 do_ssh() {
-    ssh -p $SSH_HOST_PORT docker@localhost
+    ssh -p $SSH_HOST_PORT docker@localhost $1
 }
 
 start() {
@@ -199,7 +199,7 @@ case $1 in
     status) status;;
     info) info;;
     delete) delete;;
-    ssh) do_ssh;;
+    ssh) shift; do_ssh "$@";;
     download) download_latest;;
     *) echo "Usage $0 {init|start|up|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
 esac
