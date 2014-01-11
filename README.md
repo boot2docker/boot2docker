@@ -101,7 +101,7 @@ So the build process goes like this:
 Once that's done, to build a custom `boot2docker.iso`, just run the built rootfs image:
 ```
     $ sudo docker rm build-boot2docker
-    $ sudo docker run --privileged -name build-boot2docker boot2docker
+    $ sudo docker run -i -privileged -name build-boot2docker boot2docker
     $ sudo docker cp build-boot2docker:/boot2docker.iso .
 ```
 
