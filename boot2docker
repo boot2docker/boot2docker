@@ -50,6 +50,7 @@ init() {
         --memory $VM_MEM \
         --rtcuseutc on \
         --acpi on \
+        --ioapic on \
         --hpet on \
         --hwvirtex on \
         --firmware bios \
