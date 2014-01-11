@@ -48,6 +48,7 @@ init() {
         --ostype $VM_OSTYPE \
         --cpus $VM_CPUS \
         --memory $VM_MEM \
+        --rtcuseutc on \
         --acpi on \
         --hpet on \
         --hwvirtex on \
