@@ -28,7 +28,9 @@ case "$1" in
 			done
 		fi
 
-		echo -n > $RESOLV_CONF
+		if [ -n "$dns" ] ; then
+			echo -n > $RESOLV_CONF
+		fi
 		[ -n "$domain" ] && echo search $domain >> $RESOLV_CONF
 		for i in $dns ; do
 			echo adding dns $i
