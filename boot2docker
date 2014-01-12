@@ -122,7 +122,7 @@ start() {
 }
 
 wait_vm() {
-    while ! echo "ping" | nc localhost $SSH_HOST_PORT > /dev/null; do
+    while ! echo "ping" | nc localhost $SSH_HOST_PORT > /dev/null 2>&1; do
         sleep 1
     done
 }
