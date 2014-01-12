@@ -100,7 +100,23 @@ init() {
 }
 
 do_ssh() {
-    ssh -p $SSH_HOST_PORT docker@localhost $1
+pkfile=´mktemp´
+umask 077
+echo "-----BEGIN DSA PRIVATE KEY-----
+MIIBvAIBAAKBgQCjs5tqiAMPBoRF9jUhytG1dVwDxVKH9U2tnmOCvIyZ7RVYrbw3
+HqP1yGdhmua9DKpExJqTlIq/xosWqAeRZDHm9t0mFT1oW+fJytfF1LFeNujDdOIa
+dE+Uh+gKqSQef0DXbdFRc7JdrG5FLriihb2r/PmrYNqAZhfnXfAZ6YZgcQIVAMlB
+CZdlBCOclnLEpTWWOoDduYh5AoGBAJ3aG2EtKbJt65Jt49C3Q3v1vI/ETJ0409P6
+XIjFk2p0IWOzIiLSPI4zMSkWl9bCwFcyhEN4Ngk+TSmIsamlheCpsM6tEmeHxhBn
+BvV7a95IjTyiKBG+2kweMQapehpBvSnsH7/WpXNPxLhfZNq+q6vjZbPQvZ4lhqEA
+7OilShIVAoGAAv8Px1V4tCJwPxnge+PTddeRNhD0Lwd6OpaKMo55u3qxpM+77M8q
+84UpaNaX3dyKOHEVvoh4DvLEnAr9cPbZDG/pC39dsw8kOS/88sR+WGyu1hc05vyU
+Ba8g4DSLDLFodM9KOOr33xpzISRYp0y6eyWCDlu+JE7+0kOBWMqqVicCFQCuBDEP
+GcQgE6LgrKBC9bbzsgHq/w==
+-----END DSA PRIVATE KEY-----
+" > $pkfile
+ssh -i $pkfile -p $SSH_HOST_PORT docker@localhost $1
+rm $pkfile
 }
 
 start() {
