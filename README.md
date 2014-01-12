@@ -61,12 +61,19 @@ $ ssh-keygen -R '[localhost]:2022'
 
 If you want to use the brand new Docker OSX client:
 
+
+Get latest binary release from docker.io:
 ```
 $ curl http://get.docker.io/builds/Darwin/x86_64/docker-latest.tgz | tar xvz
 $ chmod +x ./usr/local/bin/docker
 $ export DOCKER_HOST=localhost
 $ ./usr/local/bin/docker version
 $ sudo cp ./usr/local/bin/docker /usr/local/bin/
+```
+or with Homebrew (http://brew.sh):
+```
+$ brew tap homebrew/binary
+$ brew install docker
 ```
 
 Features
