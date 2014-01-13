@@ -29,7 +29,7 @@ init() {
 
     VM_MEM=1024
     VM_OSTYPE=Linux26_64
-    VM_NIC=82540EM
+    VM_NIC=virtio
     VM_DISK=./boot2docker.vmdk
     VM_DISK_SIZE=40000
     unamestr=`uname`
