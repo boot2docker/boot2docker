@@ -68,11 +68,11 @@ init() {
         --cableconnected1 on
     if `$VBM showvminfo $VM_NAME | grep Rule | grep ssh > /dev/null`; then
 	    $VBM modifyvm $VM_NAME \
-        	--natpf1 delete "ssh" 
+        	--natpf1 delete "ssh"
     fi
     if `$VBM showvminfo $VM_NAME | grep Rule | grep docker > /dev/null`; then
 	    $VBM modifyvm $VM_NAME \
-        	--natpf1 delete "docker" 
+        	--natpf1 delete "docker"
     fi
     $VBM modifyvm $VM_NAME \
         --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
@@ -90,7 +90,7 @@ init() {
 
     if [ ! -e $VM_DISK ]; then
         log "Creating $VM_DISK_SIZE Meg hard drive..."
-	# closemedium may complain when not needed
+        # closemedium may complain when not needed
         $VBM closemedium disk $VM_DISK > /dev/null 2>&1
         $VBM createhd --format VMDK --filename $VM_DISK --size $VM_DISK_SIZE
     fi
@@ -188,8 +188,8 @@ status() {
 
 delete() {
     if ! is_stopped; then
-	log "$VM_NAME needs to be stopped to delete it."
-	exit 1
+        log "$VM_NAME needs to be stopped to delete it."
+        exit 1
     fi
     $VBM unregistervm --delete $VM_NAME
 }
