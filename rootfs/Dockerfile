@@ -3,7 +3,7 @@ MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
 ENV ROOTFS          /rootfs
 ENV TCL_REPO_BASE   http://tinycorelinux.net/5.x/x86
-ENV TCZ_DEPS        iptables openssl-1.0.0 openssh tar gcc_libs libnl iw
+ENV TCZ_DEPS        iptables openssl-1.0.0 openssh tar gcc_libs libnl iw acpid
 
 RUN apt-get -y install  squashfs-tools \
                         genisoimage \

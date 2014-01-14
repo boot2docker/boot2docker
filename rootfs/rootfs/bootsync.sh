@@ -18,6 +18,9 @@ fi
 # Configure SSHD
 /etc/rc.d/sshd
 
+# Launch ACPId
+/etc/rc.d/acpid
+
 # Launch Docker
 /etc/rc.d/docker
 

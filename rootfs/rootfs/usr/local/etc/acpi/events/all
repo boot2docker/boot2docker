@@ -1,0 +1,2 @@
+event=button/power*
+action=exitcheck.sh shutdown

@@ -143,7 +143,10 @@ pause() {
 stop() {
     if is_running; then
         log "Shutting down $VM_NAME..."
-        $VBM controlvm $VM_NAME poweroff > /dev/null
+        $VBM controlvm $VM_NAME acpipowerbutton > /dev/null
+        while is_running; do
+            sleep 1
+        done
     else
         log "$VM_NAME is not running."
     fi
