@@ -53,6 +53,10 @@ init() {
         --ioapic on \
         --hpet on \
         --hwvirtex on \
+        --vtxvpid on \
+        --vtxux on \
+        --largepages on \
+        --nestedpaging on \
         --firmware bios \
         --bioslogofadein off --bioslogofadeout off --bioslogodisplaytime 0 --biosbootmenu disabled \
         --boot1 dvd
