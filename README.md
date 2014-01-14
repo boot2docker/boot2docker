@@ -2,7 +2,7 @@ boot2docker
 ===========
 
 boot2docker is a lightweight Linux distribution based on [Tiny Core Linux](http://tinycorelinux.net) made specifically to run [Docker](https://www.docker.io/) containers.
-It runs completely from RAM, weighs ~23MB and boots in ~5-6s (YMMV).
+It runs completely from RAM, weighs ~24MB and boots in ~5-6s (YMMV).
 
 Download
 --------
@@ -23,11 +23,13 @@ Simply boot from the ISO, and you're done. It runs on VMs and bare-metal machine
 If you want your containers to persist across reboots, just attach an ext4 formatted disk to your VM, and boot2docker will automount it on `/var/lib/docker`. It will also persist the SSH keys of the machine.
 
 boot2docker auto logs in, but if you want to SSH into the machine, the credentials are:
+
 ```
-    login: docker
-    pass: tcuser
+login: docker
+pass: tcuser
 ```
-Make sure to setup a port forward from host to guest port 22. Avoid bridged networking due to the static login and password.
+
+Make sure to setup a port forward from host to guest port `22`. Avoid bridged networking due to the static login and password. Or use the boot2docker init script.
 
 Init Script (OSX and Linux)
 ------------------------------
@@ -36,7 +38,7 @@ boot2docker now comes with a rather simple init script that leverage's VirtualBo
 The VM has the following specs:
 
 * CPU Cores: same as host (physical, not logical)
-* 40gb HDD
+* 40gb HDD (**not** initialized, see FAQ)
 * 1gb memory
 * Autoboots to boot2docker
 * NAT networked (Docker `4243->4243` and SSH `22->2022` are forwarded to the host)
@@ -59,22 +61,18 @@ If `ssh` complains about the keys:
 $ ssh-keygen -R '[localhost]:2022'
 ```
 
-If you want to use the brand new Docker OSX client, you'll need to restart the Docker daemon to listen on `0.0.0.0` (which is not done yet for security reason, eventually this step should disappear):
+If you want to use the brand new Docker OSX client, just tell it to connect to `localhost` and you should be good to go. boot2docker will automatically detect if it's running in a VirtualBox/QEMU/VMWare and will let `dockerd` listen on all interfaces:
 
 ```
-$ ./boot2docker ssh
-docker@boot2docker:~$ sudo /usr/local/etc/init.d/docker stop
-docker@boot2docker:~$ sudo sh -c "/usr/local/bin/docker -H tcp:// -d > /var/lib/docker/docker.log 2>&1 &"
-docker@boot2docker:~$ exit
-$ curl http://get.docker.io/builds/Darwin/x86_64/docker-0.7.3.tgz | tar xvz
+$ ./boot2docker up
 $ export DOCKER_HOST=localhost
-$ ./usr/local/bin/docker version
+$ ./docker version
 ```
 
 Features
 --------
 * Kernel 3.12.1 with AUFS
-* Docker 0.7
+* Docker 0.7.5
 * LXC 1.0-beta1
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
@@ -86,27 +84,31 @@ How to build
 boot2docker is built with Docker, via Dockerfiles.
 
 It is composed in three distinct steps:
+
 * `base`: fetches, patches with AUFS support and builds the 3.12.1 Linux Kernel with Tiny Core base configuration
 * `rootfs`: builds the base rootfs for boot2docker (not complete)
 * running `rootfs`: when you run this image, it will build the rootfs, download the latest Docker release and create the `.iso` file on `/` of the container. This way you can update Docker without having to completely rebuild everything.
 
 So the build process goes like this:
+
 ```
-    # $ sudo docker build -t steeve/boot2docker-base base/
-    # OR for most uses, avoid re-building and downloading lots of ubuntu packages by:
-    $ sudo docker pull steeve/boot2docker-base
-    $ sudo docker build -t boot2docker rootfs/
+# $ sudo docker build -t steeve/boot2docker-base base/
+# OR for most uses, avoid re-building and downloading lots of ubuntu packages by:
+$ sudo docker pull steeve/boot2docker-base
+$ sudo docker build -t boot2docker rootfs/
 ```
 
 Once that's done, to build a custom `boot2docker.iso`, just run the built rootfs image:
+
 ```
-    $ sudo docker rm build-boot2docker
-    $ sudo docker run --privileged -name build-boot2docker boot2docker
-    $ sudo docker cp build-boot2docker:/boot2docker.iso .
+$ sudo docker rm build-boot2docker
+$ sudo docker run --privileged -name build-boot2docker boot2docker
+$ sudo docker cp build-boot2docker:/boot2docker.iso .
 ```
 
 Now you can install the iso to a USB drive, SD card, CD-Rom or hard-disk. The image contains
 a Master Boot Record, and a partition table, so can be written to a raw device.
+
 ```
     sudo dd if=boot2docker.iso of=/dev/sdX
 ```
