@@ -4,15 +4,23 @@ VBM=VBoxManage
 
 DOCKER_PORT=4243
 SSH_HOST_PORT=2022
+CWD=${HOME}/.boot2docker
 
-VM_DISK=./boot2docker.vmdk
 VM_DISK_SIZE=40000
-
 VM_MEM=1024
 
 BOOT2DOCKER_ISO=./boot2docker.iso
 
-test -f "$HOME/.boot2docker/profile" && . "$HOME/.boot2docker/profile"
+test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
+
+if [[ -n ${VM_DISK} ]] ; then
+    VM_DISK=${CWD}/boot2docker.vmdk
+fi
+if [[ -n ${BOOT2DOCKER_ISO} ]] ; then
+    BOOT2DOCKER_ISO=${CWD}/boot2docker.iso
+fi
+
+mkdir -p ${CWD}
 
 get_latest_release_name() {
     local LRN
