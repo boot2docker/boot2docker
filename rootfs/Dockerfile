@@ -74,6 +74,7 @@ RUN find $ROOTFS/etc/rc.d/ -exec chmod +x {} \; && \
 
 ADD isolinux /isolinux
 ADD make_iso.sh /
-ADD docker-bin /
+#Uncomment to use a custom docker-bin
+#ADD docker-bin /
 
 CMD ["/bin/sh", "/make_iso.sh"]
