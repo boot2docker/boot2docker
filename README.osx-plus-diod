@@ -1,0 +1,8 @@
+On the host, after building DIOD.
+~/diod/diod --foreground --export /Users/bryonroc/code -e ctl --listen 10.243.243.1:$RANDPORT -L stderr  --no-auth -U $NUMERICUID -S
+
+On the target, running a boot2docker VM inside VBOX (i.e. from outside a docker container):
+lxc-attach -e -n $LONGID -- mount -t 9p -o port=52176,trans=tcp,version=9p2000.L,aname=/Users/bryonroc/code,access=any,msize=1048576 10.243.243.1 /code
+
+Idea thanks to jpetazzo's recitfier.sh (https://gist.github.com/jpetazzo/5668338)
+
