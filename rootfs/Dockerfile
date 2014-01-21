@@ -1,4 +1,4 @@
-FROM steeve/boot2docker-base
+FROM broche/boot2docker-base
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
 ENV ROOTFS          /rootfs
@@ -16,7 +16,7 @@ RUN apt-get -y install  squashfs-tools \
 RUN mkdir -p $ROOTFS
 
 # Install the kernel modules in $ROOTFS
-RUN cd /linux-3.12.1 && \
+RUN cd /linux-3.13 && \
     make INSTALL_MOD_PATH=$ROOTFS modules_install firmware_install
 # Here we could remove useless modules, but we'll do that later if there is such a need.
 
@@ -32,8 +32,8 @@ RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.o
     cp -av `pwd`/output/lib64/* $ROOTFS/usr/local/lib
 
 # Download LXC, patch it with @sebp's patch to properly change root from a ramdisk, compile and install
-RUN curl -L https://github.com/lxc/lxc/archive/lxc-1.0.0.beta1.tar.gz | tar -C / -xz && \
-    cd /lxc-lxc-1.0.0.beta1 && \
+RUN curl -L https://github.com/lxc/lxc/archive/lxc-1.0.0.beta2.tar.gz | tar -C / -xz && \
+    cd /lxc-lxc-1.0.0.beta2 && \
     curl -L https://github.com/spahl/lxc/commit/d6b2904d50cac7c44e6f490308b8dd1417281529.patch | patch -p1 && \
     ./autogen.sh && \
     LIBCAPLIB=/libcap-2.22/output/ CFLAGS="-m32 -I${LIBCAPLIB}/include -L${LIBCAPLIB}/lib64" ./configure prefix=/usr/local && \
@@ -45,12 +45,12 @@ RUN curl -L https://github.com/lxc/lxc/archive/lxc-1.0.0.beta1.tar.gz | tar -C /
     mkdir -p $ROOTFS/dev/mqueue
 
 # Make sure the kernel headers are installed for aufs-util, and then build it
-RUN cd /linux-3.12.1 && \
+RUN cd /linux-3.13 && \
     make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
     cd / && \
     git clone git://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
-    git checkout aufs3.9 && \
+    git checkout aufs3.x-rcN && \
     CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
     rm -rf /tmp/kheaders
@@ -74,5 +74,6 @@ RUN find $ROOTFS/etc/rc.d/ -exec chmod +x {} \; && \
 
 ADD isolinux /isolinux
 ADD make_iso.sh /
+ADD docker-bin /
 
 CMD ["/bin/sh", "/make_iso.sh"]

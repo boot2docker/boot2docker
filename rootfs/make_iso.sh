@@ -16,7 +16,11 @@ rm -f $ROOTFS/usr/local/etc/fstab
 mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 
 # Download the latest Docker
-curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest
+if [ \! -f /docker-bin ] ; then
+    curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest
+else
+    cp /docker-bin $ROOTFS/usr/local/bin/docker
+fi
 chmod +x $ROOTFS/usr/local/bin/docker
 
 # Make sure we have the correct bootsync
@@ -25,7 +29,7 @@ chmod +x $ROOTFS/opt/bootsync.sh
 
 # Prepare the ISO directory with the kernel
 mkdir -p /tmp/iso/boot
-cp -v /linux-3.12.1/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
+cp -v /linux-3.13/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 cp -vr /isolinux /tmp/iso/boot
 
 # Pack the rootfs
