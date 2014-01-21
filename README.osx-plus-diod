@@ -1,4 +1,4 @@
-On the host, after building DIOD.
+On the host, after building DIOD (github.com/kainz/diod)
 ~/diod/diod --foreground --export /Users/bryonroc/code -e ctl --listen 10.243.243.1:$RANDPORT -L stderr  --no-auth -U $NUMERICUID -S
 
 On the target, running a boot2docker VM inside VBOX (i.e. from outside a docker container):
