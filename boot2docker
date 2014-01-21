@@ -104,7 +104,7 @@ init() {
 }
 
 do_ssh() {
-    ssh -p $SSH_HOST_PORT docker@localhost $1
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $SSH_HOST_PORT docker@localhost $1
 }
 
 start() {
