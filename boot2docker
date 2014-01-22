@@ -41,6 +41,8 @@ log() {
     echo "[`date +"%Y-%m-%d %H:%M:%S"`] ${*}"
 }
 
+HOST_IP=$(echo $DOCKER_IP | sed 's/\.[0-9]*$/.254/')
+
 init() {
 
     if `$VBM showvminfo $VM_NAME > /dev/null 2>&1`; then
@@ -50,7 +52,6 @@ init() {
 
     VM_OSTYPE=Linux26_64
     VM_NIC=virtio
-    HOST_IP=$(echo $DOCKER_IP | sed 's/\.[0-9]*$/.254/')
     DHCP_SERVER_UPPER=$(echo $DOCKER_IP | sed 's/\.[0-9]*$/.252/')
     unamestr=`uname`
     case $unamestr in
@@ -89,33 +90,10 @@ init() {
       exit 1
     fi
 
-    log "Setting HOST networking"
-    NETWORK_IF=$($VBM list hostonlyifs | grep $HOST_IP -B 4 | grep ^Name: | awk '{print $2}')
-    if [ -n "$NETWORK_IF" ]; then
-	log "Using already existing interface: $NETWORK_IF"
-    else
-	$VBM hostonlyif create
-	NETWORK_IF=$($VBM list hostonlyifs  | grep ^Name: | tail -n 1 | awk '{print $2}')
-	$VBM hostonlyif ipconfig $NETWORK_IF \
-	    --ip $HOST_IP \
-	    --netmask 255.255.255.0
-	log "Created network interface: $NETWORK_IF"
-    fi
-    $VBM dhcpserver remove \
-	--ifname $NETWORK_IF 2>/dev/null
-    $VBM dhcpserver add \
-	--ifname $NETWORK_IF \
-	--ip $HOST_IP \
-	--netmask 255.255.255.0 \
-	--lowerip $DOCKER_IP \
-	--upperip $DHCP_SERVER_UPPER \
-	--enable
-
     log "Setting VM networking"
     $VBM modifyvm $VM_NAME \
         --nic1 hostonly \
         --nictype1 $VM_NIC \
-        --hostonlyadapter1 $NETWORK_IF \
         --cableconnected1 on
     $VBM modifyvm $VM_NAME \
         --nic2 nat \
@@ -179,6 +157,29 @@ start() {
             wait_vm
             log "Resumed."
         else
+            NETWORK_IF=$($VBM list hostonlyifs | grep $HOST_IP -B 4 | grep ^Name: | awk '{print $2}')
+            if [ -n "$NETWORK_IF" ]; then
+	        log "Using already existing interface: $NETWORK_IF"
+            else
+	        $VBM hostonlyif create
+	        NETWORK_IF=$($VBM list hostonlyifs  | grep ^Name: | tail -n 1 | awk '{print $2}')
+	        $VBM hostonlyif ipconfig $NETWORK_IF \
+	            --ip $HOST_IP \
+	            --netmask 255.255.255.0
+	        log "Created network interface: $NETWORK_IF"
+            fi
+            $VBM dhcpserver remove \
+	        --ifname $NETWORK_IF 2>/dev/null
+            $VBM dhcpserver add \
+	        --ifname $NETWORK_IF \
+	        --ip $HOST_IP \
+	        --netmask 255.255.255.0 \
+	        --lowerip $DOCKER_IP \
+	        --upperip $DHCP_SERVER_UPPER \
+	        --enable
+            $VBM modifyvm $VM_NAME \
+                --hostonlyadapter1 $NETWORK_IF
+
             log "Starting $VM_NAME..."
             $VBM startvm $VM_NAME --type headless > /dev/null &
             wait_vm
@@ -213,7 +214,6 @@ stop() {
         while is_running; do
             sleep 1
         done
-        HOST_IP=$(echo $DOCKER_IP | sed 's/\.[0-9]*$/.254/')
         NETWORK_IF=$($VBM list hostonlyifs | grep $HOST_IP -B 4 | grep ^Name: | awk '{print $2}')
         if [ -n $NETWORK_IF ]; then
           $VBM dhcpserver remove \
