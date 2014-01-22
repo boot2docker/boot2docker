@@ -213,6 +213,14 @@ stop() {
         while is_running; do
             sleep 1
         done
+        HOST_IP=$(echo $DOCKER_IP | sed 's/\.[0-9]*$/.254/')
+        NETWORK_IF=$($VBM list hostonlyifs | grep $HOST_IP -B 4 | grep ^Name: | awk '{print $2}')
+        if [ -z $NETWORK_IF ]; then
+          echo $NETWORK_IF
+          $VBM dhcpserver remove \
+              --ifname $NETWORK_IF 2>/dev/null
+          $VBM hostonlyif remove $NETWORK_IF
+        fi
     else
         log "$VM_NAME is not running."
     fi
