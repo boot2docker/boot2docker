@@ -84,6 +84,11 @@ init() {
         	--natpf1 delete "docker"
     fi
     $VBM modifyvm $VM_NAME \
+        --nic2 hostonly \
+        --hostonlyadapter2 vboxnet0 \
+        --nictype2 $VM_NIC \
+        --cableconnected2 on
+    $VBM modifyvm $VM_NAME \
         --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
         --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,4243"
 
