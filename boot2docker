@@ -80,7 +80,7 @@ init() {
     fi
     $VBM modifyvm $VM_NAME \
         --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
-        --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,$DOCKER_PORT"
+        --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,4243"
 
     if [ ! -e $BOOT2DOCKER_ISO ]; then
         log "boot2docker.iso not found."
