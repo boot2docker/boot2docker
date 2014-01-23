@@ -5,6 +5,13 @@ VBM=VBoxManage
 DOCKER_PORT=4243
 SSH_HOST_PORT=2022
 
+VM_DISK=./boot2docker.vmdk
+VM_DISK_SIZE=40000
+
+BOOT2DOCKER_ISO=./boot2docker.iso
+
+test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
+
 get_latest_release_name() {
     curl 'https://api.github.com/repos/steeve/boot2docker/releases' 2>/dev/null | grep "tag_name" | awk '{print $2}' | sed 's/[",]*//g' | head -1
 }
@@ -30,15 +37,12 @@ init() {
     VM_MEM=1024
     VM_OSTYPE=Linux26_64
     VM_NIC=virtio
-    VM_DISK=./boot2docker.vmdk
-    VM_DISK_SIZE=40000
     unamestr=`uname`
     case $unamestr in
         Linux) VM_CPUS=`nproc`;;
         Darwin) VM_CPUS=`sysctl -n hw.physicalcpu`;;
         *) echo "$unamestr not yet supported - please raise an issue" ; exit 1
     esac
-    BOOT2DOCKER_ISO=./boot2docker.iso
 
     log "Creating VM $VM_NAME"
     $VBM createvm --name $VM_NAME --register
