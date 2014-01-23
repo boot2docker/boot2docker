@@ -176,6 +176,10 @@ is_stopped() {
     info | grep "State:\s\+powered off" > /dev/null
 }
 
+is_aborted() {
+    info | grep "State:\s\+aborted" > /dev/null
+}
+
 status() {
     if is_running; then
         log "$VM_NAME is running."
@@ -190,7 +194,7 @@ status() {
 }
 
 delete() {
-    if ! is_stopped; then
+    if [ ! is_stopped ] || [ ! is_aborted ]; then
         log "$VM_NAME needs to be stopped to delete it."
         exit 1
     fi
