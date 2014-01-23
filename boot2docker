@@ -52,7 +52,6 @@ init() {
 
     VM_OSTYPE=Linux26_64
     VM_NIC=virtio
-    DHCP_SERVER_UPPER=$(echo $DOCKER_IP | sed 's/\.[0-9]*$/.252/')
     unamestr=`uname`
     case $unamestr in
         Linux) VM_CPUS=`nproc`;;
@@ -170,6 +169,7 @@ start() {
             fi
             $VBM dhcpserver remove \
 	        --ifname $NETWORK_IF 2>/dev/null
+            DHCP_SERVER_UPPER=$(echo $DOCKER_IP | sed 's/\.[0-9]*$/.252/')
             $VBM dhcpserver add \
 	        --ifname $NETWORK_IF \
 	        --ip $HOST_IP \
