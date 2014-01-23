@@ -43,6 +43,8 @@ The VM has the following specs:
 * Autoboots to boot2docker
 * NAT networked (Docker `4243->4243` and SSH `22->2022` are forwarded to the host)
 
+You can customise the values of *VM_NAME*, *DOCKER_PORT*, *SSH_HOST_PORT*, *VM_DISK*, *VM_DISK_SIZE*, *VM_MEM* and *BOOT2DOCKER_ISO* by setting them in ``$HOME/.boot2docker/profile``
+
 Beware, this is work in progress. To use:
 
 ```

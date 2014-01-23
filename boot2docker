@@ -8,6 +8,8 @@ SSH_HOST_PORT=2022
 VM_DISK=./boot2docker.vmdk
 VM_DISK_SIZE=40000
 
+VM_MEM=1024
+
 BOOT2DOCKER_ISO=./boot2docker.iso
 
 test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
@@ -34,7 +36,6 @@ init() {
 	    exit 1
     fi
 
-    VM_MEM=1024
     VM_OSTYPE=Linux26_64
     VM_NIC=virtio
     unamestr=`uname`
