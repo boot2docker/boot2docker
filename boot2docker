@@ -49,7 +49,7 @@ init() {
     $VBM createvm --name $VM_NAME --register
 
     log "Setting VM settings"
-    $VBM modifyvm $VM_NAME \
+    if ! $VBM modifyvm $VM_NAME \
         --ostype $VM_OSTYPE \
         --cpus $VM_CPUS \
         --memory $VM_MEM \
@@ -64,7 +64,11 @@ init() {
         --nestedpaging on \
         --firmware bios \
         --bioslogofadein off --bioslogofadeout off --bioslogodisplaytime 0 --biosbootmenu disabled \
-        --boot1 dvd
+        --boot1 dvd; then
+      echo "An error occured, upgrade VirtualBox or try to disable some options"
+      delete
+      exit 1
+    fi
 
     log "Setting VM networking"
     $VBM modifyvm $VM_NAME \
