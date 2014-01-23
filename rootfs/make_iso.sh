@@ -2,8 +2,8 @@
 
 # Download Tiny Core Linux rootfs
 cd $ROOTFS
-zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
-cd -
+zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames  > /dev/null 2>&1
+cd -  > /dev/null 2>&1
 
 
 
@@ -16,7 +16,7 @@ rm -f $ROOTFS/usr/local/etc/fstab
 mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 
 # Download the latest Docker
-curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest
+curl -s -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest
 chmod +x $ROOTFS/usr/local/bin/docker
 
 # Make sure we have the correct bootsync
@@ -25,8 +25,8 @@ chmod +x $ROOTFS/opt/bootsync.sh
 
 # Prepare the ISO directory with the kernel
 mkdir -p /tmp/iso/boot
-cp -v /linux-3.12.1/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
-cp -vr /isolinux /tmp/iso/boot
+cp /linux-3.12.1/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
+cp -r /isolinux /tmp/iso/boot
 
 # Pack the rootfs
 cd $ROOTFS
