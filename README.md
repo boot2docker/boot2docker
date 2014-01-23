@@ -32,7 +32,7 @@ pass: tcuser
 Make sure to setup a port forward from host to guest port `22`. Avoid bridged networking due to the static login and password. Or use the boot2docker init script.
 
 Init Script (OSX and Linux)
-------------------------------
+---------------------------
 boot2docker now comes with a rather simple init script that leverage's VirtualBox's `VBoxManage`. Essentially, you can init (create), start, suspend, stop delete the boot2docker VM right from the command line.
 
 The VM has the following specs:
@@ -72,10 +72,10 @@ $ ./docker version
 
 ```
 
-You can install the Docker OSX client, you can either:
+OSX Client installation
+=======================
 
-
-Get latest binary release from docker.io:
+Get latest Docker OSX client binary release from docker.io:
 ```
 $ curl http://get.docker.io/builds/Darwin/x86_64/docker-latest.tgz | tar xvz
 $ chmod +x ./usr/local/bin/docker
