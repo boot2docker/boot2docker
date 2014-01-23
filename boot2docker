@@ -164,7 +164,7 @@ start() {
 	        NETWORK_IF=$($VBM list hostonlyifs  | grep ^Name: | tail -n 1 | awk '{print $2}')
 	        $VBM hostonlyif ipconfig $NETWORK_IF \
 	            --ip $HOST_IP \
-	            --netmask 255.255.255.0
+	            --netmask 255.255.255.0 >/dev/null
 	        log "Created network interface: $NETWORK_IF"
             fi
             $VBM dhcpserver remove \
