@@ -4,15 +4,21 @@ VBM=VBoxManage
 
 DOCKER_PORT=4243
 SSH_HOST_PORT=2022
+CWD=${HOME}/.boot2docker
 
-VM_DISK=./boot2docker.vmdk
 VM_DISK_SIZE=40000
-
 VM_MEM=1024
 
-BOOT2DOCKER_ISO=./boot2docker.iso
-
 test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
+
+if [[ -n ${VM_DISK} ]] ; then
+    VM_DISK=${CWD}/boot2docker.vmdk
+fi
+if [[ -n ${BOOT2DOCKER_ISO} ]] ; then
+    BOOT2DOCKER_ISO=${CWD}/boot2docker.iso
+fi
+
+mkdir -p ${CWD}
 
 get_latest_release_name() {
     curl 'https://api.github.com/repos/steeve/boot2docker/releases' 2>/dev/null | grep "tag_name" | awk '{print $2}' | sed 's/[",]*//g' | head -1
@@ -21,7 +27,7 @@ get_latest_release_name() {
 download_latest() {
     LATEST_RELEASE=`get_latest_release_name`
     log "Latest version is $LATEST_RELEASE, downloading..."
-    curl -L -o boot2docker.iso "https://github.com/steeve/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
+    curl -L -o ${BOOT2DOCKER_ISO} "https://github.com/steeve/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
     log "Done"
 }
 
