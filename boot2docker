@@ -19,7 +19,8 @@ get_latest_release_name() {
 download_latest() {
     LATEST_RELEASE=`get_latest_release_name`
     log "Latest version is $LATEST_RELEASE, downloading..."
-    curl -L -o boot2docker.iso "https://github.com/steeve/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
+    mkdir -p "${BOOT2DOCKER_ISO%/*}"
+    curl -L -o "$BOOT2DOCKER_ISO" "https://github.com/steeve/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
     log "Done"
 }
 
@@ -95,6 +96,7 @@ init() {
     if [ ! -e $VM_DISK ]; then
         log "Creating $VM_DISK_SIZE Meg hard drive..."
         # closemedium may complain when not needed
+        mkdir -p "${VM_DISK%/*}"
         $VBM closemedium disk $VM_DISK > /dev/null 2>&1
         $VBM createhd --format VMDK --filename $VM_DISK --size $VM_DISK_SIZE
     fi
