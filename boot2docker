@@ -109,10 +109,12 @@ init() {
 }
 
 do_ssh() {
+    is_installed || status
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $SSH_HOST_PORT docker@localhost $1
 }
 
 start() {
+    is_installed || status
     if ! is_running; then
         if is_paused; then
             log "Resuming $VM_NAME"
@@ -137,6 +139,7 @@ wait_vm() {
 }
 
 pause() {
+    is_installed || status
     if is_running; then
         log "Pausing $VM_NAME..."
         $VBM controlvm $VM_NAME pause > /dev/null
@@ -146,6 +149,7 @@ pause() {
 }
 
 stop() {
+    is_installed || status
     if is_running; then
         log "Shutting down $VM_NAME..."
         $VBM controlvm $VM_NAME acpipowerbutton > /dev/null
@@ -158,6 +162,7 @@ stop() {
 }
 
 restart() {
+    is_installed || status
     if is_running; then
         stop && sleep 1 && start
     else
@@ -166,7 +171,15 @@ restart() {
 }
 
 info() {
-    $VBM showvminfo $VM_NAME
+    if is_installed; then
+        $VBM showvminfo $VM_NAME
+    else
+        echo "$VM_NAME does not exist."
+    fi
+}
+
+is_installed() {
+    $VBM list vms | grep "$VM_NAME" > /dev/null
 }
 
 is_running() {
@@ -192,8 +205,11 @@ status() {
     elif is_paused; then
         log "$VM_NAME is suspended."
         exit 1
-    else
+    elif is_stopped; then
         log "$VM_NAME is stopped."
+        exit 1
+    else
+        log "$VM_NAME does not exist."
         exit 1
     fi
 }
