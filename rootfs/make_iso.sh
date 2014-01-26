@@ -19,6 +19,10 @@ mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest
 chmod +x $ROOTFS/usr/local/bin/docker
 
+# Download the latest Pipework
+curl -L -o $ROOTFS/usr/local/bin/pipework https://raw2.github.com/jpetazzo/pipework/master/pipework
+chmod +x $ROOTFS/usr/local/bin/pipework
+
 # Make sure we have the correct bootsync
 mv $ROOTFS/bootsync.sh $ROOTFS/opt/bootsync.sh
 chmod +x $ROOTFS/opt/bootsync.sh
