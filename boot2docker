@@ -59,6 +59,11 @@ init() {
     $VBM createvm --name $VM_NAME --register
 
     log "Setting VM settings"
+    TXUX_SUPPORT=""
+    if $($VBM modifyvm|grep -q "\-\-vtxux"); then
+        TXUX_SUPPORT="--vtxux on"
+    fi
+
     if ! $VBM modifyvm $VM_NAME \
         --ostype $VM_OSTYPE \
         --cpus $VM_CPUS \
@@ -69,7 +74,7 @@ init() {
         --hpet on \
         --hwvirtex on \
         --vtxvpid on \
-        --vtxux on \
+        $TXUX_SUPPORT \
         --largepages on \
         --nestedpaging on \
         --firmware bios \
