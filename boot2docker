@@ -284,6 +284,16 @@ delete() {
     $VBM unregistervm --delete $VM_NAME
 }
 
+reload() {
+    stop
+    if `$VBM showvminfo $VM_NAME | grep SATA > /dev/null`; then
+        log "Removing $VM_DISK disk"
+        $VBM storagectl $VM_NAME --name "SATA" --remove
+    fi
+    delete
+    init
+}
+
 case $1 in
     init | setup) init;;
     start | up) start;;
@@ -293,6 +303,7 @@ case $1 in
     status) status;;
     info) info;;
     delete) delete;;
+    reload) reload;;
     ssh) shift; do_ssh "$@";;
     download) download_latest;;
     *) echo "Usage $0 {init|start|up|save|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
