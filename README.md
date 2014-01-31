@@ -83,7 +83,7 @@ $ export DOCKER_HOST=localhost
 $ ./usr/local/bin/docker version
 $ sudo cp ./usr/local/bin/docker /usr/local/bin/
 ```
-or with Homebrew (http://brew.sh):
+or with Homebrew ( http://brew.sh ):
 ```
 $ brew tap homebrew/binary
 $ brew install docker
