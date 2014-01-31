@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 VM_NAME=boot2docker-vm
 VBM=VBoxManage
 
@@ -15,17 +15,18 @@ BOOT2DOCKER_ISO=./boot2docker.iso
 test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
 
 get_latest_release_name() {
-    local LRN=$(curl 'https://api.github.com/repos/steeve/boot2docker/releases' 2>/dev/null | grep -o -m 1 -e "\"tag_name\":[[:space:]]*\"[a-z0-9.]*\"" | head -1)
-    if [[ $LRN =~ \"tag_name\":[[:space:]]*\"(.*)\" ]]; then
-        echo ${BASH_REMATCH[1]}
-    else
+    local LRN
+    LRN=$(curl 'https://api.github.com/repos/steeve/boot2docker/releases' 2>/dev/null|grep -o -m 1 -e "\"tag_name\":[[:space:]]*\"[a-z0-9.]*\""|head -1|cut -d: -f2|tr -d ' "')
+    if [ -z "$LRN" ]; then
         echo "ERROR"
+    else
+        echo "$LRN"
     fi
 }
 
 download_latest() {
-    LATEST_RELEASE=`get_latest_release_name`
-    if [ ! "$LATEST_RELEASE" == "ERROR" ]; then
+    LATEST_RELEASE=$(get_latest_release_name)
+    if [ ! "$LATEST_RELEASE" = "ERROR" ]; then
         log "Latest version is $LATEST_RELEASE, downloading..."
         mkdir -p "${BOOT2DOCKER_ISO%/*}"
         curl -L -o "$BOOT2DOCKER_ISO" "https://github.com/steeve/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
