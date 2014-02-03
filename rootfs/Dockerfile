@@ -79,6 +79,10 @@ RUN find $ROOTFS/etc/rc.d/ -exec chmod +x {} \; && \
 RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest && \
     chmod +x $ROOTFS/usr/local/bin/docker
 
+# Download the latest Pipework
+RUN curl -L -o $ROOTFS/usr/local/bin/pipework https://raw2.github.com/jpetazzo/pipework/master/pipework && \
+    chmod +x $ROOTFS/usr/local/bin/pipework
+
 ADD isolinux /isolinux
 ADD make_iso.sh /
 
