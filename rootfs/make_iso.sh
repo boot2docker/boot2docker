@@ -22,7 +22,7 @@ chmod +x $ROOTFS/opt/bootsync.sh
 
 # Prepare the ISO directory with the kernel
 mkdir -p /tmp/iso/boot
-cp -v /linux-3.12.1/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
+cp -v /linux-3.13/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 cp -vr /isolinux /tmp/iso/boot
 
 # Pack the rootfs
