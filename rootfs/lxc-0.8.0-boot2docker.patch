@@ -229,3 +229,112 @@ index b437654..fc0337d 100644
  		ERROR("failed to setup pivot root");
  		return -1;
  	}
+diff --git a/lxc-lxc-0.8.0/src/lxc/lxc-checkconfig.in b/lxc-lxc-0.8.0/src/lxc/lxc-checkconfig.in
+index 8c2b5e5..20538d1 100644
+--- a/lxc-lxc-0.8.0/src/lxc/lxc-checkconfig.in
++++ b/lxc-lxc-0.8.0/src/lxc/lxc-checkconfig.in
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ # Allow environment variables to override grep and config
+ : ${CONFIG:=/proc/config.gz}
+diff --git a/lxc-lxc-0.8.0/src/lxc/lxc-clone.in b/lxc-lxc-0.8.0/src/lxc/lxc-clone.in
+index 04ef20b..5981170 100644
+--- a/lxc-lxc-0.8.0/src/lxc/lxc-clone.in
++++ b/lxc-lxc-0.8.0/src/lxc/lxc-clone.in
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ #
+ # lxc: linux Container library
+diff --git a/lxc-lxc-0.8.0/src/lxc/lxc-create.in b/lxc-lxc-0.8.0/src/lxc/lxc-create.in
+index b21cdc3..86de796 100644
+--- a/lxc-lxc-0.8.0/src/lxc/lxc-create.in
++++ b/lxc-lxc-0.8.0/src/lxc/lxc-create.in
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ #
+ # lxc: linux Container library
+diff --git a/lxc-lxc-0.8.0/src/lxc/lxc-destroy.in b/lxc-lxc-0.8.0/src/lxc/lxc-destroy.in
+index 846266c..1a85ea7 100644
+--- a/lxc-lxc-0.8.0/src/lxc/lxc-destroy.in
++++ b/lxc-lxc-0.8.0/src/lxc/lxc-destroy.in
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ #
+ # lxc: linux Container library
+diff --git a/lxc-lxc-0.8.0/src/lxc/lxc-ls.in b/lxc-lxc-0.8.0/src/lxc/lxc-ls.in
+index 9293323..fe6fb2d 100644
+--- a/lxc-lxc-0.8.0/src/lxc/lxc-ls.in
++++ b/lxc-lxc-0.8.0/src/lxc/lxc-ls.in
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ #
+ # lxc: linux Container library
+diff --git a/lxc-lxc-0.8.0/src/lxc/lxc-netstat.in b/lxc-lxc-0.8.0/src/lxc/lxc-netstat.in
+index 4abe25f..4c73b30 100644
+--- a/lxc-lxc-0.8.0/src/lxc/lxc-netstat.in
++++ b/lxc-lxc-0.8.0/src/lxc/lxc-netstat.in
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ #
+ # lxc: linux Container library
+diff --git a/lxc-lxc-0.8.0/src/lxc/lxc-ps.in b/lxc-lxc-0.8.0/src/lxc/lxc-ps.in
+index cf3f1e9..dcfec1a 100644
+--- a/lxc-lxc-0.8.0/src/lxc/lxc-ps.in
++++ b/lxc-lxc-0.8.0/src/lxc/lxc-ps.in
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ #
+ # lxc: linux Container library
+diff --git a/lxc-lxc-0.8.0/src/lxc/lxc-setcap.in b/lxc-lxc-0.8.0/src/lxc/lxc-setcap.in
+index 7fd390c..ad77ea2 100644
+--- a/lxc-lxc-0.8.0/src/lxc/lxc-setcap.in
++++ b/lxc-lxc-0.8.0/src/lxc/lxc-setcap.in
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ #
+ # lxc: linux Container library
+diff --git a/lxc-lxc-0.8.0/src/lxc/lxc-setuid.in b/lxc-lxc-0.8.0/src/lxc/lxc-setuid.in
+index 84f18af..72510a1 100644
+--- a/lxc-lxc-0.8.0/src/lxc/lxc-setuid.in
++++ b/lxc-lxc-0.8.0/src/lxc/lxc-setuid.in
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ #
+ # lxc: linux Container library
+diff --git a/lxc-lxc-0.8.0/src/lxc/lxc-shutdown.in b/lxc-lxc-0.8.0/src/lxc/lxc-shutdown.in
+index c0d1702..dbc1800 100644
+--- a/lxc-lxc-0.8.0/src/lxc/lxc-shutdown.in
++++ b/lxc-lxc-0.8.0/src/lxc/lxc-shutdown.in
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ # (C) Copyright Canonical 2011,2012
+ 
+diff --git a/lxc-lxc-0.8.0/src/lxc/lxc-version.in b/lxc-lxc-0.8.0/src/lxc/lxc-version.in
+index 1bd055a..b6875da 100644
+--- a/lxc-lxc-0.8.0/src/lxc/lxc-version.in
++++ b/lxc-lxc-0.8.0/src/lxc/lxc-version.in
+@@ -1,3 +1,3 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ echo "lxc version: @PACKAGE_VERSION@"
