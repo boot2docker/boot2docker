@@ -1,12 +1,12 @@
 #!/bin/sh
 set -e
 
+##TODO: as soon as we can run mknod from docker build, this can move into the Dockerfile
+
 # Download Tiny Core Linux rootfs
 cd $ROOTFS
 zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 cd -
-
-
 
 # Post download rootfs overwrites
 # Append the fstab entries for LXC
@@ -15,10 +15,6 @@ rm -f $ROOTFS/usr/local/etc/fstab
 
 # Change MOTD
 mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
-
-# Download the latest Docker
-curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest
-chmod +x $ROOTFS/usr/local/bin/docker
 
 # Make sure we have the correct bootsync
 mv $ROOTFS/bootsync.sh $ROOTFS/opt/bootsync.sh
