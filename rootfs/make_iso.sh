@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 # Download Tiny Core Linux rootfs
 cd $ROOTFS
