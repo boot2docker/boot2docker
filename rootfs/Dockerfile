@@ -31,12 +31,15 @@ RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.o
     mkdir -p $ROOTFS/usr/local/lib && \
     cp -av `pwd`/output/lib64/* $ROOTFS/usr/local/lib
 
-# Download LXC, patch it with @sebp's patch to properly change root from a ramdisk, compile and install
-RUN curl -L https://github.com/lxc/lxc/archive/lxc-1.0.0.beta1.tar.gz | tar -C / -xz && \
-    cd /lxc-lxc-1.0.0.beta1 && \
-    curl -L https://github.com/spahl/lxc/commit/d6b2904d50cac7c44e6f490308b8dd1417281529.patch | patch -p1 && \
+ADD lxc-0.8.0-boot2docker.patch /
+
+# Download LXC, patch it with a 0.8.0 port of @sebp's patch to properly change root from a ramdisk, compile and install
+#    curl -L https://github.com/spahl/lxc/commit/d6b2904d50cac7c44e6f490308b8dd1417281529.patch | patch -p1 && \
+RUN curl -L https://github.com/lxc/lxc/archive/lxc-0.8.0.tar.gz | tar -C / -xz && \
+    cd /lxc-lxc-0.8.0 && \
+    patch -p2 < /lxc-0.8.0-boot2docker.patch && \
     ./autogen.sh && \
-    LIBCAPLIB=/libcap-2.22/output/ CFLAGS="-m32 -I${LIBCAPLIB}/include -L${LIBCAPLIB}/lib64" ./configure prefix=/usr/local && \
+    LIBCAPLIB=/libcap-2.22/output/ CFLAGS="-m32 -I${LIBCAPLIB}/include -L${LIBCAPLIB}/lib64" ./configure prefix=/usr/local --disable-apparmor && \
     make && \
     make prefix=$ROOTFS install && \
     mkdir -p $ROOTFS/usr/var/lib/lxc && \
