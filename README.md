@@ -42,6 +42,7 @@ The VM has the following specs:
 * 40gb HDD (auto-initialized at first boot)
 * 1gb memory
 * Autoboots to boot2docker
+* `virtio` high performance networking
 * NAT networked (Docker `4243->4243` and SSH `22->2022` are forwarded to the host)
 
 You can customise the values of *VM_NAME*, *DOCKER_PORT*, *SSH_HOST_PORT*, *VM_DISK*, *VM_DISK_SIZE*, *VM_MEM* and *BOOT2DOCKER_ISO* by setting them in ``$HOME/.boot2docker/profile``
@@ -69,7 +70,7 @@ If you want to use the brand new Docker OSX client, just tell it to connect to `
 
 ```
 $ ./boot2docker up
-$ export DOCKER_HOST="tcp://localhost:4243"
+$ export DOCKER_HOST=localhost
 $ ./docker version
 
 ```
@@ -79,11 +80,11 @@ OSX Client installation
 
 Get latest Docker OSX client binary release from docker.io:
 ```
-$ curl http://get.docker.io/builds/Darwin/x86_64/docker-latest.tgz | tar xvz
-$ chmod +x ./usr/local/bin/docker
+$ curl -o docker http://get.docker.io/builds/Darwin/x86_64/docker-latest
+$ chmod +x ./docker
 $ export DOCKER_HOST=localhost
-$ ./usr/local/bin/docker version
-$ sudo cp ./usr/local/bin/docker /usr/local/bin/
+$ ./docker version
+$ sudo cp ./docker /usr/local/bin/
 ```
 or with Homebrew ( http://brew.sh ):
 ```
@@ -94,8 +95,8 @@ $ brew install docker
 Features
 --------
 * Kernel 3.12.1 with AUFS
-* Docker 0.7.5
-* LXC 1.0-beta1
+* Docker 0.7.6
+* LXC 0.8.0
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
