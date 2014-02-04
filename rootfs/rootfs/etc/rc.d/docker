@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#give us a default docker daemon start script
+# Give us a default docker daemon start script
 if [ ! -e /var/lib/boot2docker/etc/docker-daemon ]; then
     # use the docker start script on the HD
     cp /usr/local/etc/docker-daemon /var/lib/boot2docker/etc/docker-daemon

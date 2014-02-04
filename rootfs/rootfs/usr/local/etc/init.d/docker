@@ -9,7 +9,7 @@ start() {
     fi
     # TODO move this logfile out of /var/lib/docker
     /bin/dmesg | /bin/egrep '(VirtualBox|VMware|QEMU)' > /dev/null && EXPOSE_ALL="-H tcp://"
-    /var/lib/boot2docker/etc/docker-daemon
+    /usr/local/bin/docker -d -D -H unix:// $EXPOSE_ALL > /var/lib/boot2docker/docker.log 2>&1 &
 }
 
 stop() {
