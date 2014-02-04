@@ -8,7 +8,8 @@ Download
 --------
 Head over to the [Releases Page](https://github.com/steeve/boot2docker/releases) to grab the ISO.
 
-To 'install' the ISO onto an SD card, USB-Stick or even empty hard disk, you can use ``dd if=boot2docker.iso of=/dev/sdX``.
+To 'install' the ISO onto an SD card, USB-Stick or even empty hard disk, you can
+use ``dd if=boot2docker.iso of=/dev/sdX``.
 This will create the small boot partition, and install an MBR.
 
 Demo
@@ -20,7 +21,7 @@ How to use
 ----------
 Simply boot from the ISO, and you're done. It runs on VMs and bare-metal machines.
 
-If you want your containers to persist across reboots, attach an ext4 formatted disk with the label ``boot2docker-data`` (``mkfs.ext4 -L boot2docker-data /dev/sdX5``) to your VM, and boot2docker will automount it on `/var/lib/docker`. It will also persist the SSH keys of the machine.
+If you want your containers to persist across reboots, attach an ext4 formatted disk with the label ``boot2docker-data`` (``mkfs.ext4 -L boot2docker-data /dev/sdX5``) to your VM, and boot2docker will automount it on `/mnt/sdX` and then softlink `/mnt/sdX/var/lib/docker` to `/var/lib/docker`. It will also persist the SSH keys of the machine.
 
 boot2docker auto logs in, but if you want to SSH into the machine, the credentials are:
 
