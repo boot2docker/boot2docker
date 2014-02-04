@@ -70,7 +70,7 @@ If you want to use the brand new Docker OSX client, just tell it to connect to `
 
 ```
 $ ./boot2docker up
-$ export DOCKER_HOST=localhost
+$ export DOCKER_HOST=localhost:4243
 $ ./docker version
 
 ```
