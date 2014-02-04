@@ -6,12 +6,12 @@
 # Automount a hard drive
 /etc/rc.d/automount
 
-#TODO: from here in, we could use /var/lib/boot2docker/etc/rc.d
+# TODO: from here in, we could use /var/lib/boot2docker/etc/rc.d
 
 # set the hostname
 /etc/rc.d/hostname
 
-#TODO: move this (and the docker user creation&pwd out to its own over-rideable?))
+# TODO: move this (and the docker user creation&pwd out to its own over-rideable?))
 if grep -q '^docker:' /etc/passwd; then
     # if we have the docker user, let's create the docker group
     /bin/addgroup -S docker
@@ -28,7 +28,7 @@ fi
 # Launch Docker
 /etc/rc.d/docker
 
-#allow local HD customisation
+# Allow local HD customisation
 if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
-	/var/lib/boot2docker/bootlocal.sh &
+    /var/lib/boot2docker/bootlocal.sh &
 fi

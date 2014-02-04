@@ -5,7 +5,7 @@
 start() {
     # remove this softlink - the docker daemon recreates it and when its from the wrong os/docker version, things go boom
     if [ -e /var/lib/docker/lxc-start-unconfined ]; then
-	    rm /var/lib/docker/lxc-start-unconfined
+        rm /var/lib/docker/lxc-start-unconfined
     fi
     # TODO move this logfile out of /var/lib/docker
     /bin/dmesg | /bin/egrep '(VirtualBox|VMware|QEMU)' > /dev/null && EXPOSE_ALL="-H tcp://"
@@ -14,8 +14,8 @@ start() {
 
 stop() {
     kill $(cat /var/run/docker.pid)
-   # remove this softlink - the docker daemon recreates it and when its from the wrong os/docker version, things go boom
-   rm /var/lib/docker/lxc-start-unconfined
+    # remove this softlink - the docker daemon recreates it and when its from the wrong os/docker version, things go boom
+    rm /var/lib/docker/lxc-start-unconfined
 }
 
 restart() {
@@ -41,9 +41,9 @@ status() {
 }
 
 case $1 in
-   start) start;;
-   stop) stop;;
-   restart) restart;;
-   status) status;;
-   *) echo "Usage $0 {start|stop|restart|status}"; exit 1
+    start) start;;
+    stop) stop;;
+    restart) restart;;
+    status) status;;
+    *) echo "Usage $0 {start|stop|restart|status}"; exit 1
 esac
