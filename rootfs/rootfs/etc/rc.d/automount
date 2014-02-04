@@ -1,8 +1,30 @@
 #!/bin/sh
-# This script mounts the first hard drive found on /var/lib/docker
 
-FIRST_HD=`autoscan-devices | cut -d' ' -f1`
-if [ -n "$FIRST_HD" ]; then
+#if there is a partition with `boot2docker-data` as its label, use it and be very happy
+BOOT2DOCKER_DATA=`blkid -L boot2docker-data | head -n 1`
+if [ ! -n "$BOOT2DOCKER_DATA" ]; then
+	#is the disk unpartitioned?, test for the 'boot2docker format-me' string
+	UNPARTITIONED_HD=`fdisk -l | grep "doesn't contain a valid partition table" | head -n 1 | sed 's/Disk \(.*\) doesn.*/\1/'`
+	if [ -n "$UNPARTITIONED_HD" ]; then
+		#test for our magic string (it means that the disk was made by ./boot2docker init
+		MAGIC=`dd if=$UNPARTITIONED_HD bs=1 count=29 2>/dev/null`
+		if [ "$MAGIC" = "boot2docker, please format-me" ]; then
+			#create the partition, format it and then mount it
+			echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use"
+			echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use" > /home/docker/log.log
+			#make one big partition
+			(echo n; echo p; echo 1; echo ; echo ; echo w) | fdisk $UNPARTITIONED_HD
+			BOOT2DOCKER_DATA=`echo "${UNPARTITIONED_HD}1"`
+			mkfs.ext4 -L boot2docker_data $BOOT2DOCKER_DATA
+		fi
+	else
+		#pick the first ext4 as a fallback
+		#TODO: mount all Linux partitions and look for a /var/lib/docker...
+		BOOT2DOCKER_DATA=`blkid | grep 'TYPE="ext4"' | head -n 1 | sed 's/:.*//'`
+	fi
+fi
+
+if [ -n "$BOOT2DOCKER_DATA" ]; then
     mkdir -p /var/lib/docker
     mount /dev/$FIRST_HD /var/lib/docker
 fi

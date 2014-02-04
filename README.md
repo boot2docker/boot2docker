@@ -20,7 +20,7 @@ How to use
 ----------
 Simply boot from the ISO, and you're done. It runs on VMs and bare-metal machines.
 
-If you want your containers to persist across reboots, just attach an ext4 formatted disk to your VM, and boot2docker will automount it on `/var/lib/docker`. It will also persist the SSH keys of the machine.
+If you want your containers to persist across reboots, attach an ext4 formatted disk with the label ``boot2docker-data`` (``mkfs.ext4 -L boot2docker-data /dev/sdX5``) to your VM, and boot2docker will automount it on `/var/lib/docker`. It will also persist the SSH keys of the machine.
 
 boot2docker auto logs in, but if you want to SSH into the machine, the credentials are:
 
@@ -38,7 +38,7 @@ boot2docker now comes with a rather simple init script that leverage's VirtualBo
 The VM has the following specs:
 
 * CPU Cores: same as host (physical, not logical)
-* 40gb HDD (**not** initialized, see FAQ)
+* 40gb HDD (auto-initialized at first boot)
 * 1gb memory
 * Autoboots to boot2docker
 * NAT networked (Docker `4243->4243` and SSH `22->2022` are forwarded to the host)
@@ -143,18 +143,3 @@ Run `sudo -s` as the docker user.
 **Why not CoreOS?**
 
 I got asked that question a lot, so I thought I should put it here once and for all. [CoreOS](http://coreos.com/) is targeted at building infrastructure and distributed systems. I just wanted the fastest way to boot to Docker.
-
-**Hard Disk Persistence using Virtualbox**
-
-```
-sudo -s
-fdisk /dev/sda
-n    # new primary partition
-p
-1   # first partition
-Enter  # default start
-Enter  # default end
-w  # write partition table and quit
-mkfs.ext4 /dev/sda1
-reboot
-```

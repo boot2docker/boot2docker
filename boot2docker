@@ -117,7 +117,13 @@ init() {
         log "Creating $VM_DISK_SIZE Meg hard drive..."
         # closemedium may complain when not needed
         $VBM closemedium disk $VM_DISK > /dev/null 2>&1
+	## make a simple text file, and use that as the flag to say 'format me'
         $VBM createhd --format VMDK --filename $VM_DISK --size $VM_DISK_SIZE
+	echo "boot2docker, please format-me" > format-flag.txt
+	truncate -s 5M format-flag.txt
+	$VBM convertfromraw format-flag.txt format-flag.vmdk --format VMDK
+	$VBM clonehd format-flag.vmdk $VM_DISK --existing
+	rm format-flag.txt format-flag.vmdk
     fi
 
     $VBM storagectl $VM_NAME --name "SATA" --add sata --hostiocache on
