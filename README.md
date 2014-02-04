@@ -55,6 +55,7 @@ $ chmod +x boot2docker
 $ ./boot2docker init
 $ ./boot2docker up
 $ ./boot2docker ssh
+docker@localhost's password: tcuser
 ```
 
 If `ssh` complains about the keys:
@@ -67,7 +68,7 @@ If you want to use the brand new Docker OSX client, just tell it to connect to `
 
 ```
 $ ./boot2docker up
-$ export DOCKER_HOST=localhost
+$ export DOCKER_HOST="tcp://localhost:4243"
 $ ./docker version
 
 ```
