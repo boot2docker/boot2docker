@@ -37,21 +37,25 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
 	mkdir -p /mnt/$PARTNAME
 	mount $BOOT2DOCKER_DATA /mnt/$PARTNAME
 
+	# Just in case, the links will fail if not
+	rm -rf /var/lib/docker /var/lib/boot2docker
 	if [ -d /mnt/$PARTNAME/vm ]; then
-		#the old behavior - use the entire disk for boot2docker data
+		# The old behavior - use the entire disk for boot2docker data
 		ln -s /mnt/$PARTNAME /var/lib/docker
 
-		#give us a link to the new cusomisation location
+		# Give us a link to the new cusomisation location
 		ln -s /var/lib/docker/vm /var/lib/boot2docker
 	else
-		#detected a disk with a normal linux install (/var/lib/docker + more))
+		# Detected a disk with a normal linux install (/var/lib/docker + more))
 		mkdir -p /var/lib
+
 		mkdir -p /mnt/$PARTNAME/var/lib/docker
 		ln -s /mnt/$PARTNAME/var/lib/docker /var/lib/docker
+
 		mkdir -p /mnt/$PARTNAME/var/lib/boot2docker
 		ln -s /mnt/$PARTNAME/var/lib/boot2docker /var/lib/boot2docker
 	fi
 fi
-#/etc dirs are initialised from /usr/local, to allow the user/admin to customise
+# /etc dirs are initialised from /usr/local, to allow the user/admin to customise
 mkdir -p /var/lib/boot2docker/etc/
 
