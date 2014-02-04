@@ -31,7 +31,7 @@ download_latest() {
         mkdir -p "${BOOT2DOCKER_ISO%/*}"
         curl -L -o "$BOOT2DOCKER_ISO" "https://github.com/steeve/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
         log "Done"
-    else 
+    else
         log "Could not get lastest release name! Cannot download boot2docker.iso."
     fi
 }
@@ -117,13 +117,13 @@ init() {
         log "Creating $VM_DISK_SIZE Meg hard drive..."
         # closemedium may complain when not needed
         $VBM closemedium disk $VM_DISK > /dev/null 2>&1
-	## make a simple text file, and use that as the flag to say 'format me'
+        ## make a simple text file, and use that as the flag to say 'format me'
         $VBM createhd --format VMDK --filename $VM_DISK --size $VM_DISK_SIZE
-	echo "boot2docker, please format-me" > format-flag.txt
-	truncate -s 5M format-flag.txt
-	$VBM convertfromraw format-flag.txt format-flag.vmdk --format VMDK
-	$VBM clonehd format-flag.vmdk $VM_DISK --existing
-	rm format-flag.txt format-flag.vmdk
+
+        echo "boot2docker, please format-me" | cat - /dev/zero | head -c 5242880 > format-flag.txt # 5M
+        $VBM convertfromraw format-flag.txt format-flag.vmdk --format VMDK
+        $VBM clonehd format-flag.vmdk $VM_DISK --existing
+        $VBM closemedium disk format-flag.vmdk > /dev/null 2>&1 && rm format-flag.txt format-flag.vmdk
     fi
 
     $VBM storagectl $VM_NAME --name "SATA" --add sata --hostiocache on
