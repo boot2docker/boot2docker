@@ -138,8 +138,34 @@ init() {
     $VBM storageattach $VM_NAME --storagectl "SATA" --port 0 --device 0 --type dvddrive --medium $BOOT2DOCKER_ISO
     $VBM storageattach $VM_NAME --storagectl "SATA" --port 1 --device 0 --type hdd --medium $VM_DISK
 
+    setup_etc_hosts
+
     log "Done."
     log "You can now type boot2docker up and wait for the VM to start."
+}
+
+setup_etc_hosts() {
+    if grep -q localdocker /etc/hosts; then
+        return
+    fi
+
+    line="$DOCKER_IP localdocker"
+
+    echo
+    echo "Adding localdocker alias to /etc/hosts (may need your password for sudo)."
+    echo "To perform this step manually, add this line to /etc/hosts:"
+    echo
+    echo "    $line"
+    echo
+    echo "Or skip it and just use the IP directly."
+    echo
+
+    read -p "Add localdocker alias to /etc/hosts? [yN] " -n 1 -r
+    echo
+
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        sudo sh -c "echo '$line' >> /etc/hosts"
+    fi
 }
 
 do_ssh() {
