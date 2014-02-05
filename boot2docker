@@ -103,6 +103,13 @@ init() {
         --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
         --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,4243"
 
+    CFWPORTS=""
+    for port in {49000..49900}
+        do
+            CFWPORTS="$CFWPORTS --natpf1 zfp$port,tcp,127.0.0.1,$port,,$port"
+        done
+    $VBM modifyvm $VM_NAME $CFWPORTS
+
     if [ ! -e $BOOT2DOCKER_ISO ]; then
         log "boot2docker.iso not found."
         download_latest
