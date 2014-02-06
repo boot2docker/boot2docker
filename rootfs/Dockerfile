@@ -44,7 +44,7 @@ RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.o
 ADD lxc-0.8.0-boot2docker.patch /
 
 # Download LXC, patch it with a 0.8.0 port of @sebp's patch to properly change root from a ramdisk, compile and install
-#    curl -L https://github.com/spahl/lxc/commit/d6b2904d50cac7c44e6f490308b8dd1417281529.patch | patch -p1 && 
+# Based on https://github.com/spahl/lxc/commit/d6b2904d50cac7c44e6f490308b8dd1417281529
 RUN curl -L https://github.com/lxc/lxc/archive/lxc-0.8.0.tar.gz | tar -C / -xz && \
     cd /lxc-lxc-0.8.0 && \
     patch -p2 < /lxc-0.8.0-boot2docker.patch && \
