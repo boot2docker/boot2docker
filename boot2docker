@@ -18,8 +18,6 @@ if [ -n "$DOCKER_HOST" ]; then
         VM_HOST="localhost"
     fi
 fi
-echo $VM_HOST
-exit
 
 test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
 
