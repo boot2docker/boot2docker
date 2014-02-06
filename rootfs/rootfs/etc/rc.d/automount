@@ -47,8 +47,10 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
 		ln -s /var/lib/docker/vm /var/lib/boot2docker
 
 		# Make sure /tmp is on the disk too too
-		mkdir -p /var/lib/boot2docker/tmp
-		rm -rf /tmp
+		if [ -d /var/lib/boot2docker/tmp ]; then
+			rm -rf /var/lib/boot2docker/tmp
+		fi
+		mv /tmp /var/lib/boot2docker/tmp
 		ln -s /var/lib/boot2docker/tmp /tmp
 	else
 		# Detected a disk with a normal linux install (/var/lib/docker + more))
@@ -61,8 +63,10 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
 		ln -s /mnt/$PARTNAME/var/lib/boot2docker /var/lib/boot2docker
 
 		# Make sure /tmp is on the disk too too
-		mkdir -p /mnt/$PARTNAME/tmp
-		rm -rf /tmp
+		if [ -d /mnt/$PARTNAME/tmp ]; then
+			rm -rf /mnt/$PARTNAME/tmp
+		fi
+		mv /tmp /mnt/$PARTNAME/tmp
 		ln -s /mnt/$PARTNAME/tmp /tmp
 	fi
 
