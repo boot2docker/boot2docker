@@ -97,7 +97,7 @@ There's also a [Puppet module](https://github.com/morgante/puppet-docker) availa
 Features
 --------
 * Kernel 3.12.1 with AUFS
-* Docker 0.7.6
+* Docker 0.8.0
 * LXC 0.8.0
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
