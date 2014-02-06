@@ -14,6 +14,18 @@ BOOT2DOCKER_ISO=./boot2docker.iso
 
 test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
 
+VM_HOST="localhost"
+if [ -n "$DOCKER_HOST" ]; then
+    VM_HOST=$(sed 's/tcp:\/\///' <<< $DOCKER_HOST)
+    if [ -z "$VM_HOST" ]; then
+        VM_HOST="localhost"
+    fi
+fi
+
+if [ -n "$DOCKER_SSH_PORT" ]; then
+    SSH_HOST_PORT=$DOCKER_SSH_PORT
+fi
+
 get_latest_release_name() {
     local LRN
     LRN=$(curl 'https://api.github.com/repos/steeve/boot2docker/releases' 2>/dev/null|grep -o -m 1 -e "\"tag_name\":[[:space:]]*\"[a-z0-9.]*\""|head -1|cut -d: -f2|tr -d ' "')
@@ -146,7 +158,7 @@ init() {
 
 do_ssh() {
     is_installed || status
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $SSH_HOST_PORT docker@localhost $1
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $SSH_HOST_PORT docker@$VM_HOST $1
 }
 
 start() {
@@ -169,7 +181,7 @@ start() {
 }
 
 wait_vm() {
-    while ! echo "ping" | nc localhost $SSH_HOST_PORT > /dev/null 2>&1; do
+    while ! echo "ping" | nc $VM_HOST $SSH_HOST_PORT > /dev/null 2>&1; do
         sleep 1
     done
 }
