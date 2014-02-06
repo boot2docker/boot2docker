@@ -19,6 +19,10 @@ if [ -n "$DOCKER_HOST" ]; then
     fi
 fi
 
+if [ -n "$DOCKER_SSH_PORT" ]; then
+    SSH_HOST_PORT=$DOCKER_SSH_PORT
+fi
+
 test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
 
 get_latest_release_name() {
