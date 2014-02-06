@@ -11,6 +11,9 @@ VM_DISK_SIZE=40000
 VM_MEM=1024
 
 BOOT2DOCKER_ISO=./boot2docker.iso
+
+test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
+
 VM_HOST="localhost"
 if [ -n "$DOCKER_HOST" ]; then
     VM_HOST=$(sed 's/tcp:\/\///' <<< $DOCKER_HOST)
@@ -22,8 +25,6 @@ fi
 if [ -n "$DOCKER_SSH_PORT" ]; then
     SSH_HOST_PORT=$DOCKER_SSH_PORT
 fi
-
-test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
 
 get_latest_release_name() {
     local LRN
