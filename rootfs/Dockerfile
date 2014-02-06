@@ -11,7 +11,7 @@ ENV TCZ_DEPS        iptables \
                     acpid \
                     bash \
                     ncurses-common ncurses-terminfo ncurses ncurses-utils \
-                    xz \
+                    xz liblzma \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 curl
 
 
