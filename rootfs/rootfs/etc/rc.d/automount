@@ -45,6 +45,11 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
 
 		# Give us a link to the new cusomisation location
 		ln -s /var/lib/docker/vm /var/lib/boot2docker
+
+		# Make sure /tmp is on the disk too too
+		mkdir -p /var/lib/boot2docker/tmp
+		rm -rf /tmp
+		ln -s /var/lib/boot2docker/tmp /tmp
 	else
 		# Detected a disk with a normal linux install (/var/lib/docker + more))
 		mkdir -p /var/lib
@@ -54,7 +59,13 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
 
 		mkdir -p /mnt/$PARTNAME/var/lib/boot2docker
 		ln -s /mnt/$PARTNAME/var/lib/boot2docker /var/lib/boot2docker
+
+		# Make sure /tmp is on the disk too too
+		mkdir -p /mnt/$PARTNAME/tmp
+		rm -rf /tmp
+		ln -s /mnt/$PARTNAME/tmp /tmp
 	fi
+
 fi
 # /etc dirs are initialised from /usr/local, to allow the user/admin to customise
 mkdir -p /var/lib/boot2docker/etc/
