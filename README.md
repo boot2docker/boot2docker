@@ -92,6 +92,8 @@ $ brew tap homebrew/binary
 $ brew install docker
 ```
 
+There's also a [Puppet module](https://github.com/morgante/puppet-docker) available, if you want to install with Boxen.
+
 Features
 --------
 * Kernel 3.12.1 with AUFS
