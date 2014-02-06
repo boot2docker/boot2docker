@@ -56,6 +56,16 @@ init() {
         *) echo "$unamestr not yet supported - please raise an issue" ; exit 1
     esac
 
+    if `nc -z -w5 localhost $DOCKER_PORT > /dev/null` ; then
+        log "DOCKER_PORT=$DOCKER_PORT on localhost is used by an other process! Change the port to a free port."
+        exit 1
+    fi
+
+    if `nc -z -w5 localhost $SSH_HOST_PORT > /dev/null` ; then
+        log "SSH_HOST_PORT=$SSH_HOST_PORT on localhost is used by an other process! Change the port to a free port."
+        exit 1
+    fi
+
     log "Creating VM $VM_NAME"
     $VBM createvm --name $VM_NAME --register
 
