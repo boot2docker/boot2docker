@@ -98,7 +98,7 @@ init() {
     fi
 
     log "Setting VM networking"
-    if $BRIDGE_IF; then
+    if [ -n "$BRIDGE_IF" ]; then
 	$VBM modifyvm $VM_NAME \
         	--nic1 bridged \
 	 	--nictype1 $VM_NIC \
