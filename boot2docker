@@ -2,13 +2,14 @@
 VM_NAME=boot2docker-vm
 VBM=VBoxManage
 
-DOCKER_PORT=4243
-SSH_HOST_PORT=2022
+DOCKER_PORT=${DOCKER_PORT:-4243}
+SSH_HOST_PORT=${SSH_HOST_PORT:-2022}
+BRIDGE_IF=${BRIDGE_IF:-}
 
 VM_DISK=./boot2docker.vmdk
-VM_DISK_SIZE=40000
+VM_DISK_SIZE=${VM_DISK_SIZE:-40000}
 
-VM_MEM=1024
+VM_MEM=${VM_MEM:-1024}
 
 BOOT2DOCKER_ISO=./boot2docker.iso
 
@@ -97,22 +98,31 @@ init() {
     fi
 
     log "Setting VM networking"
-    $VBM modifyvm $VM_NAME \
-        --nic1 nat \
-        --nictype1 $VM_NIC \
-        --cableconnected1 on
-    if `$VBM showvminfo $VM_NAME | grep Rule | grep ssh > /dev/null`; then
-	    $VBM modifyvm $VM_NAME \
-        	--natpf1 delete "ssh"
+    if $BRIDGE_IF; then
+	$VBM modifyvm $VM_NAME \
+        	--nic1 bridged \
+	 	--nictype1 $VM_NIC \
+        	--cableconnected1 on
+	$VBM modifyvm $VM_NAME \
+        	--bridgeadapter1 $BRIDGE_IF
+    else
+	$VBM modifyvm $VM_NAME \
+        	--nic1 nat \
+	 	--nictype1 $VM_NIC \
+        	--cableconnected1 on
+    	if `$VBM showvminfo $VM_NAME | grep Rule | grep ssh > /dev/null`; then
+	    	$VBM modifyvm $VM_NAME \
+        		--natpf1 delete "ssh"
+    	fi
+    	if `$VBM showvminfo $VM_NAME | grep Rule | grep docker > /dev/null`; then
+	    	$VBM modifyvm $VM_NAME \
+        		--natpf1 delete "docker"
+    	fi
+    	$VBM modifyvm $VM_NAME \
+        	--natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
+        	--natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,4243"
     fi
-    if `$VBM showvminfo $VM_NAME | grep Rule | grep docker > /dev/null`; then
-	    $VBM modifyvm $VM_NAME \
-        	--natpf1 delete "docker"
-    fi
-    $VBM modifyvm $VM_NAME \
-        --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
-        --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,4243"
-
+    
     if [ ! -e $BOOT2DOCKER_ISO ]; then
         log "boot2docker.iso not found."
         download_latest
