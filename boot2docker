@@ -16,7 +16,7 @@ test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
 
 get_latest_release_name() {
     local LRN
-    LRN=$(curl -s 'https://api.github.com/repos/steeve/boot2docker/releases' | awk -F\" '/tag_name/{print $4;exit}' RS=,)
+    LRN=$(curl -fs 'https://api.github.com/repos/steeve/boot2docker/releases' | awk -F\" '/tag_name/{print $4;exit}' RS=,)
     if [ -z "$LRN" ]; then
         echo "ERROR"
     else
