@@ -110,6 +110,11 @@ init() {
         	--natpf1 delete "docker"
     fi
     $VBM modifyvm $VM_NAME \
+        --nic2 hostonly \
+        --hostonlyadapter2 vboxnet0 \
+        --nictype2 $VM_NIC \
+        --cableconnected2 on
+    $VBM modifyvm $VM_NAME \
         --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
         --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,4243"
 
@@ -258,6 +263,117 @@ delete() {
     $VBM unregistervm --delete $VM_NAME
 }
 
+docker_cmd() {
+    echo "CMD: $@"
+    DCMD=$@
+    if [[ $DCMD =~ [-]name[[:space:]]([a-zA-Z0-9_-]+) ]]; then
+        CNAME=${BASH_REMATCH[1]}
+        # echo "name: $CNAME"
+    fi
+
+    if [[ -n "$CNAME" ]] && [[ $DCMD =~ [-]v[[:space:]]([^:\ ]*):([^:\ ]*)(:ro|:rw){0,1} ]]; then
+        MHD_ORIG=${BASH_REMATCH}
+        MHD_HD_SHARE=$(cd ${BASH_REMATCH[1]}; pwd)
+        MHD_HD_MOUNT=$(md5 -q -s "$MHD_HD_SHARE")
+        MHD_HD_MOUNT="/var/lib/docker/share/$MHD_HD_MOUNT"
+        MHD_OPTION="-v $MHD_HD_MOUNT:${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+        CUGID=$(id)
+        if [[ $CUGID =~ uid\=([0-9]+)\(.*\)[[:space:]]gid\=([0-9]+) ]]; then
+            MUID=${BASH_REMATCH[1]}
+            MGID=${BASH_REMATCH[2]}
+        else
+            log "Could not get User ID"
+            exit 1
+        fi
+        log "nfs /etc/exports add $MHD_HD_SHARE"
+
+        SHARE_ESCAPED="${MHD_HD_SHARE//\//\/}"
+        MHD_HD_EXPORT_CMD="sudo sed -i.bak '/\"$SHARE_ESCAPED\"/d' /etc/exports; sudo echo \"\\\"$MHD_HD_SHARE\\\" -network 192.168.56.0 -mask 255.255.255.0 -alldirs -mapall=$MUID:$MGID\" >> /etc/exports; sudo nfsd update"
+        unamestr=`uname`
+
+        if [[ ! `sudo -v` ]] && [[ "$unamestr" == "Darwin" ]]; then
+            MHD_HD_EXPORT_CMD_TMP=$(mktemp -t b2d)
+            echo $MHD_HD_EXPORT_CMD > $MHD_HD_EXPORT_CMD_TMP
+            osascript -e "do shell script \"sh $MHD_HD_EXPORT_CMD_TMP\" with administrator privileges"
+            rm $MHD_HD_EXPORT_CMD_TMP
+        else
+            $MHD_HD_EXPORT_CMD
+        fi
+        log "mount $MHD_HD_SHARE to $MHD_HD_MOUNT"
+        # sudo /bin/bash -c echo "\"$MHD_HD_SHARE\" -network 192.168.56.0 -mask 255.255.255.0 -alldirs -mapall=502:20" >> /etc/exports
+        do_ssh "sudo mkdir -p $MHD_HD_MOUNT; sudo /usr/local/etc/init.d/nfs-client start; sudo mount 192.168.56.1:$MHD_HD_SHARE $MHD_HD_MOUNT"
+        DCMD="${DCMD/$MHD_ORIG/$MHD_OPTION}"
+    fi
+
+    if [[ -n "$CNAME" ]] && [[ $DCMD =~ -p[[:space:]]([a-zA-Z0-9_\\-\\.]*):*([0-9]*):*([0-9]*)(/udp){0,1} ]]; then
+        # echo $BASH_REMATCH      
+        # echo ${BASH_REMATCH[1]} 
+        # echo ${BASH_REMATCH[2]} 
+        # echo ${BASH_REMATCH[3]} 
+        # echo ${BASH_REMATCH[4]}
+        PP0=$BASH_REMATCH
+        PP1=${BASH_REMATCH[1]}
+        PP2=${BASH_REMATCH[2]}
+        PP3=${BASH_REMATCH[3]}
+        PP4=${BASH_REMATCH[4]}
+        if [[ $PP1 =~ [a-zA-Z0-9](-*[a-zA-Z0-9]+)*(\.[a-zA-Z0-9](-*[a-zA-Z0-9]+)*)+ ]]; then
+            PB_HOST_IF=$PP1
+            if [ "" == "$PP3" ]; then
+                PB_CPORT=$PP2
+            else
+                PB_CPORT=$PP3
+                PB_HPORT=$PP2
+            fi
+        else
+            # echo "no IP"
+            if [ "" == "$PP2" ]; then
+                PB_CPORT=$PP1
+            else
+                PB_CPORT=$PP2
+                PB_HPORT=$PP1
+            fi
+        fi
+        PB_OPTION="-p 0.0.0.0::$PB_CPORT"
+        if [ "" == "$PP4" ]; then
+            PB_TYP=tcp
+        else
+            PB_TYP=udp
+        fi
+        # echo "$PB_HOST_IF:$PB_HPORT:$PB_CPORT"
+        # echo "$PB_OPTION"
+        DCMD="${DCMD/$PP0/$PB_OPTION}"
+        echo "docker $DCMD"
+
+        docker $DCMD
+        # echo "docker port $CNAME $PB_CPORT"
+        PBDYN=$(docker port $CNAME $PB_CPORT)
+        # echo $PBDYN
+        if [[ $PBDYN =~ ([a-zA-Z0-9_\\-\\.]*):*([0-9]*) ]]; then
+            PB_VM_IF=${BASH_REMATCH[1]}
+            # PB_VM_IF=""
+            PB_DPORT=${BASH_REMATCH[2]}
+            if [ "" == "$PB_HOST_IF" ]; then
+                PB_HOST_IF="127.0.0.1"
+            fi
+            if [ "" == "$PB_HPORT" ]; then
+                PB_HPORT=$PB_DPORT
+            fi
+            CFWPORTS=""
+            CFWPORTS="$CFWPORTS natpf1 zfp$PB_HPORT,$PB_TYP,$PB_HOST_IF,$PB_HPORT,$PB_VM_IF,$PB_DPORT"
+            #echo $CFWPORTS
+            echo "$VBM controlvm $VM_NAME natpf1 delete zfp$PB_HPORT"
+            echo "$VBM controlvm $VM_NAME $CFWPORTS"
+            $VBM controlvm $VM_NAME setlinkstate1 off
+            $VBM controlvm $VM_NAME natpf1 delete zfp$PB_HPORT  > /dev/null 2>&1
+            $VBM controlvm $VM_NAME $CFWPORTS
+            $VBM controlvm $VM_NAME setlinkstate1 on
+        fi
+    else
+        echo "missed"
+        docker $1
+    fi
+}
+
 case $1 in
     init | setup) init;;
     start | up) start;;
@@ -269,5 +385,6 @@ case $1 in
     delete) delete;;
     ssh) shift; do_ssh "$@";;
     download) download_latest;;
-    *) echo "Usage $0 {init|start|up|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
+    cmd) shift; docker_cmd "$@";;
+    *) echo "Usage $0 {init|start|up|pause|stop|restart|status|info|delete|ssh|download|cmd}"; exit 1
 esac
