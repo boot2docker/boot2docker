@@ -149,6 +149,11 @@ do_ssh() {
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $SSH_HOST_PORT docker@localhost $*
 }
 
+do_natpf() {
+    is_installed || status
+    $VBM controlvm $VM_NAME natpf1 $*
+}
+
 start() {
     is_installed || status
     if ! is_running; then
@@ -268,6 +273,7 @@ case $1 in
     info) info;;
     delete) delete;;
     ssh) shift; do_ssh "$@";;
+    natpf) shift; do_natpf "$@";;
     download) download_latest;;
-    *) echo "Usage $0 {init|start|up|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
+    *) echo "Usage $0 {init|start|up|pause|stop|restart|status|info|delete|ssh|natpf|download}"; exit 1
 esac
