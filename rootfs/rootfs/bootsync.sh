@@ -11,6 +11,9 @@
 # set the hostname
 /etc/rc.d/hostname
 
+# sync the clock
+/usr/local/bin/ntpclient -s -h pool.ntp.org
+
 # TODO: move this (and the docker user creation&pwd out to its own over-rideable?))
 if grep -q '^docker:' /etc/passwd; then
     # if we have the docker user, let's create the docker group
