@@ -4,6 +4,7 @@ MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 ENV ROOTFS          /rootfs
 ENV TCL_REPO_BASE   http://tinycorelinux.net/5.x/x86
 ENV TCZ_DEPS        iptables \
+                    iproute2 \
                     openssh openssl-1.0.0 \
                     tar \
                     gcc_libs \
