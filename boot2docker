@@ -1,18 +1,21 @@
 #!/usr/bin/env sh
-VM_NAME=boot2docker-vm
-VBM=VBoxManage
 
-DOCKER_PORT=4243
-SSH_HOST_PORT=2022
-
-VM_DISK=./boot2docker.vmdk
-VM_DISK_SIZE=40000
-
-VM_MEM=1024
-
-BOOT2DOCKER_ISO=./boot2docker.iso
-
+#Load the user's profile and then default any remaining values
 test -f "$HOME/.boot2docker/profile" && . "$HOME/.boot2docker/profile"
+: ${VM_NAME:=boot2docker-vm}
+: ${VBM:=VBoxManage}
+
+: ${DOCKER_PORT:=4243}
+: ${SSH_HOST_PORT:=2022}
+: ${BOOT2DOCKER_CFG_DIR:=${HOME}/.boot2docker}
+
+: ${VM_DISK_SIZE:=40000}
+: ${VM_MEM:=1024}
+
+: ${VM_DISK:=${BOOT2DOCKER_CFG_DIR}/boot2docker.vmdk}
+: ${BOOT2DOCKER_ISO:=${BOOT2DOCKER_CFG_DIR}/boot2docker.iso}
+
+mkdir -p "${BOOT2DOCKER_CFG_DIR}"
 
 get_latest_release_name() {
     local LRN
