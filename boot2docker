@@ -129,6 +129,7 @@ init() {
     if [ ! -e "$VM_DISK" ]; then
         log "Creating $VM_DISK_SIZE Meg hard drive..."
         # closemedium may complain when not needed
+        mkdir -p "${VM_DISK%/*}"
         $VBM closemedium disk "$VM_DISK" > /dev/null 2>&1
         ## make a simple text file, and use that as the flag to say 'format me'
         $VBM createhd --format VMDK --filename "$VM_DISK" --size $VM_DISK_SIZE
