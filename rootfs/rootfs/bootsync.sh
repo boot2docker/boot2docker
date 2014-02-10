@@ -6,10 +6,17 @@
 # Automount a hard drive
 /etc/rc.d/automount
 
-# TODO: from here in, we could use /var/lib/boot2docker/etc/rc.d
+mkdir -p /var/lib/boot2docker/log
+
+#import settings from profile (NTP_SERVER)
+test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
+
 
 # set the hostname
 /etc/rc.d/hostname
+
+# sync the clock (in the background, it takes 40s to timeout)
+/etc/rc.d/ntpclient > /var/lib/boot2docker/log/ntpclient.log 2>&1 &
 
 # TODO: move this (and the docker user creation&pwd out to its own over-rideable?))
 if grep -q '^docker:' /etc/passwd; then

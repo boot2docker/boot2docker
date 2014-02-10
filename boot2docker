@@ -1,19 +1,23 @@
 #!/usr/bin/env sh
-VM_NAME=boot2docker-vm
-VBM=VBoxManage
 
-DOCKER_PORT=${DOCKER_PORT:-4243}
-SSH_HOST_PORT=${SSH_HOST_PORT:-2022}
-BRIDGE_IF=${BRIDGE_IF:-}
+#Load the user's profile and then default any remaining values
+test -f "$HOME/.boot2docker/profile" && . "$HOME/.boot2docker/profile"
+: ${VM_NAME:=boot2docker-vm}
+: ${VBM:=VBoxManage}
 
-VM_DISK=./boot2docker.vmdk
-VM_DISK_SIZE=${VM_DISK_SIZE:-40000}
+: ${DOCKER_PORT:=4243}
+: ${SSH_HOST_PORT:=2022}
+: ${BOOT2DOCKER_CFG_DIR:=${HOME}/.boot2docker}
 
-VM_MEM=${VM_MEM:-1024}
+: ${VM_DISK_SIZE:=40000}
+: ${VM_MEM:=1024}
 
-BOOT2DOCKER_ISO=./boot2docker.iso
+: ${VM_DISK:=${BOOT2DOCKER_CFG_DIR}/boot2docker.vmdk}
+: ${BOOT2DOCKER_ISO:=${BOOT2DOCKER_CFG_DIR}/boot2docker.iso}
 
-test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
+: ${BRIDGE_IF:-}
+
+mkdir -p "${BOOT2DOCKER_CFG_DIR}"
 
 get_latest_release_name() {
     local LRN
@@ -122,8 +126,8 @@ init() {
         	--natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
         	--natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,4243"
     fi
-    
-    if [ ! -e $BOOT2DOCKER_ISO ]; then
+
+    if [ ! -e "$BOOT2DOCKER_ISO" ]; then
         log "boot2docker.iso not found."
         download_latest
     fi
@@ -133,22 +137,23 @@ init() {
         $VBM storagectl $VM_NAME --name "SATA" --remove
     fi
 
-    if [ ! -e $VM_DISK ]; then
+    if [ ! -e "$VM_DISK" ]; then
         log "Creating $VM_DISK_SIZE Meg hard drive..."
         # closemedium may complain when not needed
-        $VBM closemedium disk $VM_DISK > /dev/null 2>&1
+        mkdir -p "${VM_DISK%/*}"
+        $VBM closemedium disk "$VM_DISK" > /dev/null 2>&1
         ## make a simple text file, and use that as the flag to say 'format me'
-        $VBM createhd --format VMDK --filename $VM_DISK --size $VM_DISK_SIZE
+        $VBM createhd --format VMDK --filename "$VM_DISK" --size $VM_DISK_SIZE
 
         echo "boot2docker, please format-me" | cat - /dev/zero | head -c 5242880 > format-flag.txt # 5M
         $VBM convertfromraw format-flag.txt format-flag.vmdk --format VMDK
-        $VBM clonehd format-flag.vmdk $VM_DISK --existing
+        $VBM clonehd format-flag.vmdk "$VM_DISK" --existing
         $VBM closemedium disk format-flag.vmdk > /dev/null 2>&1 && rm format-flag.txt format-flag.vmdk
     fi
 
     $VBM storagectl $VM_NAME --name "SATA" --add sata --hostiocache on
-    $VBM storageattach $VM_NAME --storagectl "SATA" --port 0 --device 0 --type dvddrive --medium $BOOT2DOCKER_ISO
-    $VBM storageattach $VM_NAME --storagectl "SATA" --port 1 --device 0 --type hdd --medium $VM_DISK
+    $VBM storageattach $VM_NAME --storagectl "SATA" --port 0 --device 0 --type dvddrive --medium "$BOOT2DOCKER_ISO"
+    $VBM storageattach $VM_NAME --storagectl "SATA" --port 1 --device 0 --type hdd --medium "$VM_DISK"
 
     log "Done."
     log "You can now type boot2docker up and wait for the VM to start."
