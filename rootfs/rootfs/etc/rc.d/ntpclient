@@ -1,0 +1,4 @@
+#!/bin/sh
+
+: ${NTP_SERVER:=pool.ntp.org}
+/usr/local/bin/ntpclient -s -h $NTP_SERVER
