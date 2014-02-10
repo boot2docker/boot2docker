@@ -184,17 +184,6 @@ pause() {
     fi
 }
 
-savestate() {
-    is_installed || status
-    if is_running; then
-        log "Saving state $VM_NAME..."
-        $VBM controlvm $VM_NAME savestate > /dev/null
-    else
-        log "$VM_NAME is not running."
-    fi
-}
-
-
 stop() {
     is_installed || status
     if is_running; then
@@ -237,10 +226,6 @@ is_paused() {
     info | grep "State:\s\+paused" > /dev/null
 }
 
-is_saved() {
-    info | grep "State:\s\+saved" > /dev/null
-}
-
 is_stopped() {
     info | grep "State:\s\+powered off" > /dev/null
 }
@@ -255,9 +240,6 @@ status() {
         exit 0
     elif is_paused; then
         log "$VM_NAME is suspended."
-        exit 1
-    elif is_saved; then
-        log "$VM_NAME is saved."
         exit 1
     elif is_stopped; then
         log "$VM_NAME is stopped."
@@ -280,7 +262,6 @@ case $1 in
     init | setup) init;;
     start | up) start;;
     pause | suspend) pause;;
-    save) savestate;;
     stop | halt | down) stop;;
     restart) restart;;
     status) status;;
@@ -288,5 +269,5 @@ case $1 in
     delete) delete;;
     ssh) shift; do_ssh "$@";;
     download) download_latest;;
-    *) echo "Usage $0 {init|start|up|pause|save|stop|restart|status|info|delete|ssh|download}"; exit 1
+    *) echo "Usage $0 {init|start|up|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
 esac
