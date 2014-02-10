@@ -178,11 +178,11 @@ wait_vm() {
     done
 }
 
-pause() {
+suspend() {
     is_installed || status
     if is_running; then
-        log "Pausing $VM_NAME..."
-        $VBM controlvm $VM_NAME pause > /dev/null
+        log "Suspending $VM_NAME..."
+        $VBM controlvm $VM_NAME savestate > /dev/null
     else
         log "$VM_NAME is not running."
     fi
@@ -230,6 +230,10 @@ is_paused() {
     info | grep "State:\s\+paused" > /dev/null
 }
 
+is_suspended() {
+    info | grep "State:\s\+saved" > /dev/null
+}
+
 is_stopped() {
     info | grep "State:\s\+powered off" > /dev/null
 }
@@ -243,10 +247,16 @@ status() {
         log "$VM_NAME is running."
         exit 0
     elif is_paused; then
-        log "$VM_NAME is suspended."
+        log "$VM_NAME is paused."
         exit 1
+    elif is_suspended; then
+        log "$VM_NAME is suspended."
+        exit 1    
     elif is_stopped; then
         log "$VM_NAME is stopped."
+        exit 1
+    elif is_aborted; then
+        log "$VM_NAME is aborted."
         exit 1
     else
         log "$VM_NAME does not exist."
@@ -265,7 +275,7 @@ delete() {
 case $1 in
     init | setup) init;;
     start | up) start;;
-    pause | suspend) pause;;
+    save | pause | suspend) suspend;;
     stop | halt | down) stop;;
     restart) restart;;
     status) status;;
@@ -273,5 +283,5 @@ case $1 in
     delete) delete;;
     ssh) shift; do_ssh "$@";;
     download) download_latest;;
-    *) echo "Usage $0 {init|start|up|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
+    *) echo "Usage $0 {init|start|up|save|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
 esac
