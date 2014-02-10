@@ -155,8 +155,11 @@ boot2docker will first try to mount a partition labeled ``boot2docker-data``, if
 
 **Local Customisation (with persistent partition)**
 
-If you have a persistence partition, you can make quick customisations that are run at boot time 
+If you have a persistence partition, you can make customisations that are run at the end of the boot initialisation 
 in the ``/var/lib/boot2docker/bootlocal.sh`` file.
+
+You can also set variables that will be used during the boot initialisation (after the automount) by setting them in
+``/var/lib/boot2docker/profile`` - at this point, its only ``NTP_SERVER``.
 
 for example, to download ``pipework``, install its pre-requisites (which you can download using ``tce-load -w package.tcz``), and then start a container:
 
