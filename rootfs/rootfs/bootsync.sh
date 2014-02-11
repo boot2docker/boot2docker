@@ -8,15 +8,15 @@
 
 mkdir -p /var/lib/boot2docker/log
 
-#import settings from profile (NTP_SERVER)
+#import settings from profile (or unset them)
+export NTP_SERVER=pool.ntp.org
 test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
-
 
 # set the hostname
 /etc/rc.d/hostname
 
 # sync the clock (in the background, it takes 40s to timeout)
-/etc/rc.d/ntpclient > /var/lib/boot2docker/log/ntpclient.log 2>&1 &
+/etc/rc.d/ntpclient &
 
 # TODO: move this (and the docker user creation&pwd out to its own over-rideable?))
 if grep -q '^docker:' /etc/passwd; then
