@@ -17,7 +17,7 @@ boot2docker is a lightweight Linux distribution based on [Tiny Core Linux](http:
 $ brew install boot2docker
 ```
 
-#### Linux/Unix
+#### Linux/Unix (works also on OSX)
 ```
 $ curl https://raw.github.com/steeve/boot2docker/master/boot2docker > boot2docker
 $ chmod +x boot2docker
