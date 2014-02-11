@@ -41,7 +41,7 @@ $ boot2docker up
 ## Advanced usage
 
 #### Customize
-You can customise the values of *VM_NAME*, *DOCKER_PORT*, *SSH_HOST_PORT*, *VM_DISK*, *VM_DISK_SIZE*, *VM_MEM* and *BOOT2DOCKER_ISO* by setting them in ``$HOME/.boot2docker/profile``
+You can customise the values of `VM_NAME`, `DOCKER_PORT`, `SSH_HOST_PORT`, `VM_DISK`, `VM_DISK_SIZE`, `VM_MEM` and `BOOT2DOCKER_ISO` by setting them in ``$HOME/.boot2docker/profile``
 
 #### Persist data
 If you want your containers to persist across reboots, attach an ext4 formatted disk with the label ``boot2docker-data`` (``mkfs.ext4 -L boot2docker-data /dev/sdX5``) to your VM, and boot2docker will automount it on `/mnt/sdX` and then softlink `/mnt/sdX/var/lib/docker` to `/var/lib/docker`. It will also persist the SSH keys of the machine.
