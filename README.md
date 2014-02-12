@@ -60,3 +60,9 @@ pass: tcuser
 To 'install' the ISO onto an SD card, USB-Stick or even empty hard disk, you can
 use ``dd if=boot2docker.iso of=/dev/sdX``.
 This will create the small boot partition, and install an MBR.
+
+#### Add new forwarded port
+```
+$ boot2docker port apache 8080 80
+```
+boot2docker will add a new forwarded port named apache forwarding host port 8080 to guest port 80
