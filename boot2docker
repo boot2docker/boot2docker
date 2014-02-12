@@ -289,5 +289,5 @@ case $1 in
     ssh) shift; do_ssh "$@";;
     download) download_latest;;
     port) shift; port "$@";;
-    *) echo "Usage $0 {init|start|up|save|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
+    *) echo "Usage $0 {init|start|up|save|pause|stop|restart|status|info|delete|ssh|download|port}"; exit 1
 esac
