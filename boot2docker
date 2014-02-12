@@ -60,12 +60,12 @@ init() {
     esac
 
     if `nc -z -w2 localhost $DOCKER_PORT > /dev/null` ; then
-        log "DOCKER_PORT=$DOCKER_PORT on localhost is used by an other process! Change the port to a free port."
+        log "DOCKER_PORT=$DOCKER_PORT on localhost is used by another process (e.g. CrashPlan)! Change the value of DOCKER_PORT in the boot2docker script to a free port."
         exit 1
     fi
 
     if `nc -z -w2 localhost $SSH_HOST_PORT > /dev/null` ; then
-        log "SSH_HOST_PORT=$SSH_HOST_PORT on localhost is used by an other process! Change the port to a free port."
+        log "SSH_HOST_PORT=$SSH_HOST_PORT on localhost is used by another process! Change the value of SSH_HOST_PORT in the boot2docker script to a free port."
         exit 1
     fi
 
