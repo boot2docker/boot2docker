@@ -1,13 +1,14 @@
 #!/usr/bin/env sh
 
 #Load the user's profile and then default any remaining values
-test -f "$HOME/.boot2docker/profile" && . "$HOME/.boot2docker/profile"
+BOOT2DOCKER_CFG_DIR=${HOME}/.boot2docker
+BOOT2DOCKER_PROFILE=${BOOT2DOCKER_CFG_DIR}/profile
+test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
 : ${VM_NAME:=boot2docker-vm}
 : ${VBM:=VBoxManage}
 
 : ${DOCKER_PORT:=4243}
 : ${SSH_HOST_PORT:=2022}
-: ${BOOT2DOCKER_CFG_DIR:=${HOME}/.boot2docker}
 
 : ${VM_DISK_SIZE:=40000}
 : ${VM_MEM:=1024}
@@ -60,12 +61,12 @@ init() {
     esac
 
     if `nc -z -w2 localhost $DOCKER_PORT > /dev/null` ; then
-        log "DOCKER_PORT=$DOCKER_PORT on localhost is used by an other process! Change the port to a free port."
+        log "DOCKER_PORT=$DOCKER_PORT on localhost is used by an other process! Set the DOCKER_PORT in $BOOT2DOCKER_PROFILE free port."
         exit 1
     fi
 
     if `nc -z -w2 localhost $SSH_HOST_PORT > /dev/null` ; then
-        log "SSH_HOST_PORT=$SSH_HOST_PORT on localhost is used by an other process! Change the port to a free port."
+        log "SSH_HOST_PORT=$SSH_HOST_PORT on localhost is used by an other process! Set the SSH_HOST_PORT in $BOOT2DOCKER_PROFILE free port."
         exit 1
     fi
 
