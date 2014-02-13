@@ -12,7 +12,7 @@ test -f "$HOME/.boot2docker/profile" && . "$HOME/.boot2docker/profile"
 : ${VM_DISK_SIZE:=40000}
 : ${VM_MEM:=1024}
 
-: ${VM_DISK:=${BOOT2DOCKER_CFG_DIR}/boot2docker.vmdk}
+: ${VM_DISK:=${BOOT2DOCKER_CFG_DIR}/${VM_NAME}.vmdk}
 : ${BOOT2DOCKER_ISO:=${BOOT2DOCKER_CFG_DIR}/boot2docker.iso}
 
 mkdir -p "${BOOT2DOCKER_CFG_DIR}"
