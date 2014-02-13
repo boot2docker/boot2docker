@@ -3,6 +3,7 @@ boot2docker
 
 boot2docker is a lightweight Linux distribution based on [Tiny Core Linux](http://tinycorelinux.net) made specifically to run [Docker](https://www.docker.io/) containers. It runs completely from RAM, weighs ~27MB and boots in ~5s (YMMV). The [ISO can be download here](https://github.com/steeve/boot2docker/releases). To see boot2docker in action look at this [demo](http://www.youtube.com/watch?v=QzfddDvNVv0).
 
+See [Frequently asked questions](doc/FAQ.md) for more details.
 
 ## Features
 * Kernel 3.12.1 with AUFS, Docker 0.8.0, LXC 0.8.0
@@ -22,7 +23,6 @@ $ brew install boot2docker
 $ curl https://raw.github.com/steeve/boot2docker/master/boot2docker > boot2docker
 $ chmod +x boot2docker
 ```
-
 
 ## How to use
 boot2docker comes with a simple init script that leverage's VirtualBox's `VBoxManage`. You can start, stop and delete the VM right from the command line.
@@ -56,7 +56,12 @@ user: docker
 pass: tcuser
 ```
 
+
 #### Install on any device
 To 'install' the ISO onto an SD card, USB-Stick or even empty hard disk, you can
 use ``dd if=boot2docker.iso of=/dev/sdX``.
 This will create the small boot partition, and install an MBR.
+
+
+#### Build your own boot2docker.iso
+Goto [How to build](doc/BUILD.md) for Documentation on how to build your own boot2docker ISO's.
