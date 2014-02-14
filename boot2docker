@@ -18,14 +18,14 @@ test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
 
 #Check if all required commands exist
 cmd_exists() {
-    command -v $1 >/dev/null 2>&1 || { echo >&2 "command '$1' is required but not installed.  Aborting."; exit 1; }
+    while [ -n "$1" ]
+    do
+        command -v $1 >/dev/null 2>&1 || { echo >&2 "command '$1' is required but not installed.  Aborting."; notOK=1; }
+        shift
+    done
+    [ -n "$notOK" ] && exit 1
 }
-cmd_exists nc
-cmd_exists curl
-cmd_exists grep
-cmd_exists head
-cmd_exists tr
-cmd_exists $VBM
+cmd_exists nc curl grep head tr $VBM
 
 mkdir -p "${BOOT2DOCKER_CFG_DIR}"
 
