@@ -16,6 +16,17 @@ test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
 : ${VM_DISK:=${BOOT2DOCKER_CFG_DIR}/${VM_NAME}.vmdk}
 : ${BOOT2DOCKER_ISO:=${BOOT2DOCKER_CFG_DIR}/boot2docker.iso}
 
+#Check if all required commands exist
+cmd_exists() {
+    while [ -n "$1" ]
+    do
+        command -v $1 >/dev/null 2>&1 || { echo >&2 "command '$1' is required but not installed.  Aborting."; notOK=1; }
+        shift
+    done
+    [ -n "$notOK" ] && exit 1
+}
+cmd_exists nc curl grep head tr $VBM
+
 mkdir -p "${BOOT2DOCKER_CFG_DIR}"
 
 get_latest_release_name() {
