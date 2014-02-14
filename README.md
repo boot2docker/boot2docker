@@ -17,6 +17,7 @@ See [Frequently asked questions](doc/FAQ.md) for more details.
 
 #### OSX
 ```
+$ brew update
 $ brew install boot2docker
 ```
 
