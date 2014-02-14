@@ -2,6 +2,9 @@
 # docker daemon start script
 [ $(id -u) = 0 ] || { echo "must be root" ; exit 1; }
 
+#import settings from profile (e.g. HTTP_PROXY, HTTPS_PROXY)
+test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
+
 start() {
     # remove this softlink - the docker daemon recreates it and when its from the wrong os/docker version, things go boom
     if [ -e /var/lib/docker/lxc-start-unconfined ]; then
