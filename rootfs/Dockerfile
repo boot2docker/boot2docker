@@ -30,7 +30,14 @@ RUN mkdir -p $ROOTFS
 # Install the kernel modules in $ROOTFS
 RUN cd /linux-3.12.1 && \
     make INSTALL_MOD_PATH=$ROOTFS modules_install firmware_install
-# Here we could remove useless modules, but we'll do that later if there is such a need.
+
+# Remove useless kernel modules
+RUN cd $ROOTFS/lib/modules && \
+    rm -rf ./*/kernel/sound/* && \
+    rm -rf ./*/kernel/drivers/gpu/* && \
+    rm -rf ./*/kernel/drivers/infiniband/* && \
+    rm -rf ./*/kernel/drivers/isdn/* && \
+    rm -rf ./*/kernel/drivers/media/*
 
 # Install libcap
 RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
