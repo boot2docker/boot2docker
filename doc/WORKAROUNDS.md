@@ -29,7 +29,7 @@ Now you can logout again (by running `$ exit`) and create a file name `b2d-passw
 
 ```sh
 $ touch ~/.boot2docker/b2d-passwd
-$ echo "tcuser" >> .boot2docker/b2d-passwd
+$ echo "tcuser" >> ~/.boot2docker/b2d-passwd
 ```
 
 As a last step we have to mount the folder. Lets say you want to mount the folder `~/myapp` then simply run:
