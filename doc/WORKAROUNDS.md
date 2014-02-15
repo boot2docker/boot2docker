@@ -18,7 +18,7 @@ Now you can access your container from your host machine under `localhost:8000`
 
 If you want to access a folder on your host system from inside your docker container you neeed to have `sshfs` installed. (On OSX you can simply install it by `$ brew install sshfs`.)
 
-Then log into your boot2docker VM with `$ boot2docker ssh` and run the following commands:
+Then log into your boot2docker VM (password is `tcuser`) with `$ boot2docker ssh` and run the following commands:
 
 ```sh
 $ sudo mkdir /mnt/sda1/myapp
