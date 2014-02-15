@@ -35,7 +35,7 @@ $ echo "tcuser" >> ~/.boot2docker/b2d-passwd
 As a last step we have to mount the folder. Lets say you want to mount the folder `~/myapp` then simply run:
 
 ```sh
-$ sshfs docker@localhost:/mnt/sda1/myapp ~/myapp -oping_diskarb,volname=b2d-myapp -p 2022 -o reconnect -o password_stdin < ~/.boot2docker/b2d-passwd
+$ sshfs docker@localhost:/mnt/sda1/myapp ~/myapp -oping_diskarb,volname=b2d-myapp -p 2022 -o reconnect -o UserKnownHostsFile=/dev/null -o password_stdin < ~/.boot2docker/b2d-passwd
 ```
 
 You can later unmount the folder with `$ umount -f  ~/myapp`.
