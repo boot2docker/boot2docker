@@ -39,3 +39,9 @@ $ sshfs docker@localhost:/mnt/sda1/myapp ~/myapp -oping_diskarb,volname=b2d-myap
 ```
 
 You can later unmount the folder with `$ umount -f  ~/myapp`.
+
+You can now use the shared directory with docker like that:
+
+```sh
+$ docker run -v /mnt/sda1/myapp:/var/www 80e721db2a7b
+```
