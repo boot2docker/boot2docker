@@ -76,6 +76,8 @@ func main() {
 
 	// TODO maybe use reflect here?
 	switch flag.Arg(0) { // choose subcommand
+	case "download":
+		cmdDownload()
 	case "init":
 		cmdInit(vm)
 	case "start":
@@ -262,15 +264,7 @@ func cmdInit(vm string) {
 		--natpf1 "docker,tcp,127.0.0.1,%s,,4243"`, vm, B2D.SSH_HOST_PORT, B2D.DOCKER_PORT)
 
 	if _, err := os.Stat(B2D.ISO); os.IsNotExist(err) {
-		log.Printf("downloading boot2docker ISO image...")
-		tag, err := getLatestReleaseName()
-		if err != nil {
-			log.Fatalf("failed to get latest release: %s", err)
-		}
-		err = download(tag, B2D.ISO)
-		if err != nil {
-			log.Fatalf("failed to download ISO image: %s", err)
-		}
+		cmdDownload()
 	}
 
 	if _, err := os.Stat(B2D.DISK); os.IsNotExist(err) {
@@ -284,6 +278,19 @@ func cmdInit(vm string) {
 
 	log.Printf("Done.")
 	log.Printf("You can now type `boot2docker up` and wait for the VM to start.")
+}
+
+func cmdDownload() {
+	log.Printf("downloading boot2docker ISO image...")
+	tag, err := getLatestReleaseName()
+	if err != nil {
+		log.Fatalf("failed to get latest release: %s", err)
+	}
+	log.Printf("  %s", tag)
+	err = download(tag, B2D.ISO)
+	if err != nil {
+		log.Fatalf("failed to download ISO image: %s", err)
+	}
 }
 
 func cmdDelete(vm string) {
