@@ -29,6 +29,13 @@ cmd_exists nc curl grep head tr $VBM
 
 mkdir -p "${BOOT2DOCKER_CFG_DIR}"
 
+unamestr=`uname`
+
+IFS=. read -r i1 i2 i3 i4 <<< "$BOOT2DOCKER_HOST_IP"
+IFS=. read -r m1 m2 m3 m4 <<< "$BOOT2DOCKER_NetworkMask"
+BOOT2DOCKER_Network=$(printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" "$((i4 & m4))")
+unset IFS
+
 get_latest_release_name() {
     local LRN
     LRN=$(curl 'https://api.github.com/repos/steeve/boot2docker/releases' 2>/dev/null|grep -o -m 1 -e "\"tag_name\":[[:space:]]*\"[a-z0-9.]*\""|head -1|cut -d: -f2|tr -d ' "')
@@ -64,7 +71,7 @@ init() {
 
     VM_OSTYPE=Linux26_64
     VM_NIC=virtio
-    unamestr=`uname`
+
     case $unamestr in
         Linux) VM_CPUS=`nproc`;;
         Darwin) VM_CPUS=`sysctl -n hw.physicalcpu`;;
