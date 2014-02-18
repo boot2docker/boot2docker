@@ -31,7 +31,7 @@ mkdir -p "${BOOT2DOCKER_CFG_DIR}"
 
 get_latest_release_name() {
     local LRN
-    LRN=$(curl 'https://api.github.com/repos/steeve/boot2docker/releases' 2>/dev/null|grep -o -m 1 -e "\"tag_name\":[[:space:]]*\"[a-z0-9.]*\""|head -1|cut -d: -f2|tr -d ' "')
+    LRN=$(curl -fs 'https://api.github.com/repos/steeve/boot2docker/releases' | awk -F\" '/tag_name/{print $4;exit}' RS=,)
     if [ -z "$LRN" ]; then
         echo "ERROR"
     else
