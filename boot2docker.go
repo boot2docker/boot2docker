@@ -29,7 +29,7 @@ var B2D struct {
 	MEMORY        string // boot2docker memory size (MB)
 	SSH_HOST_PORT string // boot2docker host SSH port
 	DOCKER_PORT   string // boot2docker docker port
-	SSH	      string // ssh executable
+	SSH           string // ssh executable
 }
 
 // helper function to get env var with default values
@@ -73,7 +73,7 @@ func main() {
 
 	vm := flag.Arg(1)
 	if vm == "" {
-		vm = B2D.VM
+		vm = B2D.VM // use default vm if not specified otherwise
 	}
 
 	// TODO maybe use reflect here?
@@ -83,7 +83,7 @@ func main() {
 	case "init":
 		cmdInit(vm)
 	case "start":
-		cmdStart(vm)
+		fallthrough // Yes, Go has this statement!
 	case "up":
 		cmdStart(vm)
 	case "ssh":
@@ -91,15 +91,15 @@ func main() {
 	case "resume":
 		cmdResume(vm)
 	case "save":
-		cmdSuspend(vm)
+		fallthrough
 	case "pause":
-		cmdSuspend(vm)
+		fallthrough
 	case "suspend":
 		cmdSuspend(vm)
 	case "halt":
-		cmdStop(vm)
+		fallthrough
 	case "down":
-		cmdStop(vm)
+		fallthrough
 	case "stop":
 		cmdStop(vm)
 	case "restart":
@@ -122,8 +122,7 @@ func cmdSsh(vm string) {
 	}
 	state := status(vm)
 	if state != VM_RUNNING {
-		log.Printf("%v is not running.", vm)
-		return
+		log.Fatalf("%s is not running.", vm)
 	}
 	cmd := exec.Command(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", B2D.SSH_HOST_PORT, "docker@localhost")
 	cmd.Stdin = os.Stdin
@@ -141,7 +140,7 @@ func cmdStart(vm string) {
 	}
 	state := status(vm)
 	if state == VM_RUNNING {
-		log.Printf("%v is already running.", vm)
+		log.Printf("%s is already running.", vm)
 		return
 	}
 
@@ -156,10 +155,12 @@ func cmdStart(vm string) {
 		wait_vm()
 		log.Printf("Started.")
 	}
+
+	// check if $DOCKER_HOST is properly configured
 	DOCKER_HOST := getenv("DOCKER_HOST", "")
 	if DOCKER_HOST != "tcp://localhost:"+B2D.DOCKER_PORT {
 		fmt.Printf("\nTo connect the docker client to the Docker daemon, please set:\n")
-		fmt.Printf("export DOCKER_HOST=tcp://localhost: %s\n\n", B2D.DOCKER_PORT)
+		fmt.Printf("export DOCKER_HOST=tcp://localhost:%s\n\n", B2D.DOCKER_PORT)
 	}
 }
 
@@ -332,8 +333,6 @@ func cmdDelete(vm string) {
 
 // convenient function to exec a command
 func cmd(name string, args ...string) error {
-	log.Println(name, args)
-	//return nil
 	cmd := exec.Command(name, args...)
 	return cmd.Run()
 }
@@ -351,7 +350,7 @@ func getLatestReleaseName() (string, error) {
 	}
 	defer rsp.Body.Close()
 
-	var t [1]struct {
+	var t []struct {
 		TagName string `json:"tag_name"`
 	}
 	err = json.NewDecoder(rsp.Body).Decode(&t)
@@ -416,7 +415,7 @@ func status(vm string) VM_STATE {
 
 // print help message
 func help() {
-	log.Fatalf("Usage %s {init|start|up|save|pause|stop|restart|resume|status|info|delete|download}\n", os.Args[0])
+	log.Fatalf("Usage: %s {init|start|up|ssh|save|pause|stop|restart|resume|status|info|delete|download} [vm]", os.Args[0])
 }
 
 // get VM info
@@ -437,10 +436,12 @@ func ping(addr string) bool {
 }
 
 func makeDiskImage() error {
-	log.Printf("Creating %s Meg hard drive...", B2D.DISKSIZE)
+	log.Printf("Creating %s MB hard disk image...", B2D.DISKSIZE)
 	vbm("closemedium disk %s", B2D.DISK)
 	vbm("createhd --format VMDK --filename %s --size %s", B2D.DISK, B2D.DISKSIZE)
 
+	// We do the following so boot2docker vm will auto-format the disk for us
+	// upon first boot.
 	f, err := os.Create("format-flag.txt")
 	if err != nil {
 		return err
