@@ -82,25 +82,15 @@ func main() {
 		cmdDownload()
 	case "init":
 		cmdInit(vm)
-	case "start":
-		fallthrough // Yes, Go has this statement!
-	case "up":
+	case "start", "up":
 		cmdStart(vm)
 	case "ssh":
 		cmdSsh(vm)
 	case "resume":
 		cmdResume(vm)
-	case "save":
-		fallthrough
-	case "pause":
-		fallthrough
-	case "suspend":
+	case "save", "pause", "suspend":
 		cmdSuspend(vm)
-	case "halt":
-		fallthrough
-	case "down":
-		fallthrough
-	case "stop":
+	case "halt", "down", "stop":
 		cmdStop(vm)
 	case "restart":
 		cmdRestart(vm)
