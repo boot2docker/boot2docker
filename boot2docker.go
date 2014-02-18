@@ -20,16 +20,16 @@ import (
 
 // boot2docker config
 var B2D struct {
-	VBM           string // VirtualBox management utility
-	VM            string // boot2docker virtual machine name
-	DIR           string // boot2docker directory
-	ISO           string // boot2docker ISO image path
-	DISK          string // boot2docker disk image path
-	DISKSIZE      string // boot2docker disk image size (MB)
-	MEMORY        string // boot2docker memory size (MB)
-	SSH_HOST_PORT string // boot2docker host SSH port
-	DOCKER_PORT   string // boot2docker docker port
-	SSH           string // ssh executable
+	Vbm         string // VirtualBox management utility
+	VM          string // boot2docker virtual machine name
+	Dir         string // boot2docker directory
+	Iso         string // boot2docker ISO image path
+	Disk        string // boot2docker disk image path
+	DiskSize    string // boot2docker disk image size (MB)
+	Memory      string // boot2docker memory size (MB)
+	SshHostPort string // boot2docker host SSH port
+	DockerPort  string // boot2docker docker port
+	Ssh         string // ssh executable
 }
 
 // helper function to get env var with default values
@@ -45,27 +45,27 @@ func init() {
 	if err != nil {
 		log.Fatalf("cannot get current user: %s", err)
 	}
-	B2D.VBM = getenv("BOOT2DOCKER_VBM", "VBoxManage")
+	B2D.Vbm = getenv("BOOT2DOCKER_VBM", "VBoxManage")
 	B2D.VM = getenv("BOOT2DOCKER_VM", "boot2docker-vm")
-	B2D.DIR = getenv("BOOT2DOCKER_DIR", filepath.Join(u.HomeDir, ".boot2docker"))
-	B2D.ISO = getenv("BOOT2DOCKER_ISO", filepath.Join(B2D.DIR, "boot2docker.iso"))
-	B2D.DISK = getenv("BOOT2DOCKER_DISK", filepath.Join(B2D.DIR, "boot2docker.vmdk"))
-	B2D.DISKSIZE = getenv("BOOT2DOCKER_DISKSIZE", "20000")
-	B2D.MEMORY = getenv("BOOT2DOCKER_MEMORY", "1000")
-	B2D.SSH_HOST_PORT = getenv("BOOT2DOCKER_SSH_HOST_PORT", "2022")
-	B2D.DOCKER_PORT = getenv("BOOT2DOCKER_DOCKER_PORT", "4243")
-	B2D.SSH = getenv("BOOT2DOCKER_DOCKER_SSH", "ssh")
+	B2D.Dir = getenv("BOOT2DOCKER_DIR", filepath.Join(u.HomeDir, ".boot2docker"))
+	B2D.Iso = getenv("BOOT2DOCKER_ISO", filepath.Join(B2D.Dir, "boot2docker.iso"))
+	B2D.Disk = getenv("BOOT2DOCKER_DISK", filepath.Join(B2D.Dir, "boot2docker.vmdk"))
+	B2D.DiskSize = getenv("BOOT2DOCKER_DISKSIZE", "20000")
+	B2D.Memory = getenv("BOOT2DOCKER_MEMORY", "1000")
+	B2D.SshHostPort = getenv("BOOT2DOCKER_SSH_HOST_PORT", "2022")
+	B2D.DockerPort = getenv("BOOT2DOCKER_DOCKER_PORT", "4243")
+	B2D.Ssh = getenv("BOOT2DOCKER_DOCKER_SSH", "ssh")
 }
 
-type VM_STATE int
+type vmState int
 
 const (
-	VM_UNKNOWN VM_STATE = iota
-	VM_RUNNING
-	VM_STOPPED
-	VM_PAUSED
-	VM_SUSPENDED
-	VM_ABORTED
+	vmUnknown vmState = iota
+	vmRunning
+	vmStopped
+	vmPaused
+	vmSuspended
+	vmAborted
 )
 
 func main() {
@@ -111,10 +111,10 @@ func cmdSsh(vm string) {
 		return
 	}
 	state := status(vm)
-	if state != VM_RUNNING {
+	if state != vmRunning {
 		log.Fatalf("%s is not running.", vm)
 	}
-	err := cmd(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", B2D.SSH_HOST_PORT, "docker@localhost")
+	err := cmd(B2D.Ssh, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", B2D.SshHostPort, "docker@localhost")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -125,41 +125,41 @@ func cmdStart(vm string) {
 		return
 	}
 	state := status(vm)
-	if state == VM_RUNNING {
+	if state == vmRunning {
 		log.Printf("%s is already running.", vm)
 		return
 	}
 
-	if state == VM_PAUSED {
+	if state == vmPaused {
 		log.Printf("Resuming %s", vm)
 		vbm("controlvm", vm, "resume")
-		wait_vm()
+		waitVM()
 		log.Printf("Resumed.")
 	} else {
 		log.Printf("Starting %s...", vm)
 		vbm("startvm", vm, "--type", "headless")
-		wait_vm()
+		waitVM()
 		log.Printf("Started.")
 	}
 
 	// check if $DOCKER_HOST is properly configured
-	DOCKER_HOST := getenv("DOCKER_HOST", "")
-	if DOCKER_HOST != "tcp://localhost:"+B2D.DOCKER_PORT {
+	DockerHost := getenv("DOCKER_HOST", "")
+	if DockerHost != "tcp://localhost:"+B2D.DockerPort {
 		fmt.Printf("\nTo connect the docker client to the Docker daemon, please set:\n")
-		fmt.Printf("export DOCKER_HOST=tcp://localhost:%s\n\n", B2D.DOCKER_PORT)
+		fmt.Printf("export DOCKER_HOST=tcp://localhost:%s\n\n", B2D.DockerPort)
 	}
 }
 
 // ping boot2docker VM until it's started
-func wait_vm() {
-	addr := fmt.Sprintf("localhost:%s", B2D.SSH_HOST_PORT)
+func waitVM() {
+	addr := fmt.Sprintf("localhost:%s", B2D.SshHostPort)
 	for !ping(addr) {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 func cmdResume(vm string) {
-	if status(vm) == VM_SUSPENDED {
+	if status(vm) == vmSuspended {
 		vbm("controlvm", vm, "resume")
 	} else {
 		log.Printf("%s is not suspended.", vm)
@@ -170,7 +170,7 @@ func cmdSuspend(vm string) {
 	if !installed(vm) {
 		cmdStatus(vm)
 	}
-	if status(vm) == VM_RUNNING {
+	if status(vm) == vmRunning {
 		log.Printf("Suspending %s", vm)
 		vbm("controlvm", vm, "savestate")
 	} else {
@@ -183,10 +183,10 @@ func cmdStop(vm string) {
 		cmdStatus(vm)
 	}
 
-	if status(vm) == VM_RUNNING {
+	if status(vm) == vmRunning {
 		log.Printf("Shutting down %s...", vm)
 		vbm("controlvm", vm, "acpipowerbutton")
-		for status(vm) == VM_RUNNING {
+		for status(vm) == vmRunning {
 			time.Sleep(1 * time.Second)
 		}
 	} else {
@@ -200,7 +200,7 @@ func cmdRestart(vm string) {
 	}
 
 	state := status(vm)
-	if state == VM_RUNNING {
+	if state == vmRunning {
 		cmdStop(vm)
 		time.Sleep(1 * time.Second)
 		cmdStart(vm)
@@ -220,15 +220,15 @@ func cmdInfo(vm string) {
 
 func cmdStatus(vm string) {
 	switch status(vm) {
-	case VM_RUNNING:
+	case vmRunning:
 		fmt.Printf("%s is running.\n", vm)
-	case VM_PAUSED:
+	case vmPaused:
 		log.Fatalf("%s is paused.", vm)
-	case VM_SUSPENDED:
+	case vmSuspended:
 		log.Fatalf("%s is suspended.", vm)
-	case VM_STOPPED:
+	case vmStopped:
 		log.Fatalf("%s is stopped.", vm)
-	case VM_ABORTED:
+	case vmAborted:
 		log.Fatalf("%s is aborted.")
 	default:
 		log.Fatalf("%s does not exist.", vm)
@@ -240,12 +240,12 @@ func cmdInit(vm string) {
 		log.Fatalf("%s already exists.\n")
 	}
 
-	if ping(fmt.Sprintf("localhost:%s", B2D.DOCKER_PORT)) {
-		log.Fatalf("DOCKER_PORT=%s on localhost is occupied. Please choose another port.", B2D.DOCKER_PORT)
+	if ping(fmt.Sprintf("localhost:%s", B2D.DockerPort)) {
+		log.Fatalf("DOCKER_PORT=%s on localhost is occupied. Please choose another port.", B2D.DockerPort)
 	}
 
-	if ping(fmt.Sprintf("localhost:%s", B2D.SSH_HOST_PORT)) {
-		log.Fatalf("SSH_HOST_PORT=%s on localhost is occupied. Please choose another port.", B2D.SSH_HOST_PORT)
+	if ping(fmt.Sprintf("localhost:%s", B2D.SshHostPort)) {
+		log.Fatalf("SSH_HOST_PORT=%s on localhost is occupied. Please choose another port.", B2D.SshHostPort)
 	}
 
 	log.Printf("Creating VM %s", vm)
@@ -253,7 +253,7 @@ func cmdInit(vm string) {
 	if vbm("modifyvm", vm,
 		"--ostype", "Linux26_64",
 		"--cpus", fmt.Sprintf("%d", runtime.NumCPU()),
-		"--memory", B2D.MEMORY,
+		"--memory", B2D.Memory,
 		"--rtcuseutc", "on",
 		"--acpi", "on",
 		"--ioapic", "on",
@@ -275,21 +275,21 @@ func cmdInit(vm string) {
 	log.Printf("Setting VM networking")
 	vbm("modifyvm", vm, "--nic1", "nat", "--nictype1", "virtio", "--cableconnected1", "on")
 	vbm("modifyvm", vm,
-		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%s,,22", B2D.SSH_HOST_PORT),
-		"--natpf1", fmt.Sprintf("docker,tcp,127.0.0.1,%s,,4243", B2D.DOCKER_PORT))
+		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%s,,22", B2D.SshHostPort),
+		"--natpf1", fmt.Sprintf("docker,tcp,127.0.0.1,%s,,4243", B2D.DockerPort))
 
-	if !exist(B2D.ISO) {
+	if !exist(B2D.Iso) {
 		cmdDownload()
 	}
 
-	if !exist(B2D.DISK) {
+	if !exist(B2D.Disk) {
 		makeDiskImage()
 	}
 
 	log.Printf("Setting VM disks")
 	vbm("storagectl", vm, "--name", "SATA", "--add", "sata", "--hostiocache", "on")
-	vbm("storageattach", vm, "--storagectl", "SATA", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", B2D.ISO)
-	vbm("storageattach", vm, "--storagectl", "SATA", "--port", "1", "--device", "0", "--type", "hdd", "--medium", B2D.DISK)
+	vbm("storageattach", vm, "--storagectl", "SATA", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", B2D.Iso)
+	vbm("storageattach", vm, "--storagectl", "SATA", "--port", "1", "--device", "0", "--type", "hdd", "--medium", B2D.Disk)
 
 	log.Printf("Done.")
 	log.Printf("You can now type `boot2docker up` and wait for the VM to start.")
@@ -302,7 +302,7 @@ func cmdDownload() {
 		log.Fatalf("failed to get latest release: %s", err)
 	}
 	log.Printf("  %s", tag)
-	err = download(tag, B2D.ISO)
+	err = download(B2D.Iso, tag)
 	if err != nil {
 		log.Fatalf("failed to download ISO image: %s", err)
 	}
@@ -310,7 +310,7 @@ func cmdDownload() {
 
 func cmdDelete(vm string) {
 	state := status(vm)
-	if state == VM_STOPPED || state == VM_ABORTED {
+	if state == vmStopped || state == vmAborted {
 		vbm("unregistervm", "--delete", vm)
 		return
 	}
@@ -328,7 +328,7 @@ func cmd(name string, args ...string) error {
 
 // convenient function to launch VBoxManage
 func vbm(args ...string) error {
-	return cmd(B2D.VBM, args...)
+	return cmd(B2D.Vbm, args...)
 }
 
 // get the latest boot2docker release tag e.g. v0.5.4
@@ -353,7 +353,7 @@ func getLatestReleaseName() (string, error) {
 }
 
 // download boot2docker ISO for the given tag and save it at dest
-func download(tag, dest string) error {
+func download(dest, tag string) error {
 	rsp, err := http.Get(fmt.Sprintf("https://github.com/steeve/boot2docker/releases/download/%s/boot2docker.iso", tag))
 	if err != nil {
 		return err
@@ -369,35 +369,35 @@ func download(tag, dest string) error {
 
 // check if we already have the virtual machine in VirtualBox
 func installed(vm string) bool {
-	stdout, _ := exec.Command(B2D.VBM, "list", "vms").Output()
+	stdout, _ := exec.Command(B2D.Vbm, "list", "vms").Output()
 	matched, _ := regexp.Match(fmt.Sprintf(`(?m)^"%s"`, regexp.QuoteMeta(vm)), stdout)
 	return matched
 }
 
 // get the state of a VM
-func status(vm string) VM_STATE {
+func status(vm string) vmState {
 	b, err := vminfo(vm)
 	if err != nil {
-		return VM_UNKNOWN
+		return vmUnknown
 	}
 	re := regexp.MustCompile(`(?m)^State:\s+(\w+)`)
 	groups := re.FindSubmatch(b)
 	if len(groups) < 1 {
-		return VM_UNKNOWN
+		return vmUnknown
 	}
 	switch string(groups[1]) {
 	case "running":
-		return VM_RUNNING
+		return vmRunning
 	case "paused":
-		return VM_PAUSED
+		return vmPaused
 	case "saved":
-		return VM_SUSPENDED
+		return vmSuspended
 	case "powered": // it's actually "powered off"
-		return VM_STOPPED
+		return vmStopped
 	case "aborted":
-		return VM_ABORTED
+		return vmAborted
 	default:
-		return VM_UNKNOWN
+		return vmUnknown
 	}
 }
 
@@ -408,7 +408,7 @@ func help() {
 
 // get VM info
 func vminfo(vm string) (stdout []byte, err error) {
-	cmd := exec.Command(B2D.VBM, "showvminfo", vm)
+	cmd := exec.Command(B2D.Vbm, "showvminfo", vm)
 	stdout, err = cmd.Output()
 	return
 }
@@ -424,8 +424,8 @@ func ping(addr string) bool {
 }
 
 func makeDiskImage() error {
-	log.Printf("Creating %s MB hard disk image...", B2D.DISKSIZE)
-	vbm("createhd", "--format", "VMDK", "--filename", B2D.DISK, "--size", B2D.DISKSIZE)
+	log.Printf("Creating %s MB hard disk image...", B2D.DiskSize)
+	vbm("createhd", "--format", "VMDK", "--filename", B2D.Disk, "--size", B2D.DiskSize)
 
 	// We do the following so boot2docker vm will auto-format the disk for us
 	// upon first boot.
@@ -449,7 +449,7 @@ func makeDiskImage() error {
 	}
 
 	vbm("convertfromraw", tmp_flag_file, tmp_vmdk_file, "--format", "VMDK")
-	vbm("clonehd", tmp_vmdk_file, B2D.DISK, "--existing")
+	vbm("clonehd", tmp_vmdk_file, B2D.Disk, "--existing")
 	vbm("closemedium", "disk", tmp_vmdk_file)
 	os.Remove(tmp_flag_file)
 	os.Remove(tmp_vmdk_file)
