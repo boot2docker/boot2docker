@@ -16,6 +16,14 @@ test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
 : ${VM_DISK:=${BOOT2DOCKER_CFG_DIR}/${VM_NAME}.vmdk}
 : ${BOOT2DOCKER_ISO:=${BOOT2DOCKER_CFG_DIR}/boot2docker.iso}
 
+: ${BOOT2DOCKER_HOST_NAME:=docker}
+: ${BOOT2DOCKER_HOST_IP:=192.168.59.1}
+: ${BOOT2DOCKER_DHCP_IP:=192.168.59.100}
+: ${BOOT2DOCKER_NetworkMask:=255.255.255.0}
+: ${BOOT2DOCKER_lowerIPAddress:=192.168.59.101}
+: ${BOOT2DOCKER_upperIPAddress:=192.168.59.254}
+: ${BOOT2DOCKER_DHCP_Enabled:=Yes}
+
 #Check if all required commands exist
 cmd_exists() {
     while [ -n "$1" ]
@@ -30,11 +38,6 @@ cmd_exists nc curl grep head tr $VBM
 mkdir -p "${BOOT2DOCKER_CFG_DIR}"
 
 unamestr=`uname`
-
-IFS=. read -r i1 i2 i3 i4 <<< "$BOOT2DOCKER_HOST_IP"
-IFS=. read -r m1 m2 m3 m4 <<< "$BOOT2DOCKER_NetworkMask"
-BOOT2DOCKER_Network=$(printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" "$((i4 & m4))")
-unset IFS
 
 get_latest_release_name() {
     local LRN
@@ -62,11 +65,165 @@ log() {
     echo "[`date +"%Y-%m-%d %H:%M:%S"`] ${*}"
 }
 
+get_hostonlyif_name() {
+    DS=""
+    $VBM list hostonlyifs | while read LINE; do
+        if [ -z "$LINE" ]; then
+            if [[ $DS =~ (.*),.*,.*,$BOOT2DOCKER_HOST_IP,$BOOT2DOCKER_NetworkMask,.* ]]; then
+                IFNAME="${BASH_REMATCH[1]}"
+                if [[ "$IFNAME" == "$(get_dhcpserver_name $IFNAME)" ]]; then
+                    echo "$IFNAME"
+                    return 0
+                else
+                    log "Found interface \"$IFNAME\" with wrong DHCP Settings!"
+                    echo "$IFNAME" 
+                    return 1
+                fi
+            fi
+            DS=""
+        else
+            if [[ $LINE =~ .*:[[:space:]]+(.*) ]]; then
+                if [ -n "$DS" ]; then
+                    DS="$DS,"
+                fi
+                DS="$DS${BASH_REMATCH[1]}"
+            fi
+        fi
+    done
+}
+
+get_dhcpserver_name() {
+    IFNAME="$1"
+    DS=""
+    $VBM list dhcpservers | while read LINE; do
+        if [ -z "$LINE" ]; then
+            if [[ $DS =~ HostInterfaceNetworking-$IFNAME,$BOOT2DOCKER_DHCP_IP,$BOOT2DOCKER_NetworkMask,$BOOT2DOCKER_lowerIPAddress,$BOOT2DOCKER_upperIPAddress,$BOOT2DOCKER_DHCP_Enabled ]]; then
+                echo "$IFNAME"
+                break
+            fi
+            DS=""
+        else
+            if [[ $LINE =~ .*:[[:space:]]+(.*) ]]; then
+                if [ -n "$DS" ]; then
+                    DS="$DS,"
+                fi
+                DS="$DS${BASH_REMATCH[1]}"
+            fi
+        fi
+    done 
+}
+
+create_hostonlyif() {
+    IFNAME=$(get_hostonlyif_name)
+    IFNAME_ERROR=$?
+    if [[ "$IFNAME_ERROR" == "1" ]]; then # Wrong DHCP Setting
+        echo "Found interface \"$IFNAME\" with wrong DHCP settings!"
+        if ask "Would you like to reset it? (Y/N) " N ; then
+            $VBM dhcpserver modify \
+                --ifname $IFNAME \
+                --ip $BOOT2DOCKER_DHCP_IP \
+                --netmask $BOOT2DOCKER_NetworkMask \
+                --lowerip $BOOT2DOCKER_lowerIPAddress \
+                --upperip $BOOT2DOCKER_upperIPAddress \
+                --enable
+        else
+            log "Failed to update host only interface with DHCP settings!"
+            exit 1
+        fi
+    fi
+    if [[ -z "$IFNAME" ]]; then
+        OUTPUT=$($VBM hostonlyif create)
+        if [[ $OUTPUT =~ Interface[[:space:]]\'(.*)\'.* ]]; then
+            IFNAME="${BASH_REMATCH[1]}"
+            $VBM hostonlyif ipconfig $IFNAME \
+                --ip $BOOT2DOCKER_HOST_IP \
+                --netmask $BOOT2DOCKER_NetworkMask
+        else
+            log "Failed to create host only interface!"
+            exit 1
+        fi
+        $VBM dhcpserver add \
+            --ifname $IFNAME \
+            --ip $BOOT2DOCKER_DHCP_IP \
+            --netmask $BOOT2DOCKER_NetworkMask \
+            --lowerip $BOOT2DOCKER_lowerIPAddress \
+            --upperip $BOOT2DOCKER_upperIPAddress \
+            --enable
+    fi
+    echo "$IFNAME"
+}
+
+ask() {
+    while true; do
+ 
+        if [ "${2:-}" = "Y" ]; then
+            prompt="Y/n"
+            default=Y
+        elif [ "${2:-}" = "N" ]; then
+            prompt="y/N"
+            default=N
+        else
+            prompt="y/n"
+            default=
+        fi
+ 
+        # Ask the question
+        read -p "$1 [$prompt] " REPLY
+ 
+        # Default?
+        if [ -z "$REPLY" ]; then
+            REPLY=$default
+        fi
+ 
+        # Check if the reply is valid
+        case "$REPLY" in
+            Y*|y*) return 0 ;;
+            N*|n*) return 1 ;;
+        esac
+ 
+    done
+}
+
+mod_bashprofile() {
+    grep -q "export DOCKER_HOST=" $HOME/.bash_profile
+    if [[ "$?" == "1" ]]; then
+        log "add 'export DOCKER_HOST=tcp://localhost:$DOCKER_PORT' to $HOME/.bash_profile"
+        sed -i.bak '/(export DOCKER_HOST=|docker.io)/d' $HOME/.bash_profile; 
+        echo "\n### docker.io" >> $HOME/.bash_profile
+        echo "export DOCKER_HOST=tcp://localhost:$DOCKER_PORT" >> $HOME/.bash_profile
+        . $HOME/.bash_profile
+    fi
+}
+
+mod_hosts() {
+
+    DOCKER_HOST_IP=$(do_ssh ifconfig eth1 | awk '/inet addr/ {split ($2,A,":"); print A[2]}')
+
+    grep -q "$DOCKER_HOST_IP\s\+$BOOT2DOCKER_HOST_NAME" /etc/hosts
+    if [[ "$?" == "1" ]]; then
+        log "add '$BOOT2DOCKER_HOST_NAME $DOCKER_HOST_IP' to /etc/hosts"
+
+        MHD_HD_EXPORT_CMD="sudo sed -i.bak '/$BOOT2DOCKER_HOST_NAME/d' /etc/hosts; sudo echo \"$DOCKER_HOST_IP $BOOT2DOCKER_HOST_NAME\" >> /etc/hosts"
+        if [[ "$unamestr" == "Darwin" ]]; then
+            MHD_HD_EXPORT_CMD="$MHD_HD_EXPORT_CMD; sudo killall -HUP mDNSResponder";
+        fi
+        sudo -v
+        if [[ "$?" == "1" ]] && [[ "$unamestr" == "Darwin" ]]; then
+            MHD_HD_EXPORT_CMD_TMP=$(mktemp -t b2d)
+            echo $MHD_HD_EXPORT_CMD > $MHD_HD_EXPORT_CMD_TMP
+            osascript -e "do shell script \"sh $MHD_HD_EXPORT_CMD_TMP\" with administrator privileges"
+            rm $MHD_HD_EXPORT_CMD_TMP
+        else
+            $MHD_HD_EXPORT_CMD
+        fi
+    fi
+}
+
 init() {
 
     if `$VBM showvminfo $VM_NAME > /dev/null 2>&1`; then
-	    echo "$VM_NAME Virtual Box vm already exists"
-	    exit 1
+        echo "$VM_NAME Virtual Box vm already exists"
+        exit 1
     fi
 
     VM_OSTYPE=Linux26_64
@@ -124,13 +281,19 @@ init() {
         --nictype1 $VM_NIC \
         --cableconnected1 on
     if `$VBM showvminfo $VM_NAME | grep Rule | grep ssh > /dev/null`; then
-	    $VBM modifyvm $VM_NAME \
-        	--natpf1 delete "ssh"
+        $VBM modifyvm $VM_NAME \
+            --natpf1 delete "ssh"
     fi
     if `$VBM showvminfo $VM_NAME | grep Rule | grep docker > /dev/null`; then
-	    $VBM modifyvm $VM_NAME \
-        	--natpf1 delete "docker"
+        $VBM modifyvm $VM_NAME \
+            --natpf1 delete "docker"
     fi
+    IFNAME2=$(create_hostonlyif)
+    $VBM modifyvm $VM_NAME \
+        --nic2 hostonly \
+        --hostonlyadapter2 $IFNAME2 \
+        --nictype2 $VM_NIC \
+        --cableconnected2 on
     $VBM modifyvm $VM_NAME \
         --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
         --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,4243"
@@ -184,6 +347,8 @@ start() {
             log "Starting $VM_NAME..."
             $VBM startvm $VM_NAME --type headless > /dev/null &
             wait_vm
+            mod_hosts
+            mod_bashprofile
             log "Started."
         fi
     else
