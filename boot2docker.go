@@ -29,6 +29,7 @@ var B2D struct {
 	MEMORY        string // boot2docker memory size (MB)
 	SSH_HOST_PORT string // boot2docker host SSH port
 	DOCKER_PORT   string // boot2docker docker port
+	SSH	      string // ssh executable
 }
 
 // helper function to get env var with default values
@@ -53,6 +54,7 @@ func init() {
 	B2D.MEMORY = getenv("BOOT2DOCKER_MEMORY", "1000")
 	B2D.SSH_HOST_PORT = getenv("BOOT2DOCKER_SSH_HOST_PORT", "2022")
 	B2D.DOCKER_PORT = getenv("BOOT2DOCKER_DOCKER_PORT", "4243")
+	B2D.SSH = getenv("BOOT2DOCKER_DOCKER_SSH", "ssh")
 }
 
 type VM_STATE int
@@ -76,12 +78,16 @@ func main() {
 
 	// TODO maybe use reflect here?
 	switch flag.Arg(0) { // choose subcommand
+	case "download":
+		cmdDownload()
 	case "init":
 		cmdInit(vm)
 	case "start":
 		cmdStart(vm)
 	case "up":
 		cmdStart(vm)
+	case "ssh":
+		cmdSsh(vm)
 	case "resume":
 		cmdResume(vm)
 	case "save":
@@ -109,6 +115,25 @@ func main() {
 	}
 }
 
+func cmdSsh(vm string) {
+	if !installed(vm) {
+		cmdStatus(vm)
+		return
+	}
+	state := status(vm)
+	if state != VM_RUNNING {
+		log.Printf("%v is not running.", vm)
+		return
+	}
+	cmd := exec.Command(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", B2D.SSH_HOST_PORT, "docker@localhost")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 func cmdStart(vm string) {
 	if !installed(vm) {
 		cmdStatus(vm)
@@ -267,15 +292,7 @@ func cmdInit(vm string) {
 		--natpf1 "docker,tcp,127.0.0.1,%s,,4243"`, vm, B2D.SSH_HOST_PORT, B2D.DOCKER_PORT)
 
 	if _, err := os.Stat(B2D.ISO); os.IsNotExist(err) {
-		log.Printf("downloading boot2docker ISO image...")
-		tag, err := getLatestReleaseName()
-		if err != nil {
-			log.Fatalf("failed to get latest release: %s", err)
-		}
-		err = download(tag, B2D.ISO)
-		if err != nil {
-			log.Fatalf("failed to download ISO image: %s", err)
-		}
+		cmdDownload()
 	}
 
 	if _, err := os.Stat(B2D.DISK); os.IsNotExist(err) {
@@ -289,6 +306,19 @@ func cmdInit(vm string) {
 
 	log.Printf("Done.")
 	log.Printf("You can now type `boot2docker up` and wait for the VM to start.")
+}
+
+func cmdDownload() {
+	log.Printf("downloading boot2docker ISO image...")
+	tag, err := getLatestReleaseName()
+	if err != nil {
+		log.Fatalf("failed to get latest release: %s", err)
+	}
+	log.Printf("  %s", tag)
+	err = download(tag, B2D.ISO)
+	if err != nil {
+		log.Fatalf("failed to download ISO image: %s", err)
+	}
 }
 
 func cmdDelete(vm string) {
