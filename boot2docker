@@ -161,16 +161,31 @@ init() {
 }
 
 ssh_copy_id() {
-    KEY="$HOME/.ssh/id_dsa.pub"
-
-    if [[ ! -f $KEY ]]; then
-        log "No public key $HOME/.ssh/id_dsa.pub found! Add boot2docker privat key to VM"
-        KEYCODE="ssh-dss AAAAB3NzaC1kc3MAAACBAKOzm2qIAw8GhEX2NSHK0bV1XAPFUof1Ta2eY4K8jJntFVitvDceo/XIZ2Ga5r0MqkTEmpOUir/GixaoB5FkMeb23SYVPWhb58nK18XUsV426MN04hp0T5SH6AqpJB5/QNdt0VFzsl2sbkUuuKKFvav8+atg2oBmF+dd8BnphmBxAAAAFQDJQQmXZQQjnJZyxKU1ljqA3bmIeQAAAIEAndobYS0psm3rkm3j0LdDe/W8j8RMnTjT0/pciMWTanQhY7MiItI8jjMxKRaX1sLAVzKEQ3g2CT5NKYixqaWF4Kmwzq0SZ4fGEGcG9Xtr3kiNPKIoEb7aTB4xBql6GkG9Kewfv9alc0/EuF9k2r6rq+Nls9C9niWGoQDs6KVKEhUAAACAAv8Px1V4tCJwPxnge+PTddeRNhD0Lwd6OpaKMo55u3qxpM+77M8q84UpaNaX3dyKOHEVvoh4DvLEnAr9cPbZDG/pC39dsw8kOS/88sR+WGyu1hc05vyUBa8g4DSLDLFodM9KOOr33xpzISRYp0y6eyWCDlu+JE7+0kOBWMqqVic= docker@localhost"
+    KEYPATH=""
+    if [ ! -z "$1" ]; then
+        KEYPATH="$1"
     else
-        log "add $HOME/.ssh/id_dsa.pub to VM"
-        KEYCODE=`cat $KEY`
+        KEYCODE=$(ssh-add -L)
+        if [[ -n "$KEYCODE" ]]; then
+            log "add key from 'ssh-add -L' to VM"
+        else
+            KEYPATH="$HOME/.ssh/id_rsa.pub"
+            if [[ ! -f $KEYPATH ]]; then
+                KEYPATH="$HOME/.ssh/id_dsa.pub"
+            fi
+        fi
     fi
-    do_ssh "mkdir -p ~/.ssh; echo \"$KEYCODE\" >> ~/.ssh/authorized_keys; sudo mkdir -p /var/lib/boot2docker/home/.ssh; sudo cp /home/docker/.ssh/* /var/lib/boot2docker/home/.ssh/;  sudo sed -i.bak \"/# persist authorized_keys/d\" /var/lib/boot2docker/bootlocal.sh; echo 'echo \"sudo mkdir -p /home/docker/.ssh; sudo cp /var/lib/boot2docker/home/.ssh/* /home/docker/.ssh/; sudo chown -R docker:staff /home/docker/.ssh; # persist authorized_keys\" >> /var/lib/boot2docker/bootlocal.sh ; chmod +x /var/lib/boot2docker/bootlocal.sh' | sudo sh"
+
+    if [[ -f $KEYPATH ]]; then
+        KEYCODE=$(< $KEYPATH)
+        log "add key from '$KEYPATH' to VM"
+    else
+        if [[ -z "$KEYCODE" ]]; then
+            log "No public key $HOME/.ssh/id_dsa.pub found! Add boot2docker privat key to VM"
+            KEYCODE="ssh-dss AAAAB3NzaC1kc3MAAACBAKOzm2qIAw8GhEX2NSHK0bV1XAPFUof1Ta2eY4K8jJntFVitvDceo/XIZ2Ga5r0MqkTEmpOUir/GixaoB5FkMeb23SYVPWhb58nK18XUsV426MN04hp0T5SH6AqpJB5/QNdt0VFzsl2sbkUuuKKFvav8+atg2oBmF+dd8BnphmBxAAAAFQDJQQmXZQQjnJZyxKU1ljqA3bmIeQAAAIEAndobYS0psm3rkm3j0LdDe/W8j8RMnTjT0/pciMWTanQhY7MiItI8jjMxKRaX1sLAVzKEQ3g2CT5NKYixqaWF4Kmwzq0SZ4fGEGcG9Xtr3kiNPKIoEb7aTB4xBql6GkG9Kewfv9alc0/EuF9k2r6rq+Nls9C9niWGoQDs6KVKEhUAAACAAv8Px1V4tCJwPxnge+PTddeRNhD0Lwd6OpaKMo55u3qxpM+77M8q84UpaNaX3dyKOHEVvoh4DvLEnAr9cPbZDG/pC39dsw8kOS/88sR+WGyu1hc05vyUBa8g4DSLDLFodM9KOOr33xpzISRYp0y6eyWCDlu+JE7+0kOBWMqqVic= docker@localhost"
+        fi
+    fi
+    do_ssh "mkdir -p ~/.ssh; echo \"$KEYCODE\" >> ~/.ssh/authorized_keys; sudo mkdir -p /var/lib/boot2docker/home/.ssh; sudo cp /home/docker/.ssh/* /var/lib/boot2docker/home/.ssh/;  [[ -f /var/lib/boot2docker/bootlocal.sh ]] && sudo sed -i.bak \"/# persist authorized_keys/d\" /var/lib/boot2docker/bootlocal.sh; echo 'echo \"sudo mkdir -p /home/docker/.ssh; sudo cp /var/lib/boot2docker/home/.ssh/* /home/docker/.ssh/; sudo chown -R docker:staff /home/docker/.ssh; # persist authorized_keys\" >> /var/lib/boot2docker/bootlocal.sh ; chmod +x /var/lib/boot2docker/bootlocal.sh' | sudo sh"
 }
 
 do_ssh() {
@@ -331,6 +346,6 @@ case $1 in
     delete) delete;;
     ssh) shift; do_ssh "$@";;
     download) download_latest;;
-    sshcopyid) ssh_copy_id;;
+    sshcopyid) shift; ssh_copy_id "$@";;
     *) echo "Usage $0 {init|start|up|save|pause|stop|restart|status|info|delete|ssh|download|sshcopyid}"; exit 1
 esac
