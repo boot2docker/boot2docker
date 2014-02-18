@@ -1,3 +1,4 @@
+// This is the boot2docker management script.
 package main
 
 import (
@@ -14,7 +15,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strings"
 	"time"
 )
 
@@ -124,11 +124,7 @@ func cmdSsh(vm string) {
 	if state != VM_RUNNING {
 		log.Fatalf("%s is not running.", vm)
 	}
-	cmd := exec.Command(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", B2D.SSH_HOST_PORT, "docker@localhost")
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	err := cmd(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", B2D.SSH_HOST_PORT, "docker@localhost")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -146,12 +142,12 @@ func cmdStart(vm string) {
 
 	if state == VM_PAUSED {
 		log.Printf("Resuming %s", vm)
-		vbm("controlvm %s resume", vm)
+		vbm("controlvm", vm, "resume")
 		wait_vm()
 		log.Printf("Resumed.")
 	} else {
 		log.Printf("Starting %s...", vm)
-		vbm("startvm %s --type headless", vm)
+		vbm("startvm", vm, "--type", "headless")
 		wait_vm()
 		log.Printf("Started.")
 	}
@@ -174,7 +170,7 @@ func wait_vm() {
 
 func cmdResume(vm string) {
 	if status(vm) == VM_SUSPENDED {
-		vbm("controlvm %s resume", vm)
+		vbm("controlvm", vm, "resume")
 	} else {
 		log.Printf("%s is not suspended.", vm)
 	}
@@ -186,7 +182,7 @@ func cmdSuspend(vm string) {
 	}
 	if status(vm) == VM_RUNNING {
 		log.Printf("Suspending %s", vm)
-		vbm("controlvm %s savestate", vm)
+		vbm("controlvm", vm, "savestate")
 	} else {
 		log.Printf("%s is not running.", vm)
 	}
@@ -199,7 +195,7 @@ func cmdStop(vm string) {
 
 	if status(vm) == VM_RUNNING {
 		log.Printf("Shutting down %s...", vm)
-		vbm("controlvm %s acpipowerbutton", vm)
+		vbm("controlvm", vm, "acpipowerbutton")
 		for status(vm) == VM_RUNNING {
 			time.Sleep(1 * time.Second)
 		}
@@ -263,47 +259,47 @@ func cmdInit(vm string) {
 	}
 
 	log.Printf("Creating VM %s", vm)
-	vbm("createvm --name %s --register", vm)
-	if vbm(`modifyvm %s
-		--ostype Linux26_64
-		--cpus %d
-		--memory %s
-		--rtcuseutc on
-		--acpi on
-		--ioapic on
-		--hpet on
-		--hwvirtex on
-		--vtxvpid on
-		--largepages on
-		--nestedpaging on
-		--firmware bios
-		--bioslogofadein off
-		--bioslogofadeout off
-		--bioslogodisplaytime 0
-		--biosbootmenu disabled
-		--boot1 dvd`, vm, runtime.NumCPU(), B2D.MEMORY) != nil {
+	vbm("createvm", "--name", vm, "--register")
+	if vbm("modifyvm", vm,
+		"--ostype", "Linux26_64",
+		"--cpus", fmt.Sprintf("%d", runtime.NumCPU()),
+		"--memory", B2D.MEMORY,
+		"--rtcuseutc", "on",
+		"--acpi", "on",
+		"--ioapic", "on",
+		"--hpet", "on",
+		"--hwvirtex", "on",
+		"--vtxvpid", "on",
+		"--largepages", "on",
+		"--nestedpaging", "on",
+		"--firmware", "bios",
+		"--bioslogofadein", "off",
+		"--bioslogofadeout", "off",
+		"--bioslogodisplaytime", "0",
+		"--biosbootmenu", "disabled",
+		"--boot1", "dvd") != nil {
 		log.Fatal("An error occured, upgrade VirtualBox")
 		cmdDelete(vm)
 	}
 
 	log.Printf("Setting VM networking")
-	vbm("modifyvm %s --nic1 nat --nictype1 virtio --cableconnected1 on", vm)
-	vbm(`modifyvm %s 
-		--natpf1 "ssh,tcp,127.0.0.1,%s,,22" 
-		--natpf1 "docker,tcp,127.0.0.1,%s,,4243"`, vm, B2D.SSH_HOST_PORT, B2D.DOCKER_PORT)
+	vbm("modifyvm", vm, "--nic1", "nat", "--nictype1", "virtio", "--cableconnected1", "on")
+	vbm("modifyvm", vm,
+		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%s,,22", B2D.SSH_HOST_PORT),
+		"--natpf1", fmt.Sprintf("docker,tcp,127.0.0.1,%s,,4243", B2D.DOCKER_PORT))
 
-	if _, err := os.Stat(B2D.ISO); os.IsNotExist(err) {
+	if !exist(B2D.ISO) {
 		cmdDownload()
 	}
 
-	if _, err := os.Stat(B2D.DISK); os.IsNotExist(err) {
+	if !exist(B2D.DISK) {
 		makeDiskImage()
 	}
 
 	log.Printf("Setting VM disks")
-	vbm(`storagectl %s --name "SATA" --add sata --hostiocache on`, vm)
-	vbm(`storageattach %s --storagectl "SATA" --port 0 --device 0 --type dvddrive --medium %s`, vm, B2D.ISO)
-	vbm(`storageattach %s --storagectl "SATA" --port 1 --device 0 --type hdd --medium %s`, vm, B2D.DISK)
+	vbm("storagectl", vm, "--name", "SATA", "--add", "sata", "--hostiocache", "on")
+	vbm("storageattach", vm, "--storagectl", "SATA", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", B2D.ISO)
+	vbm("storageattach", vm, "--storagectl", "SATA", "--port", "1", "--device", "0", "--type", "hdd", "--medium", B2D.DISK)
 
 	log.Printf("Done.")
 	log.Printf("You can now type `boot2docker up` and wait for the VM to start.")
@@ -325,7 +321,7 @@ func cmdDownload() {
 func cmdDelete(vm string) {
 	state := status(vm)
 	if state == VM_STOPPED || state == VM_ABORTED {
-		vbm("unregistervm --delete %s", vm)
+		vbm("unregistervm", "--delete", vm)
 		return
 	}
 	log.Fatalf("%s needs to be stopped to delete it.", vm)
@@ -334,12 +330,15 @@ func cmdDelete(vm string) {
 // convenient function to exec a command
 func cmd(name string, args ...string) error {
 	cmd := exec.Command(name, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 
 // convenient function to launch VBoxManage
-func vbm(arg string, x ...interface{}) error {
-	return cmd(B2D.VBM, strings.Fields(fmt.Sprintf(arg, x...))...)
+func vbm(args ...string) error {
+	return cmd(B2D.VBM, args...)
 }
 
 // get the latest boot2docker release tag e.g. v0.5.4
@@ -380,8 +379,7 @@ func download(tag, dest string) error {
 
 // check if we already have the virtual machine in VirtualBox
 func installed(vm string) bool {
-	cmd := exec.Command(B2D.VBM, "list", "vms")
-	stdout, _ := cmd.Output()
+	stdout, _ := exec.Command(B2D.VBM, "list", "vms").Output()
 	matched, _ := regexp.Match(fmt.Sprintf(`(?m)^"%s"`, regexp.QuoteMeta(vm)), stdout)
 	return matched
 }
@@ -437,12 +435,13 @@ func ping(addr string) bool {
 
 func makeDiskImage() error {
 	log.Printf("Creating %s MB hard disk image...", B2D.DISKSIZE)
-	vbm("closemedium disk %s", B2D.DISK)
-	vbm("createhd --format VMDK --filename %s --size %s", B2D.DISK, B2D.DISKSIZE)
+	vbm("createhd", "--format", "VMDK", "--filename", B2D.DISK, "--size", B2D.DISKSIZE)
 
 	// We do the following so boot2docker vm will auto-format the disk for us
 	// upon first boot.
-	f, err := os.Create("format-flag.txt")
+	const tmp_flag_file = "format-flag.txt"
+	const tmp_vmdk_file = "format-flag.vmdk"
+	f, err := os.Create(tmp_flag_file)
 	if err != nil {
 		return err
 	}
@@ -459,10 +458,18 @@ func makeDiskImage() error {
 		return err
 	}
 
-	vbm("convertfromraw format-flag.txt format-flag.vmdk --format VMDK")
-	vbm("clonehd format-flag.vmdk %s --existing", B2D.DISK)
-	vbm("closemedium disk format-flag.vmdk")
-	os.Remove("format-flag.txt")
-	os.Remove("format-flag.vmdk")
+	vbm("convertfromraw", tmp_flag_file, tmp_vmdk_file, "--format", "VMDK")
+	vbm("clonehd", tmp_vmdk_file, B2D.DISK, "--existing")
+	vbm("closemedium", "disk", tmp_vmdk_file)
+	os.Remove(tmp_flag_file)
+	os.Remove(tmp_vmdk_file)
 	return nil
+}
+
+// helper function to test if a path exists or not
+func exist(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
