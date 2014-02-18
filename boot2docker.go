@@ -131,6 +131,11 @@ func cmdStart(vm string) {
 		wait_vm()
 		log.Printf("Started.")
 	}
+	DOCKER_HOST := getenv("DOCKER_HOST", "")
+	if DOCKER_HOST != "tcp://localhost:"+B2D.DOCKER_PORT {
+		fmt.Printf("\nTo connect the docker client to the Docker daemon, please set:\n")
+		fmt.Printf("export DOCKER_HOST=tcp://localhost: %s\n\n", B2D.DOCKER_PORT)
+	}
 }
 
 // ping boot2docker VM until it's started

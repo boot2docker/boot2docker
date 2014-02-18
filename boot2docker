@@ -182,6 +182,13 @@ start() {
     else
         log "$VM_NAME is already running."
     fi
+
+    if [ "$DOCKER_HOST" != "tcp://localhost:${DOCKER_PORT}" ]; then
+        echo
+        echo "To connect the docker client to the Docker daemon, please set:"
+        echo "export DOCKER_HOST=tcp://localhost:${DOCKER_PORT}"
+        echo
+    fi
 }
 
 wait_vm() {
