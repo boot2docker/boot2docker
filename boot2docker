@@ -162,7 +162,7 @@ init() {
 
 do_ssh() {
     is_installed || status
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $SSH_HOST_PORT docker@localhost $*
+    ssh -o StrictHostKeyChecking=no -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -p $SSH_HOST_PORT docker@localhost $*
 }
 
 start() {
