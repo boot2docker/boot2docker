@@ -278,12 +278,24 @@ func cmdInit(vm string) {
 		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%s,,22", B2D.SshHostPort),
 		"--natpf1", fmt.Sprintf("docker,tcp,127.0.0.1,%s,,4243", B2D.DockerPort))
 
-	if !exist(B2D.Iso) {
-		cmdDownload()
+	_, err := os.Stat(B2D.Iso)
+	if err != nil {
+		if os.IsNotExist(err) {
+			cmdDownload()
+		} else {
+			log.Fatalf("failed to open ISO image: %s", err)
+		}
 	}
-
-	if !exist(B2D.Disk) {
-		makeDiskImage()
+	_, err = os.Stat(B2D.Disk)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err := makeDiskImage()
+			if err != nil {
+				log.Fatalf("failed to create disk image: %s", err)
+			}
+		} else {
+			log.Fatalf("failed to open disk image: %s", err)
+		}
 	}
 
 	log.Printf("Setting VM disks")
@@ -454,12 +466,4 @@ func makeDiskImage() error {
 	os.Remove(tmp_flag_file)
 	os.Remove(tmp_vmdk_file)
 	return nil
-}
-
-// helper function to test if a path exists or not
-func exist(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false
-	}
-	return true
 }
