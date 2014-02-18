@@ -12,7 +12,7 @@ start() {
     fi
     # TODO move this logfile out of /var/lib/docker
     DOCKER_DIR=`readlink -f /var/lib/docker`
-    /bin/dmesg | /bin/egrep '(VirtualBox|VMware|QEMU)' > /dev/null && EXPOSE_ALL="-H tcp://"
+    /bin/dmesg | /bin/egrep '(VirtualBox|VMware|QEMU)' > /dev/null && EXPOSE_ALL="-H tcp://0.0.0.0:4243"
     TMPDIR=`readlink -f /tmp` /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $EXPOSE_ALL > /var/lib/boot2docker/docker.log 2>&1 &
 }
 
