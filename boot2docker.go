@@ -23,13 +23,13 @@ var B2D struct {
 	Vbm         string // VirtualBox management utility
 	VM          string // boot2docker virtual machine name
 	Dir         string // boot2docker directory
-	Iso         string // boot2docker ISO image path
+	ISO         string // boot2docker ISO image path
 	Disk        string // boot2docker disk image path
 	DiskSize    string // boot2docker disk image size (MB)
 	Memory      string // boot2docker memory size (MB)
-	SshHostPort string // boot2docker host SSH port
+	SSHHostPort string // boot2docker host SSH port
 	DockerPort  string // boot2docker docker port
-	Ssh         string // ssh executable
+	SSH         string // ssh executable
 }
 
 // helper function to get env var with default values
@@ -48,13 +48,13 @@ func init() {
 	B2D.Vbm = getenv("BOOT2DOCKER_VBM", "VBoxManage")
 	B2D.VM = getenv("BOOT2DOCKER_VM", "boot2docker-vm")
 	B2D.Dir = getenv("BOOT2DOCKER_DIR", filepath.Join(u.HomeDir, ".boot2docker"))
-	B2D.Iso = getenv("BOOT2DOCKER_ISO", filepath.Join(B2D.Dir, "boot2docker.iso"))
+	B2D.ISO = getenv("BOOT2DOCKER_ISO", filepath.Join(B2D.Dir, "boot2docker.iso"))
 	B2D.Disk = getenv("BOOT2DOCKER_DISK", filepath.Join(B2D.Dir, "boot2docker.vmdk"))
 	B2D.DiskSize = getenv("BOOT2DOCKER_DISKSIZE", "20000")
 	B2D.Memory = getenv("BOOT2DOCKER_MEMORY", "1000")
-	B2D.SshHostPort = getenv("BOOT2DOCKER_SSH_HOST_PORT", "2022")
+	B2D.SSHHostPort = getenv("BOOT2DOCKER_SSH_HOST_PORT", "2022")
 	B2D.DockerPort = getenv("BOOT2DOCKER_DOCKER_PORT", "4243")
-	B2D.Ssh = getenv("BOOT2DOCKER_DOCKER_SSH", "ssh")
+	B2D.SSH = getenv("BOOT2DOCKER_DOCKER_SSH", "ssh")
 }
 
 type vmState int
@@ -114,7 +114,7 @@ func cmdSsh(vm string) {
 	if state != vmRunning {
 		log.Fatalf("%s is not running.", vm)
 	}
-	err := cmd(B2D.Ssh, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", B2D.SshHostPort, "docker@localhost")
+	err := cmd(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", B2D.SSHHostPort, "docker@localhost")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -152,7 +152,7 @@ func cmdStart(vm string) {
 
 // ping boot2docker VM until it's started
 func waitVM() {
-	addr := fmt.Sprintf("localhost:%s", B2D.SshHostPort)
+	addr := fmt.Sprintf("localhost:%s", B2D.SSHHostPort)
 	for !ping(addr) {
 		time.Sleep(1 * time.Second)
 	}
@@ -244,8 +244,8 @@ func cmdInit(vm string) {
 		log.Fatalf("DOCKER_PORT=%s on localhost is occupied. Please choose another port.", B2D.DockerPort)
 	}
 
-	if ping(fmt.Sprintf("localhost:%s", B2D.SshHostPort)) {
-		log.Fatalf("SSH_HOST_PORT=%s on localhost is occupied. Please choose another port.", B2D.SshHostPort)
+	if ping(fmt.Sprintf("localhost:%s", B2D.SSHHostPort)) {
+		log.Fatalf("SSH_HOST_PORT=%s on localhost is occupied. Please choose another port.", B2D.SSHHostPort)
 	}
 
 	log.Printf("Creating VM %s", vm)
@@ -275,10 +275,10 @@ func cmdInit(vm string) {
 	log.Printf("Setting VM networking")
 	vbm("modifyvm", vm, "--nic1", "nat", "--nictype1", "virtio", "--cableconnected1", "on")
 	vbm("modifyvm", vm,
-		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%s,,22", B2D.SshHostPort),
+		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%s,,22", B2D.SSHHostPort),
 		"--natpf1", fmt.Sprintf("docker,tcp,127.0.0.1,%s,,4243", B2D.DockerPort))
 
-	_, err := os.Stat(B2D.Iso)
+	_, err := os.Stat(B2D.ISO)
 	if err != nil {
 		if os.IsNotExist(err) {
 			cmdDownload()
@@ -300,7 +300,7 @@ func cmdInit(vm string) {
 
 	log.Printf("Setting VM disks")
 	vbm("storagectl", vm, "--name", "SATA", "--add", "sata", "--hostiocache", "on")
-	vbm("storageattach", vm, "--storagectl", "SATA", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", B2D.Iso)
+	vbm("storageattach", vm, "--storagectl", "SATA", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", B2D.ISO)
 	vbm("storageattach", vm, "--storagectl", "SATA", "--port", "1", "--device", "0", "--type", "hdd", "--medium", B2D.Disk)
 
 	log.Printf("Done.")
@@ -314,7 +314,7 @@ func cmdDownload() {
 		log.Fatalf("failed to get latest release: %s", err)
 	}
 	log.Printf("  %s", tag)
-	err = download(B2D.Iso, tag)
+	err = download(B2D.ISO, tag)
 	if err != nil {
 		log.Fatalf("failed to download ISO image: %s", err)
 	}
