@@ -441,9 +441,9 @@ func makeDiskImage() error {
 
 	// We do the following so boot2docker vm will auto-format the disk for us
 	// upon first boot.
-	const tmp_flag_file = "format-flag.txt"
-	const tmp_vmdk_file = "format-flag.vmdk"
-	f, err := os.Create(tmp_flag_file)
+	const tmpFlagFile = "format-flag.txt"
+	const tmpVMDKFile = "format-flag.vmdk"
+	f, err := os.Create(tmpFlagFile)
 	if err != nil {
 		return err
 	}
@@ -460,10 +460,10 @@ func makeDiskImage() error {
 		return err
 	}
 
-	vbm("convertfromraw", tmp_flag_file, tmp_vmdk_file, "--format", "VMDK")
-	vbm("clonehd", tmp_vmdk_file, B2D.Disk, "--existing")
-	vbm("closemedium", "disk", tmp_vmdk_file)
-	os.Remove(tmp_flag_file)
-	os.Remove(tmp_vmdk_file)
+	vbm("convertfromraw", tmpFlagFile, tmpVMDKFile, "--format", "VMDK")
+	vbm("clonehd", tmpVMDKFile, B2D.Disk, "--existing")
+	vbm("closemedium", "disk", tmpVMDKFile)
+	os.Remove(tmpFlagFile)
+	os.Remove(tmpVMDKFile)
 	return nil
 }
