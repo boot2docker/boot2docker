@@ -8,7 +8,6 @@ ENV TCZ_DEPS        iptables \
                     openssh openssl-1.0.0 \
                     tar \
                     gcc_libs \
-                    iw libnl \
                     acpid \
                     bash \
                     ncurses-common ncurses-terminfo ncurses ncurses-utils \
@@ -42,7 +41,9 @@ RUN cd $ROOTFS/lib/modules && \
     rm -rf ./*/kernel/drivers/staging/comedi/* && \
     rm -rf ./*/kernel/fs/ocfs2/* && \
     rm -rf ./*/kernel/net/bluetooth/* && \
-    rm -rf ./*/kernel/net/sunrpc/*
+    rm -rf ./*/kernel/net/mac80211/* && \
+    rm -rf ./*/kernel/net/sunrpc/* && \
+    rm -rf ./*/kernel/net/wireless/*
 
 # Install libcap
 RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
