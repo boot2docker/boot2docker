@@ -395,7 +395,7 @@ func vbm(args ...string) error {
 
 // get the latest boot2docker release tag e.g. v0.5.4
 func getLatestReleaseName() (string, error) {
-	rsp, err := http.Get("https://api.github.com/repos/steeve/boot2docker/releases")
+	rsp, err := http.Get("https://api.github.com/repos/boot2docker/boot2docker/releases")
 	if err != nil {
 		return "", err
 	}
@@ -416,7 +416,7 @@ func getLatestReleaseName() (string, error) {
 
 // download boot2docker ISO for the given tag and save it at dest
 func download(dest, tag string) error {
-	rsp, err := http.Get(fmt.Sprintf("https://github.com/steeve/boot2docker/releases/download/%s/boot2docker.iso", tag))
+	rsp, err := http.Get(fmt.Sprintf("https://github.com/boot2docker/boot2docker/releases/download/%s/boot2docker.iso", tag))
 	if err != nil {
 		return err
 	}

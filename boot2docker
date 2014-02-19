@@ -20,7 +20,7 @@ test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
 cmd_exists() {
     while [ -n "$1" ]
     do
-        command -v $1 >/dev/null 2>&1 || { echo >&2 "command '$1' is required but not installed.  Aborting."; notOK=1; }
+        command -v $1 >/dev/null 2>&1 || { echo >&2 "command '$1' is required but not installed.  Aborting."; notOK=1; [[ "$1" == "$VBM" ]] && echo "You need to install VirtualBox https://www.virtualbox.org!"; }
         shift
     done
     [ -n "$notOK" ] && exit 1
@@ -31,7 +31,7 @@ mkdir -p "${BOOT2DOCKER_CFG_DIR}"
 
 get_latest_release_name() {
     local LRN
-    LRN=$(curl 'https://api.github.com/repos/steeve/boot2docker/releases' 2>/dev/null|grep -o -m 1 -e "\"tag_name\":[[:space:]]*\"[a-z0-9.]*\""|head -1|cut -d: -f2|tr -d ' "')
+    LRN=$(curl 'https://api.github.com/repos/boot2docker/boot2docker/releases' 2>/dev/null|grep -o -m 1 -e "\"tag_name\":[[:space:]]*\"[a-z0-9.]*\""|head -1|cut -d: -f2|tr -d ' "')
     if [ -z "$LRN" ]; then
         echo "ERROR"
     else
@@ -44,7 +44,7 @@ download_latest() {
     if [ ! "$LATEST_RELEASE" = "ERROR" ]; then
         log "Latest version is $LATEST_RELEASE, downloading..."
         mkdir -p "${BOOT2DOCKER_ISO%/*}"
-        curl -L -o "$BOOT2DOCKER_ISO" "https://github.com/steeve/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
+        curl -L -o "$BOOT2DOCKER_ISO" "https://github.com/boot2docker/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
         log "Done"
     else
         log "Could not get lastest release name! Cannot download boot2docker.iso."

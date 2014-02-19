@@ -26,13 +26,15 @@ chmod +x $ROOTFS/opt/shutdown.sh
 
 # Prepare the ISO directory with the kernel
 mkdir -p /tmp/iso/boot
-cp -v /linux-3.12.1/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
+cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 cp -vr /isolinux /tmp/iso/boot
 
 # Pack the rootfs
 cd $ROOTFS
 find | cpio -o -H newc | xz -9 --format=lzma > /tmp/iso/boot/initrd.img
 cd -
+
+cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Make the ISO
 # Note: only "-isohybrid-mbr /..." is specific to xorriso.
