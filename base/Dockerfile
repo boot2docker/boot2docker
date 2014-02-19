@@ -1,8 +1,8 @@
 FROM ubuntu
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
-ENV KERNEL_VERSION  3.12.1
-ENV AUFS_BRANCH     aufs3.12
+ENV KERNEL_VERSION  3.13.3
+ENV AUFS_BRANCH     aufs3.13
 
 # make sure the package repository is up to date
 RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
