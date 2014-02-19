@@ -28,7 +28,7 @@ RUN apt-get -y install  squashfs-tools \
 RUN mkdir -p $ROOTFS
 
 # Install the kernel modules in $ROOTFS
-RUN cd /linux-3.12.1 && \
+RUN cd /linux-kernel && \
     make INSTALL_MOD_PATH=$ROOTFS modules_install firmware_install
 
 # Remove useless kernel modules
@@ -67,7 +67,7 @@ RUN curl -L https://github.com/lxc/lxc/archive/lxc-0.8.0.tar.gz | tar -C / -xz &
     mkdir -p $ROOTFS/dev/mqueue
 
 # Make sure the kernel headers are installed for aufs-util, and then build it
-RUN cd /linux-3.12.1 && \
+RUN cd /linux-kernel && \
     make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
     cd / && \
     git clone git://git.code.sf.net/p/aufs/aufs-util && \
