@@ -20,7 +20,7 @@ test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
 cmd_exists() {
     while [ -n "$1" ]
     do
-        command -v $1 >/dev/null 2>&1 || { echo >&2 "command '$1' is required but not installed.  Aborting."; notOK=1; }
+        command -v $1 >/dev/null 2>&1 || { echo >&2 "command '$1' is required but not installed.  Aborting."; notOK=1; [[ "$1" == "$VBM" ]] && echo "You need to install VirtualBox https://www.virtualbox.org!"; }
         shift
     done
     [ -n "$notOK" ] && exit 1
