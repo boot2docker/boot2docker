@@ -83,12 +83,10 @@ func main() {
 		cmdDownload()
 	case "init":
 		cmdInit(vm)
-	case "start", "up":
+	case "start", "up", "boot", "resume":
 		cmdStart(vm)
 	case "ssh":
 		cmdSsh(vm)
-	case "resume":
-		cmdResume(vm)
 	case "save", "suspend":
 		cmdSave(vm)
 	case "pause":
@@ -126,18 +124,15 @@ func cmdSsh(vm string) {
 		log.Fatal(err)
 	}
 }
+
+// try to start the vm from different states
 func cmdStart(vm string) {
-	state := status(vm)
-	if state == vmUnregistered {
+	switch state := status(vm); state {
+	case vmUnregistered:
 		log.Fatalf("%s is not registered.", vm)
-	}
-
-	if state == vmRunning {
+	case vmRunning:
 		log.Printf("%s is already running.", vm)
-		return
-	}
-
-	if state == vmPaused {
+	case vmPaused:
 		log.Printf("Resuming %s", vm)
 		err := vbm("controlvm", vm, "resume")
 		if err != nil {
@@ -145,7 +140,7 @@ func cmdStart(vm string) {
 		}
 		waitVM()
 		log.Printf("Resumed.")
-	} else {
+	case vmSaved, vmPoweroff, vmAborted:
 		log.Printf("Starting %s...", vm)
 		err := vbm("startvm", vm, "--type", "headless")
 		if err != nil {
@@ -153,6 +148,8 @@ func cmdStart(vm string) {
 		}
 		waitVM()
 		log.Printf("Started.")
+	default:
+		log.Fatalf("Cannot start %s from state %.", vm, state)
 	}
 
 	// check if $DOCKER_HOST is properly configured
@@ -168,17 +165,6 @@ func waitVM() {
 	addr := fmt.Sprintf("localhost:%s", B2D.SSHHostPort)
 	for !ping(addr) {
 		time.Sleep(1 * time.Second)
-	}
-}
-
-func cmdResume(vm string) {
-	if status(vm) == vmSaved {
-		err := vbm("controlvm", vm, "resume")
-		if err != nil {
-			log.Fatalf("failed to resume vm: %s", err)
-		}
-	} else {
-		log.Printf("%s is not suspended.", vm)
 	}
 }
 
@@ -475,7 +461,7 @@ func status(vm string) vmState {
 
 // print help message
 func help() {
-	log.Fatalf("Usage: %s {init|start|up|ssh|save|pause|stop|poweroff|reset|restart|resume|status|info|delete|download} [vm]", os.Args[0])
+	log.Fatalf("Usage: %s {init|start|up|ssh|save|pause|stop|poweroff|reset|restart|status|info|delete|download} [vm]", os.Args[0])
 }
 
 // check if an addr can be successfully connected
