@@ -31,13 +31,18 @@ RUN mkdir -p $ROOTFS
 RUN cd /linux-kernel && \
     make INSTALL_MOD_PATH=$ROOTFS modules_install firmware_install
 
-# Remove useless kernel modules
+# Remove useless kernel modules, based on unclejack/debian2docker
 RUN cd $ROOTFS/lib/modules && \
     rm -rf ./*/kernel/sound/* && \
     rm -rf ./*/kernel/drivers/gpu/* && \
     rm -rf ./*/kernel/drivers/infiniband/* && \
     rm -rf ./*/kernel/drivers/isdn/* && \
-    rm -rf ./*/kernel/drivers/media/*
+    rm -rf ./*/kernel/drivers/media/* && \
+    rm -rf ./*/kernel/drivers/staging/lustre/* && \
+    rm -rf ./*/kernel/drivers/staging/comedi/* && \
+    rm -rf ./*/kernel/fs/ocfs2/* && \
+    rm -rf ./*/kernel/net/bluetooth/* && \
+    rm -rf ./*/kernel/net/sunrpc/*
 
 # Install libcap
 RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
