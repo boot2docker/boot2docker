@@ -57,15 +57,16 @@ func init() {
 	B2D.SSH = getenv("BOOT2DOCKER_DOCKER_SSH", "ssh")
 }
 
-type vmState int
+type vmState string
 
 const (
-	vmUnknown vmState = iota
-	vmRunning
-	vmStopped
-	vmPaused
-	vmSuspended
-	vmAborted
+	vmRunning      vmState = "running"
+	vmPoweroff             = "poweroff"
+	vmPaused               = "paused"
+	vmSaved                = "saved"
+	vmAborted              = "aborted"
+	vmUnregistered         = "(unregistered)"
+	vmUnknown              = "(unknown)"
 )
 
 func main() {
@@ -88,12 +89,18 @@ func main() {
 		cmdSsh(vm)
 	case "resume":
 		cmdResume(vm)
-	case "save", "pause", "suspend":
-		cmdSuspend(vm)
-	case "halt", "down", "stop":
+	case "save", "suspend":
+		cmdSave(vm)
+	case "pause":
+		cmdPause(vm)
+	case "halt", "down", "stop": // proper ACPI shutdown
 		cmdStop(vm)
+	case "poweroff": // DANGEROUS: equivalent to unplug power!
+		cmdPoweroff(vm)
 	case "restart":
 		cmdRestart(vm)
+	case "reset":
+		cmdReset(vm) // DANGEROUS: equivalent to power cycle!
 	case "info":
 		cmdInfo(vm)
 	case "status":
@@ -106,11 +113,11 @@ func main() {
 }
 
 func cmdSsh(vm string) {
-	if !installed(vm) {
-		cmdStatus(vm)
-		return
-	}
 	state := status(vm)
+	if state == vmUnregistered {
+		log.Fatalf("%s is not registered.", vm)
+	}
+
 	if state != vmRunning {
 		log.Fatalf("%s is not running.", vm)
 	}
@@ -120,11 +127,11 @@ func cmdSsh(vm string) {
 	}
 }
 func cmdStart(vm string) {
-	if !installed(vm) {
-		cmdStatus(vm)
-		return
-	}
 	state := status(vm)
+	if state == vmUnregistered {
+		log.Fatalf("%s is not registered.", vm)
+	}
+
 	if state == vmRunning {
 		log.Printf("%s is already running.", vm)
 		return
@@ -165,7 +172,7 @@ func waitVM() {
 }
 
 func cmdResume(vm string) {
-	if status(vm) == vmSuspended {
+	if status(vm) == vmSaved {
 		err := vbm("controlvm", vm, "resume")
 		if err != nil {
 			log.Fatalf("failed to resume vm: %s", err)
@@ -175,11 +182,13 @@ func cmdResume(vm string) {
 	}
 }
 
-func cmdSuspend(vm string) {
-	if !installed(vm) {
-		cmdStatus(vm)
+func cmdSave(vm string) {
+	state := status(vm)
+	if state == vmUnregistered {
+		log.Fatalf("%s is not registered.", vm)
 	}
-	if status(vm) == vmRunning {
+
+	if state == vmRunning {
 		log.Printf("Suspending %s", vm)
 		err := vbm("controlvm", vm, "savestate")
 		if err != nil {
@@ -190,12 +199,20 @@ func cmdSuspend(vm string) {
 	}
 }
 
+func cmdPause(vm string) {
+	err := vbm("controlvm", vm, "pause")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func cmdStop(vm string) {
-	if !installed(vm) {
-		cmdStatus(vm)
+	state := status(vm)
+	if state == vmUnregistered {
+		log.Fatalf("%s is not registered.", vm)
 	}
 
-	if status(vm) == vmRunning {
+	if state == vmRunning {
 		log.Printf("Shutting down %s...", vm)
 		err := vbm("controlvm", vm, "acpipowerbutton")
 		if err != nil {
@@ -209,12 +226,19 @@ func cmdStop(vm string) {
 	}
 }
 
+func cmdPoweroff(vm string) {
+	err := vbm("controlvm", vm, "poweroff")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func cmdRestart(vm string) {
-	if !installed(vm) {
-		cmdStatus(vm)
+	state := status(vm)
+	if state == vmUnregistered {
+		log.Fatalf("%s is not registered.", vm)
 	}
 
-	state := status(vm)
 	if state == vmRunning {
 		cmdStop(vm)
 		time.Sleep(1 * time.Second)
@@ -224,34 +248,29 @@ func cmdRestart(vm string) {
 	}
 }
 
-func cmdInfo(vm string) {
-	if installed(vm) {
-		b, _ := vminfo(vm)
-		fmt.Printf("%s", b)
-	} else {
-		fmt.Printf("%s does not exist.\n", vm)
+func cmdReset(vm string) {
+	err := vbm("controlvm", vm, "reset")
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
+func cmdInfo(vm string) {
+	vbm("showvminfo", vm)
+}
+
 func cmdStatus(vm string) {
-	switch status(vm) {
-	case vmRunning:
-		fmt.Printf("%s is running.\n", vm)
-	case vmPaused:
-		log.Fatalf("%s is paused.", vm)
-	case vmSuspended:
-		log.Fatalf("%s is suspended.", vm)
-	case vmStopped:
-		log.Fatalf("%s is stopped.", vm)
-	case vmAborted:
-		log.Fatalf("%s is aborted.")
-	default:
-		log.Fatalf("%s does not exist.", vm)
+	state := status(vm)
+	fmt.Printf("%s is %s.\n", vm, state)
+	if state != vmRunning {
+		os.Exit(1)
 	}
 }
 
 func cmdInit(vm string) {
-	if installed(vm) {
+	state := status(vm)
+
+	if state != vmUnregistered {
 		log.Fatalf("%s already exists.\n")
 	}
 
@@ -360,7 +379,11 @@ func cmdDownload() {
 
 func cmdDelete(vm string) {
 	state := status(vm)
-	if state == vmStopped || state == vmAborted {
+	if state == vmUnregistered {
+		log.Printf("%s is not registered.", vm)
+	}
+
+	if state == vmPoweroff || state == vmAborted {
 		err := vbm("unregistervm", "--delete", vm)
 		if err != nil {
 			log.Fatalf("failed to delete vm: %s", err)
@@ -429,26 +452,22 @@ func installed(vm string) bool {
 
 // get the state of a VM
 func status(vm string) vmState {
-	b, err := vminfo(vm)
+	if !installed(vm) {
+		return vmUnregistered
+	}
+
+	b, err := exec.Command(B2D.Vbm, "showvminfo", vm, "--machinereadable").Output()
 	if err != nil {
 		return vmUnknown
 	}
-	re := regexp.MustCompile(`(?m)^State:\s+(\w+)`)
+	re := regexp.MustCompile(`(?m)^VMState="(\w+)"$`)
 	groups := re.FindSubmatch(b)
 	if len(groups) < 1 {
 		return vmUnknown
 	}
-	switch string(groups[1]) {
-	case "running":
-		return vmRunning
-	case "paused":
-		return vmPaused
-	case "saved":
-		return vmSuspended
-	case "powered": // it's actually "powered off"
-		return vmStopped
-	case "aborted":
-		return vmAborted
+	switch s := vmState(groups[1]); s {
+	case vmRunning, vmPaused, vmSaved, vmPoweroff, vmAborted:
+		return s
 	default:
 		return vmUnknown
 	}
@@ -456,14 +475,7 @@ func status(vm string) vmState {
 
 // print help message
 func help() {
-	log.Fatalf("Usage: %s {init|start|up|ssh|save|pause|stop|restart|resume|status|info|delete|download} [vm]", os.Args[0])
-}
-
-// get VM info
-func vminfo(vm string) (stdout []byte, err error) {
-	cmd := exec.Command(B2D.Vbm, "showvminfo", vm)
-	stdout, err = cmd.Output()
-	return
+	log.Fatalf("Usage: %s {init|start|up|ssh|save|pause|stop|poweroff|reset|restart|resume|status|info|delete|download} [vm]", os.Args[0])
 }
 
 // check if an addr can be successfully connected
