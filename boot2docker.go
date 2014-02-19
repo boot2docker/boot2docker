@@ -132,12 +132,18 @@ func cmdStart(vm string) {
 
 	if state == vmPaused {
 		log.Printf("Resuming %s", vm)
-		vbm("controlvm", vm, "resume")
+		err := vbm("controlvm", vm, "resume")
+		if err != nil {
+			log.Fatalf("failed to resume vm: %s", err)
+		}
 		waitVM()
 		log.Printf("Resumed.")
 	} else {
 		log.Printf("Starting %s...", vm)
-		vbm("startvm", vm, "--type", "headless")
+		err := vbm("startvm", vm, "--type", "headless")
+		if err != nil {
+			log.Fatalf("failed to start vm: %s", err)
+		}
 		waitVM()
 		log.Printf("Started.")
 	}
@@ -160,7 +166,10 @@ func waitVM() {
 
 func cmdResume(vm string) {
 	if status(vm) == vmSuspended {
-		vbm("controlvm", vm, "resume")
+		err := vbm("controlvm", vm, "resume")
+		if err != nil {
+			log.Fatalf("failed to resume vm: %s", err)
+		}
 	} else {
 		log.Printf("%s is not suspended.", vm)
 	}
@@ -172,7 +181,10 @@ func cmdSuspend(vm string) {
 	}
 	if status(vm) == vmRunning {
 		log.Printf("Suspending %s", vm)
-		vbm("controlvm", vm, "savestate")
+		err := vbm("controlvm", vm, "savestate")
+		if err != nil {
+			log.Fatalf("failed to suspend vm: %s", err)
+		}
 	} else {
 		log.Printf("%s is not running.", vm)
 	}
@@ -185,7 +197,10 @@ func cmdStop(vm string) {
 
 	if status(vm) == vmRunning {
 		log.Printf("Shutting down %s...", vm)
-		vbm("controlvm", vm, "acpipowerbutton")
+		err := vbm("controlvm", vm, "acpipowerbutton")
+		if err != nil {
+			log.Fatalf("failed to shutdown vm: %s", err)
+		}
 		for status(vm) == vmRunning {
 			time.Sleep(1 * time.Second)
 		}
@@ -249,8 +264,12 @@ func cmdInit(vm string) {
 	}
 
 	log.Printf("Creating VM %s", vm)
-	vbm("createvm", "--name", vm, "--register")
-	if vbm("modifyvm", vm,
+	err := vbm("createvm", "--name", vm, "--register")
+	if err != nil {
+		log.Fatalf("failed to create vm: %s", err)
+	}
+
+	err = vbm("modifyvm", vm,
 		"--ostype", "Linux26_64",
 		"--cpus", fmt.Sprintf("%d", runtime.NumCPU()),
 		"--memory", B2D.Memory,
@@ -267,18 +286,25 @@ func cmdInit(vm string) {
 		"--bioslogofadeout", "off",
 		"--bioslogodisplaytime", "0",
 		"--biosbootmenu", "disabled",
-		"--boot1", "dvd") != nil {
-		log.Fatal("An error occured, upgrade VirtualBox")
-		cmdDelete(vm)
+		"--boot1", "dvd")
+	if err != nil {
+		log.Fatal("failed to modify vm: %s", err)
 	}
 
 	log.Printf("Setting VM networking")
-	vbm("modifyvm", vm, "--nic1", "nat", "--nictype1", "virtio", "--cableconnected1", "on")
-	vbm("modifyvm", vm,
+	err = vbm("modifyvm", vm, "--nic1", "nat", "--nictype1", "virtio", "--cableconnected1", "on")
+	if err != nil {
+		log.Fatalf("failed to modify vm: %s", err)
+	}
+
+	err = vbm("modifyvm", vm,
 		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%s,,22", B2D.SSHHostPort),
 		"--natpf1", fmt.Sprintf("docker,tcp,127.0.0.1,%s,,4243", B2D.DockerPort))
+	if err != nil {
+		log.Fatalf("failed to modify vm: %s", err)
+	}
 
-	_, err := os.Stat(B2D.ISO)
+	_, err = os.Stat(B2D.ISO)
 	if err != nil {
 		if os.IsNotExist(err) {
 			cmdDownload()
@@ -286,6 +312,7 @@ func cmdInit(vm string) {
 			log.Fatalf("failed to open ISO image: %s", err)
 		}
 	}
+
 	_, err = os.Stat(B2D.Disk)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -299,9 +326,20 @@ func cmdInit(vm string) {
 	}
 
 	log.Printf("Setting VM disks")
-	vbm("storagectl", vm, "--name", "SATA", "--add", "sata", "--hostiocache", "on")
-	vbm("storageattach", vm, "--storagectl", "SATA", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", B2D.ISO)
-	vbm("storageattach", vm, "--storagectl", "SATA", "--port", "1", "--device", "0", "--type", "hdd", "--medium", B2D.Disk)
+	err = vbm("storagectl", vm, "--name", "SATA", "--add", "sata", "--hostiocache", "on")
+	if err != nil {
+		log.Fatalf("failed to add storage controller: %s", err)
+	}
+
+	err = vbm("storageattach", vm, "--storagectl", "SATA", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", B2D.ISO)
+	if err != nil {
+		log.Fatalf("failed to attach storage device: %s", err)
+	}
+
+	err = vbm("storageattach", vm, "--storagectl", "SATA", "--port", "1", "--device", "0", "--type", "hdd", "--medium", B2D.Disk)
+	if err != nil {
+		log.Fatalf("failed to attach storage device: %s", err)
+	}
 
 	log.Printf("Done.")
 	log.Printf("You can now type `boot2docker up` and wait for the VM to start.")
@@ -323,7 +361,10 @@ func cmdDownload() {
 func cmdDelete(vm string) {
 	state := status(vm)
 	if state == vmStopped || state == vmAborted {
-		vbm("unregistervm", "--delete", vm)
+		err := vbm("unregistervm", "--delete", vm)
+		if err != nil {
+			log.Fatalf("failed to delete vm: %s", err)
+		}
 		return
 	}
 	log.Fatalf("%s needs to be stopped to delete it.", vm)
@@ -437,7 +478,10 @@ func ping(addr string) bool {
 
 func makeDiskImage() error {
 	log.Printf("Creating %s MB hard disk image...", B2D.DiskSize)
-	vbm("createhd", "--format", "VMDK", "--filename", B2D.Disk, "--size", B2D.DiskSize)
+	err := vbm("createhd", "--format", "VMDK", "--filename", B2D.Disk, "--size", B2D.DiskSize)
+	if err != nil {
+		return err
+	}
 
 	// We do the following so boot2docker vm will auto-format the disk for us
 	// upon first boot.
@@ -460,10 +504,25 @@ func makeDiskImage() error {
 		return err
 	}
 
-	vbm("convertfromraw", tmpFlagFile, tmpVMDKFile, "--format", "VMDK")
-	vbm("clonehd", tmpVMDKFile, B2D.Disk, "--existing")
-	vbm("closemedium", "disk", tmpVMDKFile)
-	os.Remove(tmpFlagFile)
-	os.Remove(tmpVMDKFile)
+	err = vbm("convertfromraw", tmpFlagFile, tmpVMDKFile, "--format", "VMDK")
+	if err != nil {
+		return err
+	}
+	err = vbm("clonehd", tmpVMDKFile, B2D.Disk, "--existing")
+	if err != nil {
+		return err
+	}
+	err = vbm("closemedium", "disk", tmpVMDKFile)
+	if err != nil {
+		log.Printf("failed to close %s: %s", tmpVMDKFile, err)
+	}
+	err = os.Remove(tmpFlagFile)
+	if err != nil {
+		log.Printf("failed to remove %s: %s", tmpFlagFile, err)
+	}
+	err = os.Remove(tmpVMDKFile)
+	if err != nil {
+		log.Printf("failed to remove %s: %s", tmpVMDKFile, err)
+	}
 	return nil
 }
