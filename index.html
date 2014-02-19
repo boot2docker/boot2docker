@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Boot2docker by boot2docker</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Boot2docker</h1>
+        <p class="header">Lightweight Linux for Docker</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/boot2docker/boot2docker/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/boot2docker/boot2docker/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/boot2docker/boot2docker">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/boot2docker">boot2docker</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a name="boot2docker" class="anchor" href="#boot2docker"><span class="octicon octicon-link"></span></a>boot2docker</h1>
+
+<p>boot2docker is a lightweight Linux distribution based on <a href="http://tinycorelinux.net">Tiny Core Linux</a> made specifically to run <a href="https://www.docker.io/">Docker</a> containers. It runs completely from RAM, weighs ~27MB and boots in ~5s (YMMV). The <a href="https://github.com/steeve/boot2docker/releases">ISO can be download here</a>.</p>
+
+<p><a href="http://www.youtube.com/watch?v=QzfddDvNVv0&amp;hd=1"><img src="http://i.imgur.com/hIwudK3.gif" alt="boot2docker Demo Video"></a></p>
+
+<p>See <a href="doc/FAQ.md">Frequently asked questions</a> for more details.</p>
+
+<h2>
+<a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>Features</h2>
+
+<ul>
+<li>Kernel 3.12.1 with AUFS, Docker 0.8.0, LXC 0.8.0</li>
+<li>Container persistence via disk automount on <code>/var/lib/docker</code>
+</li>
+<li>SSH keys persistence via disk automount</li>
+</ul><h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<h4>
+<a name="osx" class="anchor" href="#osx"><span class="octicon octicon-link"></span></a>OSX</h4>
+
+<pre><code>$ brew update
+$ brew install boot2docker
+</code></pre>
+
+<h4>
+<a name="linuxunix-works-also-on-osx" class="anchor" href="#linuxunix-works-also-on-osx"><span class="octicon octicon-link"></span></a>Linux/Unix (works also on OSX)</h4>
+
+<pre><code>$ curl https://raw.github.com/steeve/boot2docker/master/boot2docker &gt; boot2docker
+$ chmod +x boot2docker
+</code></pre>
+
+<h2>
+<a name="how-to-use" class="anchor" href="#how-to-use"><span class="octicon octicon-link"></span></a>How to use</h2>
+
+<p>boot2docker comes with a simple init script that leverage's VirtualBox's <code>VBoxManage</code>. You can start, stop and delete the VM right from the command line.</p>
+
+<h4>
+<a name="initialize" class="anchor" href="#initialize"><span class="octicon octicon-link"></span></a>Initialize</h4>
+
+<pre><code>$ boot2docker init
+</code></pre>
+
+<h4>
+<a name="start-vm" class="anchor" href="#start-vm"><span class="octicon octicon-link"></span></a>Start vm</h4>
+
+<pre><code>$ boot2docker up
+</code></pre>
+
+<h2>
+<a name="advanced-usage" class="anchor" href="#advanced-usage"><span class="octicon octicon-link"></span></a>Advanced usage</h2>
+
+<h4>
+<a name="port-forwarding--folder-sharing" class="anchor" href="#port-forwarding--folder-sharing"><span class="octicon octicon-link"></span></a>Port forwarding / folder sharing</h4>
+
+<p>In order to use this features refer to <a href="https://github.com/steeve/boot2docker/blob/master/doc/WORKAROUNDS.md">this workarounds</a></p>
+
+<h4>
+<a name="customize" class="anchor" href="#customize"><span class="octicon octicon-link"></span></a>Customize</h4>
+
+<p>You can customise the values of <code>VM_NAME</code>, <code>DOCKER_PORT</code>, <code>SSH_HOST_PORT</code>, <code>VM_DISK</code>, <code>VM_DISK_SIZE</code>, <code>VM_MEM</code> and <code>BOOT2DOCKER_ISO</code> by setting them in <code>$HOME/.boot2docker/profile</code></p>
+
+<h4>
+<a name="persist-data" class="anchor" href="#persist-data"><span class="octicon octicon-link"></span></a>Persist data</h4>
+
+<p>If you want your containers to persist across reboots, attach an ext4 formatted disk with the label <code>boot2docker-data</code> (<code>mkfs.ext4 -L boot2docker-data /dev/sdX5</code>) to your VM, and boot2docker will automount it on <code>/mnt/sdX</code> and then softlink <code>/mnt/sdX/var/lib/docker</code> to <code>/var/lib/docker</code>. It will also persist the SSH keys of the machine.</p>
+
+<h4>
+<a name="ssh-into-vm" class="anchor" href="#ssh-into-vm"><span class="octicon octicon-link"></span></a>SSH into VM</h4>
+
+<pre><code>$ boot2docker ssh
+</code></pre>
+
+<p>boot2docker auto logs in, but if you want to SSH into the machine, the credentials are:</p>
+
+<pre><code>user: docker
+pass: tcuser
+</code></pre>
+
+<h4>
+<a name="install-on-any-device" class="anchor" href="#install-on-any-device"><span class="octicon octicon-link"></span></a>Install on any device</h4>
+
+<p>To 'install' the ISO onto an SD card, USB-Stick or even empty hard disk, you can
+use <code>dd if=boot2docker.iso of=/dev/sdX</code>.
+This will create the small boot partition, and install an MBR.</p>
+
+<h4>
+<a name="build-your-own-boot2dockeriso" class="anchor" href="#build-your-own-boot2dockeriso"><span class="octicon octicon-link"></span></a>Build your own boot2docker.iso</h4>
+
+<p>Goto <a href="doc/BUILD.md">How to build</a> for Documentation on how to build your own boot2docker ISO's.</p>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
