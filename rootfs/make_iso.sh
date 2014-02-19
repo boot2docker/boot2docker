@@ -34,6 +34,8 @@ cd $ROOTFS
 find | cpio -o -H newc | xz -9 --format=lzma > /tmp/iso/boot/initrd.img
 cd -
 
+cp -v $ROOTFS/etc/version /tmp/iso/version
+
 # Make the ISO
 # Note: only "-isohybrid-mbr /..." is specific to xorriso.
 # It builds an image that can be used as an ISO *and* a disk image.
