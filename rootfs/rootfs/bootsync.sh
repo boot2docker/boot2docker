@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Configure sysctl
+/etc/rc.d/sysctl
+
 # Load TCE extensions
 /etc/rc.d/tce-loader
 
