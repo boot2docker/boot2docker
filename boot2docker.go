@@ -1,4 +1,4 @@
-// This is the boot2docker management script.
+// This is the boot2docker management utilty.
 package main
 
 import (
@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -18,7 +19,7 @@ import (
 	"time"
 )
 
-// boot2docker config
+// B2D reprents boot2docker config.
 var B2D struct {
 	Vbm         string // VirtualBox management utility
 	VM          string // boot2docker virtual machine name
@@ -32,7 +33,7 @@ var B2D struct {
 	SSH         string // ssh executable
 }
 
-// helper function to get env var with default values
+// Return the value of an ENV var, or the fallback value if the ENV var is empty/undefined.
 func getenv(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
@@ -60,6 +61,7 @@ func init() {
 	flag.Parse()
 }
 
+// State of a virtual machine.
 type vmState string
 
 const (
@@ -68,8 +70,8 @@ const (
 	vmPaused               = "paused"
 	vmSaved                = "saved"
 	vmAborted              = "aborted"
-	vmUnregistered         = "(unregistered)"
-	vmUnknown              = "(unknown)"
+	vmUnregistered         = "(unregistered)" // not actually reported by VirtualBox
+	vmUnknown              = "(unknown)"      // not actually reported by VirtualBox
 )
 
 func main() {
@@ -87,7 +89,7 @@ func main() {
 	case "start", "up", "boot", "resume":
 		cmdStart(vm)
 	case "ssh":
-		cmdSsh(vm)
+		cmdSSH(vm)
 	case "save", "suspend":
 		cmdSave(vm)
 	case "pause":
@@ -111,7 +113,8 @@ func main() {
 	}
 }
 
-func cmdSsh(vm string) {
+// Call the external SSH command to login into boot2docker VM.
+func cmdSSH(vm string) {
 	switch state := status(vm); state {
 	case vmUnregistered:
 		log.Fatalf("%s is not registered.", vm)
@@ -124,7 +127,7 @@ func cmdSsh(vm string) {
 	}
 }
 
-// start the vm from different states
+// Start the VM from all possible states.
 func cmdStart(vm string) {
 	switch state := status(vm); state {
 	case vmUnregistered:
@@ -149,7 +152,7 @@ func cmdStart(vm string) {
 		log.Fatalf("Cannot start %s from state %.", vm, state)
 	}
 
-	// check if $DOCKER_HOST is properly configured
+	// Check if $DOCKER_HOST ENV var is properly configured.
 	DockerHost := getenv("DOCKER_HOST", "")
 	if DockerHost != "tcp://localhost:"+B2D.DockerPort {
 		fmt.Printf("\nTo connect the docker client to the Docker daemon, please set:\n")
@@ -157,6 +160,7 @@ func cmdStart(vm string) {
 	}
 }
 
+// Save the current state of VM on disk.
 func cmdSave(vm string) {
 	switch state := status(vm); state {
 	case vmUnregistered:
@@ -171,6 +175,7 @@ func cmdSave(vm string) {
 	}
 }
 
+// Pause the VM.
 func cmdPause(vm string) {
 	switch state := status(vm); state {
 	case vmUnregistered:
@@ -184,6 +189,7 @@ func cmdPause(vm string) {
 	}
 }
 
+// Gracefully stop the VM by sending ACPI shutdown signal.
 func cmdStop(vm string) {
 	switch state := status(vm); state {
 	case vmUnregistered:
@@ -201,6 +207,8 @@ func cmdStop(vm string) {
 	}
 }
 
+// Forcefully power off the VM (equivalent to unplug power). Could potentially
+// result in corrupted disk. Use with care.
 func cmdPoweroff(vm string) {
 	switch state := status(vm); state {
 	case vmUnregistered:
@@ -214,6 +222,7 @@ func cmdPoweroff(vm string) {
 	}
 }
 
+// Gracefully stop and then start the VM.
 func cmdRestart(vm string) {
 	switch state := status(vm); state {
 	case vmUnregistered:
@@ -227,6 +236,8 @@ func cmdRestart(vm string) {
 	}
 }
 
+// Forcefully reset the VM. Could potentially result in corrupted disk. Use
+// with care.
 func cmdReset(vm string) {
 	switch state := status(vm); state {
 	case vmUnregistered:
@@ -240,6 +251,7 @@ func cmdReset(vm string) {
 	}
 }
 
+// Delete the VM and remove associated files.
 func cmdDelete(vm string) {
 	switch state := status(vm); state {
 	case vmUnregistered:
@@ -254,12 +266,14 @@ func cmdDelete(vm string) {
 	}
 }
 
+// Show detailed info of the VM.
 func cmdInfo(vm string) {
 	if err := vbm("showvminfo", vm); err != nil {
 		log.Fatal(err)
 	}
 }
 
+// Show the current state of the VM.
 func cmdStatus(vm string) {
 	state := status(vm)
 	fmt.Printf("%s is %s.\n", vm, state)
@@ -268,20 +282,21 @@ func cmdStatus(vm string) {
 	}
 }
 
+// Initialize the boot2docker VM from scratch.
 func cmdInit(vm string) {
 	if state := status(vm); state != vmUnregistered {
 		log.Fatalf("%s already exists.\n")
 	}
 
 	if ping(fmt.Sprintf("localhost:%s", B2D.DockerPort)) {
-		log.Fatalf("DOCKER_PORT=%s on localhost is occupied. Please choose another port.", B2D.DockerPort)
+		log.Fatalf("DOCKER_PORT=%s on localhost is occupied. Please choose another none.", B2D.DockerPort)
 	}
 
 	if ping(fmt.Sprintf("localhost:%s", B2D.SSHHostPort)) {
-		log.Fatalf("SSH_HOST_PORT=%s on localhost is occupied. Please choose another port.", B2D.SSHHostPort)
+		log.Fatalf("SSH_HOST_PORT=%s on localhost is occupied. Please choose another one.", B2D.SSHHostPort)
 	}
 
-	log.Printf("Creating VM %s", vm)
+	log.Printf("Creating VM %s...", vm)
 	if err := vbm("createvm", "--name", vm, "--register"); err != nil {
 		log.Fatalf("failed to create vm: %s", err)
 	}
@@ -328,7 +343,7 @@ func cmdInit(vm string) {
 
 	if _, err := os.Stat(B2D.Disk); err != nil {
 		if os.IsNotExist(err) {
-			err := makeDiskImage()
+			err := makeDiskImage(B2D.Disk, B2D.DiskSize)
 			if err != nil {
 				log.Fatalf("failed to create disk image: %s", err)
 			}
@@ -354,6 +369,7 @@ func cmdInit(vm string) {
 	log.Printf("You can now type `boot2docker up` and wait for the VM to start.")
 }
 
+// Download the boot2docker ISO image.
 func cmdDownload() {
 	log.Printf("downloading boot2docker ISO image...")
 	tag, err := getLatestReleaseName()
@@ -366,7 +382,7 @@ func cmdDownload() {
 	}
 }
 
-// convenient function to exec a command
+// Convenient function to exec a command.
 func cmd(name string, args ...string) error {
 	cmd := exec.Command(name, args...)
 	cmd.Stdin = os.Stdin
@@ -375,12 +391,12 @@ func cmd(name string, args ...string) error {
 	return cmd.Run()
 }
 
-// convenient function to launch VBoxManage
+// Convenient function to launch VBoxManage.
 func vbm(args ...string) error {
 	return cmd(B2D.Vbm, args...)
 }
 
-// get the latest boot2docker release tag e.g. v0.5.4
+// Get the latest boot2docker release name (e.g. v0.5.4).
 func getLatestReleaseName() (string, error) {
 	rsp, err := http.Get("https://api.github.com/repos/boot2docker/boot2docker/releases")
 	if err != nil {
@@ -400,23 +416,36 @@ func getLatestReleaseName() (string, error) {
 	return t[0].TagName, nil
 }
 
-// download boot2docker ISO for the given tag and save it at dest
+// Download boot2docker ISO image for the given tag and save it at dest.
 func download(dest, tag string) error {
 	rsp, err := http.Get(fmt.Sprintf("https://github.com/boot2docker/boot2docker/releases/download/%s/boot2docker.iso", tag))
 	if err != nil {
 		return err
 	}
 	defer rsp.Body.Close()
-	f, err := os.Create(dest)
+
+	f, err := ioutil.TempFile("", "boot2docker-")
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(f, rsp.Body)
-	return err
+	defer os.Remove(f.Name())
+
+	if _, err := io.Copy(f, rsp.Body); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+
+	if err := os.Rename(f.Name(), dest); err != nil {
+		return err
+	}
+	return nil
 }
 
-// get the state of a VM
+// Get the state of a VM.
 func status(vm string) vmState {
+	// Check if the VM exists.
 	out, err := exec.Command(B2D.Vbm, "list", "vms").Output()
 	if err != nil {
 		return vmUnknown
@@ -446,12 +475,12 @@ func status(vm string) vmState {
 	}
 }
 
-// print help message
+// Print help message.
 func help() {
 	log.Fatalf("Usage: %s {init|start|up|ssh|save|pause|stop|poweroff|reset|restart|status|info|delete|download} [vm]", os.Args[0])
 }
 
-// ping boot2docker VM until it's started
+// Ping boot2docker VM until it's started.
 func waitVM() {
 	addr := fmt.Sprintf("localhost:%s", B2D.SSHHostPort)
 	for !ping(addr) {
@@ -459,7 +488,7 @@ func waitVM() {
 	}
 }
 
-// check if an addr can be successfully connected
+// Check if an addr can be successfully connected.
 func ping(addr string) bool {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
@@ -469,49 +498,53 @@ func ping(addr string) bool {
 	return true
 }
 
-func makeDiskImage() error {
-	log.Printf("Creating %s MB hard disk image...", B2D.DiskSize)
-	err := vbm("createhd", "--format", "VMDK", "--filename", B2D.Disk, "--size", B2D.DiskSize)
+// Make a boot2docker VM disk image.
+func makeDiskImage(dest, size string) error {
+	log.Printf("Creating %s MB hard disk image...", size)
+	err := vbm("createhd", "--format", "VMDK", "--filename", dest, "--size", size)
 	if err != nil {
 		return err
 	}
 
 	// We do the following so boot2docker vm will auto-format the disk for us
 	// upon first boot.
-	const tmpFlagFile = "format-flag.txt"
-	const tmpVMDKFile = "format-flag.vmdk"
-	f, err := os.Create(tmpFlagFile)
+	const tmpPrefix = "boot2docker-"
+	tmpfile, err := ioutil.TempFile("", tmpPrefix)
 	if err != nil {
 		return err
 	}
-	if err := f.Truncate(5 * 1024 * 1024); err != nil {
-		return err
-	}
-	if _, err = f.WriteString("boot2docker, please format-me\n"); err != nil {
-		return err
-	}
-	if err := f.Close(); err != nil {
-		return err
-	}
+	tmpTxt := tmpfile.Name()
+	defer os.Remove(tmpTxt) // doesn't hurt if this fails
 
-	if err := vbm("convertfromraw", tmpFlagFile, tmpVMDKFile, "--format", "VMDK"); err != nil {
+	if err := tmpfile.Truncate(5 * 1024 * 1024); err != nil {
 		return err
 	}
-
-	if err := vbm("clonehd", tmpVMDKFile, B2D.Disk, "--existing"); err != nil {
+	if _, err = tmpfile.WriteString("boot2docker, please format-me\n"); err != nil {
+		return err
+	}
+	if err := tmpfile.Close(); err != nil {
 		return err
 	}
 
-	if err := vbm("closemedium", "disk", tmpVMDKFile); err != nil {
-		log.Printf("failed to close %s: %s", tmpVMDKFile, err)
+	tmpfile, err = ioutil.TempFile("", tmpPrefix)
+	if err != nil {
+		return err
+	}
+	tmpImg := tmpfile.Name()
+	defer os.Remove(tmpImg) // doesn't hurt if this fails
+
+	if err := tmpfile.Close(); err != nil {
+		return err
 	}
 
-	if err := os.Remove(tmpFlagFile); err != nil {
-		log.Printf("failed to remove %s: %s", tmpFlagFile, err)
+	if err := vbm("convertfromraw", tmpTxt, tmpImg, "--format", "VMDK"); err != nil {
+		return err
 	}
-
-	if err := os.Remove(tmpVMDKFile); err != nil {
-		log.Printf("failed to remove %s: %s", tmpVMDKFile, err)
+	if err := vbm("clonehd", tmpImg, dest, "--existing"); err != nil {
+		return err
+	}
+	if err := vbm("closemedium", "disk", tmpImg); err != nil {
+		log.Printf("failed to close %s: %s", tmpImg, err)
 	}
 	return nil
 }
