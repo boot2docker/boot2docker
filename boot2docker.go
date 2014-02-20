@@ -16,21 +16,22 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"time"
 )
 
 // B2D reprents boot2docker config.
 var B2D struct {
 	Vbm         string // VirtualBox management utility
+	SSH         string // SSH client executable
 	VM          string // boot2docker virtual machine name
 	Dir         string // boot2docker directory
 	ISO         string // boot2docker ISO image path
 	Disk        string // boot2docker disk image path
-	DiskSize    string // boot2docker disk image size (MB)
-	Memory      string // boot2docker memory size (MB)
-	SSHHostPort string // boot2docker host SSH port
-	DockerPort  string // boot2docker docker port
-	SSH         string // ssh executable
+	DiskSize    int    // boot2docker disk image size (MB)
+	Memory      int    // boot2docker memory size (MB)
+	SSHHostPort int    // boot2docker host SSH port
+	DockerPort  int    // boot2docker docker port
 }
 
 // Return the value of an ENV var, or the fallback value if the ENV var is empty/undefined.
@@ -48,14 +49,34 @@ func init() {
 	}
 	B2D.Vbm = getenv("BOOT2DOCKER_VBM", "VBoxManage")
 	B2D.VM = getenv("BOOT2DOCKER_VM", "boot2docker-vm")
+	B2D.SSH = getenv("BOOT2DOCKER_DOCKER_SSH", "ssh")
 	B2D.Dir = getenv("BOOT2DOCKER_DIR", filepath.Join(u.HomeDir, ".boot2docker"))
 	B2D.ISO = getenv("BOOT2DOCKER_ISO", filepath.Join(B2D.Dir, "boot2docker.iso"))
 	B2D.Disk = getenv("BOOT2DOCKER_DISK", filepath.Join(B2D.Dir, "boot2docker.vmdk"))
-	B2D.DiskSize = getenv("BOOT2DOCKER_DISKSIZE", "20000")
-	B2D.Memory = getenv("BOOT2DOCKER_MEMORY", "1000")
-	B2D.SSHHostPort = getenv("BOOT2DOCKER_SSH_HOST_PORT", "2022")
-	B2D.DockerPort = getenv("BOOT2DOCKER_DOCKER_PORT", "4243")
-	B2D.SSH = getenv("BOOT2DOCKER_DOCKER_SSH", "ssh")
+	if B2D.DiskSize, err = strconv.Atoi(getenv("BOOT2DOCKER_DISKSIZE", "20000")); err != nil {
+		log.Fatalf("Invalid BOOT2DOCKER_DISKSIZE: %s", err)
+	}
+	if B2D.DiskSize <= 0 {
+		log.Fatalf("BOOT2DOCKER_DISKSIZE way too small.")
+	}
+	if B2D.Memory, err = strconv.Atoi(getenv("BOOT2DOCKER_MEMORY", "1024")); err != nil {
+		log.Fatalf("Invalid BOOT2DOCKER_MEMORY: %s", err)
+	}
+	if B2D.Memory <= 0 {
+		log.Fatalf("BOOT2DOCKER_MEMORY way too small.")
+	}
+	if B2D.SSHHostPort, err = strconv.Atoi(getenv("BOOT2DOCKER_SSH_HOST_PORT", "2022")); err != nil {
+		log.Fatalf("Invalid BOOT2DOCKER_SSH_HOST_PORT: %s", err)
+	}
+	if B2D.SSHHostPort <= 0 {
+		log.Fatalf("Invalid BOOT2DOCKER_SSH_HOST_PORT: must be in the range of 1--65535: got %d", B2D.SSHHostPort)
+	}
+	if B2D.DockerPort, err = strconv.Atoi(getenv("BOOT2DOCKER_DOCKER_PORT", "4243")); err != nil {
+		log.Fatalf("Invalid BOOT2DOCKER_DOCKER_PORT: %s", err)
+	}
+	if B2D.DockerPort <= 0 {
+		log.Fatalf("Invalid BOOT2DOCKER_DOCKER_PORT: must be in the range of 1--65535: got %d", B2D.DockerPort)
+	}
 
 	// TODO maybe allow flags to override ENV vars?
 	flag.Parse()
@@ -119,7 +140,7 @@ func cmdSSH(vm string) {
 	case vmUnregistered:
 		log.Fatalf("%s is not registered.", vm)
 	case vmRunning:
-		if err := cmd(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", B2D.SSHHostPort, "docker@localhost"); err != nil {
+		if err := cmd(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", fmt.Sprintf("%d", B2D.SSHHostPort), "docker@localhost"); err != nil {
 			log.Fatal(err)
 		}
 	default:
@@ -154,9 +175,9 @@ func cmdStart(vm string) {
 
 	// Check if $DOCKER_HOST ENV var is properly configured.
 	DockerHost := getenv("DOCKER_HOST", "")
-	if DockerHost != "tcp://localhost:"+B2D.DockerPort {
+	if DockerHost != fmt.Sprintf("tcp://localhost:%d", B2D.DockerPort) {
 		fmt.Printf("\nTo connect the docker client to the Docker daemon, please set:\n")
-		fmt.Printf("export DOCKER_HOST=tcp://localhost:%s\n\n", B2D.DockerPort)
+		fmt.Printf("export DOCKER_HOST=tcp://localhost:%d\n\n", B2D.DockerPort)
 	}
 }
 
@@ -288,12 +309,12 @@ func cmdInit(vm string) {
 		log.Fatalf("%s already exists.\n")
 	}
 
-	if ping(fmt.Sprintf("localhost:%s", B2D.DockerPort)) {
-		log.Fatalf("DOCKER_PORT=%s on localhost is occupied. Please choose another none.", B2D.DockerPort)
+	if ping(fmt.Sprintf("localhost:%d", B2D.DockerPort)) {
+		log.Fatalf("DOCKER_PORT=%d on localhost is occupied. Please choose another none.", B2D.DockerPort)
 	}
 
-	if ping(fmt.Sprintf("localhost:%s", B2D.SSHHostPort)) {
-		log.Fatalf("SSH_HOST_PORT=%s on localhost is occupied. Please choose another one.", B2D.SSHHostPort)
+	if ping(fmt.Sprintf("localhost:%d", B2D.SSHHostPort)) {
+		log.Fatalf("SSH_HOST_PORT=%d on localhost is occupied. Please choose another one.", B2D.SSHHostPort)
 	}
 
 	log.Printf("Creating VM %s...", vm)
@@ -304,7 +325,7 @@ func cmdInit(vm string) {
 	if err := vbm("modifyvm", vm,
 		"--ostype", "Linux26_64",
 		"--cpus", fmt.Sprintf("%d", runtime.NumCPU()),
-		"--memory", B2D.Memory,
+		"--memory", fmt.Sprintf("%d", B2D.Memory),
 		"--rtcuseutc", "on",
 		"--acpi", "on",
 		"--ioapic", "on",
@@ -328,8 +349,8 @@ func cmdInit(vm string) {
 	}
 
 	if err := vbm("modifyvm", vm,
-		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%s,,22", B2D.SSHHostPort),
-		"--natpf1", fmt.Sprintf("docker,tcp,127.0.0.1,%s,,4243", B2D.DockerPort)); err != nil {
+		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%d,,22", B2D.SSHHostPort),
+		"--natpf1", fmt.Sprintf("docker,tcp,127.0.0.1,%d,,4243", B2D.DockerPort)); err != nil {
 		log.Fatalf("failed to modify vm: %s", err)
 	}
 
@@ -482,7 +503,7 @@ func help() {
 
 // Ping boot2docker VM until it's started.
 func waitVM() {
-	addr := fmt.Sprintf("localhost:%s", B2D.SSHHostPort)
+	addr := fmt.Sprintf("localhost:%d", B2D.SSHHostPort)
 	for !ping(addr) {
 		time.Sleep(1 * time.Second)
 	}
@@ -499,52 +520,22 @@ func ping(addr string) bool {
 }
 
 // Make a boot2docker VM disk image.
-func makeDiskImage(dest, size string) error {
-	log.Printf("Creating %s MB hard disk image...", size)
-	err := vbm("createhd", "--format", "VMDK", "--filename", dest, "--size", size)
+func makeDiskImage(dest string, size int) error {
+	log.Printf("Creating %d MB hard disk image...", size)
+	cmd := exec.Command(B2D.Vbm, "convertfromraw", "stdin", dest, fmt.Sprintf("%d", size*1024*1024), "--format", "VMDK")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	w, err := cmd.StdinPipe()
 	if err != nil {
 		return err
 	}
-
-	// We do the following so boot2docker vm will auto-format the disk for us
-	// upon first boot.
-	const tmpPrefix = "boot2docker-"
-	tmpfile, err := ioutil.TempFile("", tmpPrefix)
-	if err != nil {
+	// Write the magic string so the VM auto-formats the disk upon first boot.
+	if _, err := w.Write([]byte("boot2docker, please format-me")); err != nil {
 		return err
 	}
-	tmpTxt := tmpfile.Name()
-	defer os.Remove(tmpTxt) // doesn't hurt if this fails
-
-	if err := tmpfile.Truncate(5 * 1024 * 1024); err != nil {
-		return err
-	}
-	if _, err = tmpfile.WriteString("boot2docker, please format-me\n"); err != nil {
-		return err
-	}
-	if err := tmpfile.Close(); err != nil {
+	if err := w.Close(); err != nil {
 		return err
 	}
 
-	tmpfile, err = ioutil.TempFile("", tmpPrefix)
-	if err != nil {
-		return err
-	}
-	tmpImg := tmpfile.Name()
-	defer os.Remove(tmpImg) // doesn't hurt if this fails
-
-	if err := tmpfile.Close(); err != nil {
-		return err
-	}
-
-	if err := vbm("convertfromraw", tmpTxt, tmpImg, "--format", "VMDK"); err != nil {
-		return err
-	}
-	if err := vbm("clonehd", tmpImg, dest, "--existing"); err != nil {
-		return err
-	}
-	if err := vbm("closemedium", "disk", tmpImg); err != nil {
-		log.Printf("failed to close %s: %s", tmpImg, err)
-	}
-	return nil
+	return cmd.Run()
 }
