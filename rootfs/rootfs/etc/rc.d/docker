@@ -6,6 +6,4 @@ if [ ! -e /var/lib/boot2docker/etc/docker-daemon ]; then
     cp /usr/local/etc/docker-daemon /var/lib/boot2docker/etc/docker-daemon
 fi
 
-# Make sure IP forwarding is properly enabled
-sysctl -w net.ipv4.ip_forward=1
 /usr/local/etc/init.d/docker start

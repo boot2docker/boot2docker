@@ -47,7 +47,7 @@ download_latest() {
         curl -L -o "$BOOT2DOCKER_ISO" "https://github.com/boot2docker/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
         log "Done"
     else
-        log "Could not get lastest release name! Cannot download boot2docker.iso."
+        log "Could not get latest release name! Cannot download boot2docker.iso."
     fi
 }
 
