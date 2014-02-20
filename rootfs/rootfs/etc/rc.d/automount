@@ -5,7 +5,7 @@ MAGIC="boot2docker, please format-me"
 
 # If there is a partition with `boot2docker-data` as its label, use it and be
 # very happy. Thus, you can come along if you feel like a room without a roof.
-BOOT2DOCKER_DATA=`blkid -L $LABEL | head -n 1`
+BOOT2DOCKER_DATA=`blkid -o device -t LABEL=$LABEL | head -n 1`
 
 if [ ! -n "$BOOT2DOCKER_DATA" ]; then
     # Is the disk unpartitioned?, test for the 'boot2docker format-me' string
