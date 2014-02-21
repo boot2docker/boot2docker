@@ -25,7 +25,7 @@ cmd_exists() {
     done
     [ -n "$notOK" ] && exit 1
 }
-cmd_exists nc curl grep head tr $VBM
+cmd_exists bc nc curl grep head tr $VBM
 
 mkdir -p "${BOOT2DOCKER_CFG_DIR}"
 
@@ -140,16 +140,7 @@ init() {
 
     if [ ! -e "$VM_DISK" ]; then
         log "Creating $VM_DISK_SIZE Meg hard drive..."
-        # closemedium may complain when not needed
-        mkdir -p "${VM_DISK%/*}"
-        $VBM closemedium disk "$VM_DISK" > /dev/null 2>&1
-        ## make a simple text file, and use that as the flag to say 'format me'
-        $VBM createhd --format VMDK --filename "$VM_DISK" --size $VM_DISK_SIZE
-
-        echo "boot2docker, please format-me" | cat - /dev/zero | head -c 5242880 > format-flag.txt # 5M
-        $VBM convertfromraw format-flag.txt format-flag.vmdk --format VMDK
-        $VBM clonehd format-flag.vmdk "$VM_DISK" --existing
-        $VBM closemedium disk format-flag.vmdk > /dev/null 2>&1 && rm format-flag.txt format-flag.vmdk
+        echo "boot2docker, please format-me" | $VBM convertfromraw stdin "$VM_DISK" $(echo "$VM_DISK_SIZE * 1024 * 1024" | bc) --format VMDK
     fi
 
     $VBM storagectl $VM_NAME --name "SATA" --add sata --hostiocache on
