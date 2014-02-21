@@ -1,4 +1,5 @@
 // +build !windows
+
 package main
 
 func defaultSSHPrefix() string {
