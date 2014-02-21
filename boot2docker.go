@@ -17,13 +17,14 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 )
 
 // B2D reprents boot2docker config.
 var B2D struct {
 	Vbm        string // VirtualBox management utility
-	SSH        string // SSH client executable
+	SSHPrefix  string // prefix for the SSH command to be executed
 	VM         string // virtual machine name
 	Dir        string // boot2docker directory
 	ISO        string // boot2docker ISO image path
@@ -47,9 +48,9 @@ func init() {
 	if err != nil {
 		log.Fatalf("cannot get current user: %s", err)
 	}
-	B2D.Vbm = getenv("BOOT2DOCKER_VBM", "VBoxManage")
+	B2D.Vbm = getenv("BOOT2DOCKER_VBM", defaultVBoxManage())
 	B2D.VM = getenv("BOOT2DOCKER_VM", "boot2docker-vm")
-	B2D.SSH = getenv("BOOT2DOCKER_DOCKER_SSH", "ssh")
+	B2D.SSHPrefix = getenv("BOOT2DOCKER_DOCKER_SSH_PREFIX", defaultSSHPrefix())
 	B2D.Dir = getenv("BOOT2DOCKER_DIR", filepath.Join(u.HomeDir, ".boot2docker"))
 	B2D.ISO = getenv("BOOT2DOCKER_ISO", filepath.Join(B2D.Dir, "boot2docker.iso"))
 	B2D.Disk = getenv("BOOT2DOCKER_DISK", filepath.Join(B2D.Dir, "boot2docker.vmdk"))
@@ -139,7 +140,8 @@ func cmdSSH() {
 	case vmUnregistered:
 		log.Fatalf("%s is not registered.", B2D.VM)
 	case vmRunning:
-		if err := cmd(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", fmt.Sprintf("%d", B2D.SSHPort), "docker@localhost"); err != nil {
+		cmdParts := append(strings.Fields(B2D.SSHPrefix), fmt.Sprintf("%d", B2D.SSHPort), "docker@localhost")
+		if err := cmd(cmdParts[0], cmdParts[1:]...); err != nil {
 			log.Fatal(err)
 		}
 	default:
