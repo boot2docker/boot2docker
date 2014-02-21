@@ -96,9 +96,8 @@ const (
 )
 
 func main() {
-	vm := flag.Arg(1)
-	if vm == "" {
-		vm = B2D.VM // use default vm if not specified
+	if vm := flag.Arg(1); vm != "" {
+		B2D.VM = vm
 	}
 
 	// TODO maybe use reflect here?
@@ -106,71 +105,71 @@ func main() {
 	case "download":
 		cmdDownload()
 	case "init":
-		cmdInit(vm)
+		cmdInit()
 	case "start", "up", "boot", "resume":
-		cmdStart(vm)
+		cmdStart()
 	case "ssh":
-		cmdSSH(vm)
+		cmdSSH()
 	case "save", "suspend":
-		cmdSave(vm)
+		cmdSave()
 	case "pause":
-		cmdPause(vm)
+		cmdPause()
 	case "halt", "down", "stop":
-		cmdStop(vm) // proper ACPI shutdown
+		cmdStop()
 	case "poweroff":
-		cmdPoweroff(vm) // DANGEROUS: equivalent to unplug power!
+		cmdPoweroff()
 	case "restart":
-		cmdRestart(vm)
+		cmdRestart()
 	case "reset":
-		cmdReset(vm) // DANGEROUS: equivalent to power cycle!
+		cmdReset()
 	case "info":
-		cmdInfo(vm)
+		cmdInfo()
 	case "status":
-		cmdStatus(vm)
+		cmdStatus()
 	case "delete":
-		cmdDelete(vm)
+		cmdDelete()
 	default:
 		help()
 	}
 }
 
 // Call the external SSH command to login into boot2docker VM.
-func cmdSSH(vm string) {
-	switch state := status(vm); state {
+func cmdSSH() {
+	switch state := status(B2D.VM); state {
 	case vmUnregistered:
-		log.Fatalf("%s is not registered.", vm)
+		log.Fatalf("%s is not registered.", B2D.VM)
 	case vmRunning:
 		if err := cmd(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", fmt.Sprintf("%d", B2D.SSHHostPort), "docker@localhost"); err != nil {
 			log.Fatal(err)
 		}
 	default:
-		log.Fatalf("%s is not running.", vm)
+		log.Fatalf("%s is not running.", B2D.VM)
 	}
 }
 
 // Start the VM from all possible states.
-func cmdStart(vm string) {
-	switch state := status(vm); state {
+func cmdStart() {
+	switch state := status(B2D.VM); state {
 	case vmUnregistered:
-		log.Fatalf("%s is not registered.", vm)
+		log.Fatalf("%s is not registered.", B2D.VM)
 	case vmRunning:
-		log.Printf("%s is already running.", vm)
+		log.Printf("%s is already running.", B2D.VM)
 	case vmPaused:
-		log.Printf("Resuming %s", vm)
-		if err := vbm("controlvm", vm, "resume"); err != nil {
+		log.Printf("Resuming %s", B2D.VM)
+		if err := vbm("controlvm", B2D.VM, "resume"); err != nil {
 			log.Fatalf("failed to resume vm: %s", err)
 		}
 		waitVM()
 		log.Printf("Resumed.")
 	case vmSaved, vmPoweroff, vmAborted:
-		log.Printf("Starting %s...", vm)
-		if err := vbm("startvm", vm, "--type", "headless"); err != nil {
+		log.Printf("Starting %s...", B2D.VM)
+		if err := vbm("startvm", B2D.VM, "--type", "headless"); err != nil {
 			log.Fatalf("failed to start vm: %s", err)
 		}
 		waitVM()
 		log.Printf("Started.")
 	default:
-		log.Fatalf("Cannot start %s from state %.", vm, state)
+		log.Fatalf("Cannot start %s from state %.", B2D.VM, state)
 	}
 
 	// Check if $DOCKER_HOST ENV var is properly configured.
@@ -182,130 +181,130 @@ func cmdStart(vm string) {
 }
 
 // Save the current state of VM on disk.
-func cmdSave(vm string) {
-	switch state := status(vm); state {
+func cmdSave() {
+	switch state := status(B2D.VM); state {
 	case vmUnregistered:
-		log.Fatalf("%s is not registered.", vm)
+		log.Fatalf("%s is not registered.", B2D.VM)
 	case vmRunning:
-		log.Printf("Suspending %s", vm)
-		if err := vbm("controlvm", vm, "savestate"); err != nil {
+		log.Printf("Suspending %s", B2D.VM)
+		if err := vbm("controlvm", B2D.VM, "savestate"); err != nil {
 			log.Fatalf("failed to suspend vm: %s", err)
 		}
 	default:
-		log.Printf("%s is not running.", vm)
+		log.Printf("%s is not running.", B2D.VM)
 	}
 }
 
 // Pause the VM.
-func cmdPause(vm string) {
-	switch state := status(vm); state {
+func cmdPause() {
+	switch state := status(B2D.VM); state {
 	case vmUnregistered:
-		log.Fatalf("%s is not registered.", vm)
+		log.Fatalf("%s is not registered.", B2D.VM)
 	case vmRunning:
-		if err := vbm("controlvm", vm, "pause"); err != nil {
+		if err := vbm("controlvm", B2D.VM, "pause"); err != nil {
 			log.Fatal(err)
 		}
 	default:
-		log.Printf("%s is not running.", vm)
+		log.Printf("%s is not running.", B2D.VM)
 	}
 }
 
 // Gracefully stop the VM by sending ACPI shutdown signal.
-func cmdStop(vm string) {
-	switch state := status(vm); state {
+func cmdStop() {
+	switch state := status(B2D.VM); state {
 	case vmUnregistered:
-		log.Fatalf("%s is not registered.", vm)
+		log.Fatalf("%s is not registered.", B2D.VM)
 	case vmRunning:
-		log.Printf("Shutting down %s...", vm)
-		if err := vbm("controlvm", vm, "acpipowerbutton"); err != nil {
+		log.Printf("Shutting down %s...", B2D.VM)
+		if err := vbm("controlvm", B2D.VM, "acpipowerbutton"); err != nil {
 			log.Fatalf("failed to shutdown vm: %s", err)
 		}
-		for status(vm) == vmRunning {
+		for status(B2D.VM) == vmRunning {
 			time.Sleep(1 * time.Second)
 		}
 	default:
-		log.Printf("%s is not running.", vm)
+		log.Printf("%s is not running.", B2D.VM)
 	}
 }
 
 // Forcefully power off the VM (equivalent to unplug power). Could potentially
 // result in corrupted disk. Use with care.
-func cmdPoweroff(vm string) {
-	switch state := status(vm); state {
+func cmdPoweroff() {
+	switch state := status(B2D.VM); state {
 	case vmUnregistered:
-		log.Fatalf("%s is not registered.", vm)
+		log.Fatalf("%s is not registered.", B2D.VM)
 	case vmRunning:
-		if err := vbm("controlvm", vm, "poweroff"); err != nil {
+		if err := vbm("controlvm", B2D.VM, "poweroff"); err != nil {
 			log.Fatal(err)
 		}
 	default:
-		log.Printf("%s is not running.", vm)
+		log.Printf("%s is not running.", B2D.VM)
 	}
 }
 
 // Gracefully stop and then start the VM.
-func cmdRestart(vm string) {
-	switch state := status(vm); state {
+func cmdRestart() {
+	switch state := status(B2D.VM); state {
 	case vmUnregistered:
-		log.Fatalf("%s is not registered.", vm)
+		log.Fatalf("%s is not registered.", B2D.VM)
 	case vmRunning:
-		cmdStop(vm)
+		cmdStop()
 		time.Sleep(1 * time.Second)
-		cmdStart(vm)
+		cmdStart()
 	default:
-		cmdStart(vm)
+		cmdStart()
 	}
 }
 
 // Forcefully reset the VM. Could potentially result in corrupted disk. Use
 // with care.
-func cmdReset(vm string) {
-	switch state := status(vm); state {
+func cmdReset() {
+	switch state := status(B2D.VM); state {
 	case vmUnregistered:
-		log.Fatalf("%s is not registered.", vm)
+		log.Fatalf("%s is not registered.", B2D.VM)
 	case vmRunning:
-		if err := vbm("controlvm", vm, "reset"); err != nil {
+		if err := vbm("controlvm", B2D.VM, "reset"); err != nil {
 			log.Fatal(err)
 		}
 	default:
-		log.Printf("%s is not running.", vm)
+		log.Printf("%s is not running.", B2D.VM)
 	}
 }
 
 // Delete the VM and remove associated files.
-func cmdDelete(vm string) {
-	switch state := status(vm); state {
+func cmdDelete() {
+	switch state := status(B2D.VM); state {
 	case vmUnregistered:
-		log.Printf("%s is not registered.", vm)
+		log.Printf("%s is not registered.", B2D.VM)
 
 	case vmPoweroff, vmAborted:
-		if err := vbm("unregistervm", "--delete", vm); err != nil {
+		if err := vbm("unregistervm", "--delete", B2D.VM); err != nil {
 			log.Fatalf("failed to delete vm: %s", err)
 		}
 	default:
-		log.Fatalf("%s needs to be stopped to delete it.", vm)
+		log.Fatalf("%s needs to be stopped to delete it.", B2D.VM)
 	}
 }
 
 // Show detailed info of the VM.
-func cmdInfo(vm string) {
-	if err := vbm("showvminfo", vm); err != nil {
+func cmdInfo() {
+	if err := vbm("showvminfo", B2D.VM); err != nil {
 		log.Fatal(err)
 	}
 }
 
 // Show the current state of the VM.
-func cmdStatus(vm string) {
-	state := status(vm)
-	fmt.Printf("%s is %s.\n", vm, state)
+func cmdStatus() {
+	state := status(B2D.VM)
+	fmt.Printf("%s is %s.\n", B2D.VM, state)
 	if state != vmRunning {
 		os.Exit(1)
 	}
 }
 
 // Initialize the boot2docker VM from scratch.
-func cmdInit(vm string) {
-	if state := status(vm); state != vmUnregistered {
+func cmdInit() {
+	if state := status(B2D.VM); state != vmUnregistered {
 		log.Fatalf("%s already exists.\n")
 	}
 
@@ -317,12 +316,12 @@ func cmdInit(vm string) {
 		log.Fatalf("SSH_HOST_PORT=%d on localhost is occupied. Please choose another one.", B2D.SSHHostPort)
 	}
 
-	log.Printf("Creating VM %s...", vm)
-	if err := vbm("createvm", "--name", vm, "--register"); err != nil {
+	log.Printf("Creating VM %s...", B2D.VM)
+	if err := vbm("createvm", "--name", B2D.VM, "--register"); err != nil {
 		log.Fatalf("failed to create vm: %s", err)
 	}
 
-	if err := vbm("modifyvm", vm,
+	if err := vbm("modifyvm", B2D.VM,
 		"--ostype", "Linux26_64",
 		"--cpus", fmt.Sprintf("%d", runtime.NumCPU()),
 		"--memory", fmt.Sprintf("%d", B2D.Memory),
@@ -344,11 +343,11 @@ func cmdInit(vm string) {
 	}
 
 	log.Printf("Setting VM networking")
-	if err := vbm("modifyvm", vm, "--nic1", "nat", "--nictype1", "virtio", "--cableconnected1", "on"); err != nil {
+	if err := vbm("modifyvm", B2D.VM, "--nic1", "nat", "--nictype1", "virtio", "--cableconnected1", "on"); err != nil {
 		log.Fatalf("failed to modify vm: %s", err)
 	}
 
-	if err := vbm("modifyvm", vm,
+	if err := vbm("modifyvm", B2D.VM,
 		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%d,,22", B2D.SSHHostPort),
 		"--natpf1", fmt.Sprintf("docker,tcp,127.0.0.1,%d,,4243", B2D.DockerPort)); err != nil {
 		log.Fatalf("failed to modify vm: %s", err)
@@ -374,15 +373,15 @@ func cmdInit(vm string) {
 	}
 
 	log.Printf("Setting VM disks")
-	if err := vbm("storagectl", vm, "--name", "SATA", "--add", "sata", "--hostiocache", "on"); err != nil {
+	if err := vbm("storagectl", B2D.VM, "--name", "SATA", "--add", "sata", "--hostiocache", "on"); err != nil {
 		log.Fatalf("failed to add storage controller: %s", err)
 	}
 
-	if err := vbm("storageattach", vm, "--storagectl", "SATA", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", B2D.ISO); err != nil {
+	if err := vbm("storageattach", B2D.VM, "--storagectl", "SATA", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", B2D.ISO); err != nil {
 		log.Fatalf("failed to attach storage device: %s", err)
 	}
 
-	if err := vbm("storageattach", vm, "--storagectl", "SATA", "--port", "1", "--device", "0", "--type", "hdd", "--medium", B2D.Disk); err != nil {
+	if err := vbm("storageattach", B2D.VM, "--storagectl", "SATA", "--port", "1", "--device", "0", "--type", "hdd", "--medium", B2D.Disk); err != nil {
 		log.Fatalf("failed to attach storage device: %s", err)
 	}
 
@@ -479,8 +478,7 @@ func status(vm string) vmState {
 		return vmUnregistered
 	}
 
-	out, err = exec.Command(B2D.Vbm, "showvminfo", vm, "--machinereadable").Output()
-	if err != nil {
+	if out, err = exec.Command(B2D.Vbm, "showvminfo", vm, "--machinereadable").Output(); err != nil {
 		return vmUnknown
 	}
 	re := regexp.MustCompile(`(?m)^VMState="(\w+)"$`)
@@ -488,9 +486,9 @@ func status(vm string) vmState {
 	if len(groups) < 1 {
 		return vmUnknown
 	}
-	switch s := vmState(groups[1]); s {
+	switch state := vmState(groups[1]); state {
 	case vmRunning, vmPaused, vmSaved, vmPoweroff, vmAborted:
-		return s
+		return state
 	default:
 		return vmUnknown
 	}
