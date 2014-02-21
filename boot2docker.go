@@ -22,16 +22,16 @@ import (
 
 // B2D reprents boot2docker config.
 var B2D struct {
-	Vbm         string // VirtualBox management utility
-	SSH         string // SSH client executable
-	VM          string // boot2docker virtual machine name
-	Dir         string // boot2docker directory
-	ISO         string // boot2docker ISO image path
-	Disk        string // boot2docker disk image path
-	DiskSize    int    // boot2docker disk image size (MB)
-	Memory      int    // boot2docker memory size (MB)
-	SSHHostPort int    // boot2docker host SSH port
-	DockerPort  int    // boot2docker docker port
+	Vbm        string // VirtualBox management utility
+	SSH        string // SSH client executable
+	VM         string // virtual machine name
+	Dir        string // boot2docker directory
+	ISO        string // boot2docker ISO image path
+	Disk       string // VM disk image path
+	DiskSize   int    // VM disk image size (MB)
+	Memory     int    // VM memory size (MB)
+	SSHPort    int    // host SSH port (forward to port 22 in VM)
+	DockerPort int    // host Docker port (forward to port 4243 in VM)
 }
 
 // Return the value of an ENV var, or the fallback value if the ENV var is empty/undefined.
@@ -65,11 +65,11 @@ func init() {
 	if B2D.Memory <= 0 {
 		log.Fatalf("BOOT2DOCKER_MEMORY way too small.")
 	}
-	if B2D.SSHHostPort, err = strconv.Atoi(getenv("BOOT2DOCKER_SSH_HOST_PORT", "2022")); err != nil {
+	if B2D.SSHPort, err = strconv.Atoi(getenv("BOOT2DOCKER_SSH_HOST_PORT", "2022")); err != nil {
 		log.Fatalf("Invalid BOOT2DOCKER_SSH_HOST_PORT: %s", err)
 	}
-	if B2D.SSHHostPort <= 0 {
-		log.Fatalf("Invalid BOOT2DOCKER_SSH_HOST_PORT: must be in the range of 1--65535: got %d", B2D.SSHHostPort)
+	if B2D.SSHPort <= 0 {
+		log.Fatalf("Invalid BOOT2DOCKER_SSH_HOST_PORT: must be in the range of 1--65535: got %d", B2D.SSHPort)
 	}
 	if B2D.DockerPort, err = strconv.Atoi(getenv("BOOT2DOCKER_DOCKER_PORT", "4243")); err != nil {
 		log.Fatalf("Invalid BOOT2DOCKER_DOCKER_PORT: %s", err)
@@ -139,7 +139,7 @@ func cmdSSH() {
 	case vmUnregistered:
 		log.Fatalf("%s is not registered.", B2D.VM)
 	case vmRunning:
-		if err := cmd(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", fmt.Sprintf("%d", B2D.SSHHostPort), "docker@localhost"); err != nil {
+		if err := cmd(B2D.SSH, "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-p", fmt.Sprintf("%d", B2D.SSHPort), "docker@localhost"); err != nil {
 			log.Fatal(err)
 		}
 	default:
@@ -159,7 +159,7 @@ func cmdStart() {
 		if err := vbm("controlvm", B2D.VM, "resume"); err != nil {
 			log.Fatalf("Failed to resume vm: %s", err)
 		}
-		addr := fmt.Sprintf("localhost:%d", B2D.SSHHostPort)
+		addr := fmt.Sprintf("localhost:%d", B2D.SSHPort)
 		if err := read(addr); err != nil {
 			log.Fatalf("Failed to connect to SSH port at %s: %s", addr, err)
 		}
@@ -170,7 +170,7 @@ func cmdStart() {
 			log.Fatalf("Failed to start vm: %s", err)
 		}
 		log.Printf("Waiting for SSH server to start...")
-		addr := fmt.Sprintf("localhost:%d", B2D.SSHHostPort)
+		addr := fmt.Sprintf("localhost:%d", B2D.SSHPort)
 		if err := read(addr); err != nil {
 			log.Fatalf("Failed to connect to SSH port at %s: %s", addr, err)
 		}
@@ -319,8 +319,8 @@ func cmdInit() {
 		log.Fatalf("DOCKER_PORT=%d on localhost is occupied. Please choose another none.", B2D.DockerPort)
 	}
 
-	if ping(fmt.Sprintf("localhost:%d", B2D.SSHHostPort)) {
-		log.Fatalf("SSH_HOST_PORT=%d on localhost is occupied. Please choose another one.", B2D.SSHHostPort)
+	if ping(fmt.Sprintf("localhost:%d", B2D.SSHPort)) {
+		log.Fatalf("SSH_HOST_PORT=%d on localhost is occupied. Please choose another one.", B2D.SSHPort)
 	}
 
 	log.Printf("Creating VM %s...", B2D.VM)
@@ -355,7 +355,7 @@ func cmdInit() {
 	}
 
 	if err := vbm("modifyvm", B2D.VM,
-		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%d,,22", B2D.SSHHostPort),
+		"--natpf1", fmt.Sprintf("ssh,tcp,127.0.0.1,%d,,22", B2D.SSHPort),
 		"--natpf1", fmt.Sprintf("docker,tcp,127.0.0.1,%d,,4243", B2D.DockerPort)); err != nil {
 		log.Fatalf("failed to modify vm: %s", err)
 	}
@@ -393,7 +393,7 @@ func cmdInit() {
 	}
 
 	log.Printf("Done.")
-	log.Printf("You can now type `boot2docker up` and wait for the VM to start.")
+	log.Printf("You can now type `%s up` and wait for the VM to start.", os.Args[0])
 }
 
 // Download the boot2docker ISO image.
