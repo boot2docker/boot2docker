@@ -157,16 +157,23 @@ func cmdStart() {
 	case vmPaused:
 		log.Printf("Resuming %s", B2D.VM)
 		if err := vbm("controlvm", B2D.VM, "resume"); err != nil {
-			log.Fatalf("failed to resume vm: %s", err)
+			log.Fatalf("Failed to resume vm: %s", err)
 		}
-		waitVM()
+		addr := fmt.Sprintf("localhost:%d", B2D.SSHHostPort)
+		if err := read(addr); err != nil {
+			log.Fatalf("Failed to connect to SSH port at %s: %s", addr, err)
+		}
 		log.Printf("Resumed.")
 	case vmSaved, vmPoweroff, vmAborted:
 		log.Printf("Starting %s...", B2D.VM)
 		if err := vbm("startvm", B2D.VM, "--type", "headless"); err != nil {
-			log.Fatalf("failed to start vm: %s", err)
+			log.Fatalf("Failed to start vm: %s", err)
 		}
-		waitVM()
+		log.Printf("Waiting for SSH server to start...")
+		addr := fmt.Sprintf("localhost:%d", B2D.SSHHostPort)
+		if err := read(addr); err != nil {
+			log.Fatalf("Failed to connect to SSH port at %s: %s", addr, err)
+		}
 		log.Printf("Started.")
 	default:
 		log.Fatalf("Cannot start %s from state %.", B2D.VM, state)
@@ -416,7 +423,7 @@ func vbm(args ...string) error {
 	return cmd(B2D.Vbm, args...)
 }
 
-// Get the latest boot2docker release name (e.g. v0.5.4).
+// Get the latest boot2docker release tag name (e.g. "v0.6.0").
 func getLatestReleaseName() (string, error) {
 	rsp, err := http.Get("https://api.github.com/repos/boot2docker/boot2docker/releases")
 	if err != nil {
@@ -444,19 +451,19 @@ func download(dest, tag string) error {
 	}
 	defer rsp.Body.Close()
 
+	// Download to a temp file first then rename it to avoid partial download.
 	f, err := ioutil.TempFile("", "boot2docker-")
 	if err != nil {
 		return err
 	}
 	defer os.Remove(f.Name())
-
 	if _, err := io.Copy(f, rsp.Body); err != nil {
+		// TODO: display download progress?
 		return err
 	}
 	if err := f.Close(); err != nil {
 		return err
 	}
-
 	if err := os.Rename(f.Name(), dest); err != nil {
 		return err
 	}
@@ -499,12 +506,17 @@ func help() {
 	log.Fatalf("Usage: %s {init|start|up|ssh|save|pause|stop|poweroff|reset|restart|status|info|delete|download} [vm]", os.Args[0])
 }
 
-// Ping boot2docker VM until it's started.
-func waitVM() {
-	addr := fmt.Sprintf("localhost:%d", B2D.SSHHostPort)
-	for !ping(addr) {
-		time.Sleep(1 * time.Second)
+// Check if the connection to tcp://addr is readable.
+func read(addr string) error {
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		return err
 	}
+	defer conn.Close()
+	if _, err = conn.Read(make([]byte, 1)); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Check if an addr can be successfully connected.
