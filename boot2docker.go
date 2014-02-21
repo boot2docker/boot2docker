@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -42,17 +41,45 @@ func getenv(key, fallback string) string {
 	return fallback
 }
 
-func init() {
-	u, err := user.Current()
-	if err != nil {
-		log.Fatalf("cannot get current user: %s", err)
+func getSettingsDir() string {
+	if b2dDir := os.Getenv("BOOT2DOCKER_DIR"); b2dDir != "" {
+		return b2dDir
 	}
+	// unix
+	if home := os.Getenv("HOME"); home != "" {
+		return filepath.Join(home, ".boot2docker")
+	}
+	// windows
+	for _, env := range []string{
+		"APPDATA",
+		"LOCALAPPDATA",
+		"USERPROFILE", // let's try USERPROFILE only as a very last resort
+	} {
+		if val := os.Getenv(env); val != "" {
+			return filepath.Join(val, "boot2docker")
+		}
+	}
+	// ok, we've tried everything reasonable - now let's go for CWD
+	cwd, err := os.Getwd()
+	if err == nil {
+		return filepath.Join(cwd, ".boot2docker")
+	}
+	log.Fatalf("error getting current directory: %v\n", err)
+	return ""
+}
+
+func init() {
 	B2D.Vbm = getenv("BOOT2DOCKER_VBM", "VBoxManage")
 	B2D.VM = getenv("BOOT2DOCKER_VM", "boot2docker-vm")
 	B2D.SSH = getenv("BOOT2DOCKER_DOCKER_SSH", "ssh")
-	B2D.Dir = getenv("BOOT2DOCKER_DIR", filepath.Join(u.HomeDir, ".boot2docker"))
+	B2D.Dir = getSettingsDir()
 	B2D.ISO = getenv("BOOT2DOCKER_ISO", filepath.Join(B2D.Dir, "boot2docker.iso"))
 	B2D.Disk = getenv("BOOT2DOCKER_DISK", filepath.Join(B2D.Dir, "boot2docker.vmdk"))
+
+	var err error
+	if err = os.MkdirAll(B2D.Dir, os.ModePerm); err != nil {
+		log.Fatalf("Unable to ensure directory %s is created: %v\n", B2D.Dir, err)
+	}
 	if B2D.DiskSize, err = strconv.Atoi(getenv("BOOT2DOCKER_DISKSIZE", "20000")); err != nil {
 		log.Fatalf("Invalid BOOT2DOCKER_DISKSIZE: %s", err)
 	}
@@ -463,11 +490,22 @@ func download(dest, tag string) error {
 		// TODO: display download progress?
 		return err
 	}
-	if err := f.Close(); err != nil {
-		return err
-	}
+	defer f.Close() // so we can use it later if we need to via Seek
 	if err := os.Rename(f.Name(), dest); err != nil {
-		return err
+		// os.Rename isn't "mv" - it doesn't have the cross-partition smarts
+		// let's try something else if it fails :)
+		destF, err := os.Create(dest)
+		if err != nil {
+			return err
+		}
+		defer destF.Close()
+		_, err = f.Seek(0, 0)
+		if err != nil {
+			return err
+		}
+		if _, err = io.Copy(destF, f); err != nil {
+			return err
+		}
 	}
 	return nil
 }
