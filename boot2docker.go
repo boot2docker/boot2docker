@@ -359,6 +359,8 @@ func cmdInit() {
 		"--natpf1", fmt.Sprintf("docker,tcp,127.0.0.1,%d,,4243", B2D.DockerPort)); err != nil {
 		log.Fatalf("failed to modify vm: %s", err)
 	}
+	log.Printf("Port forwarding [ssh]: host tcp://127.0.0.1:%d --> guest tcp://0.0.0.0:22", B2D.SSHPort)
+	log.Printf("Port forwarding [docker]: host tcp://127.0.0.1:%d --> guest tcp://0.0.0.0:4243", B2D.DockerPort)
 
 	if _, err := os.Stat(B2D.ISO); err != nil {
 		if os.IsNotExist(err) {
