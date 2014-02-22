@@ -13,7 +13,8 @@ ENV TCZ_DEPS        iptables \
                     ncurses-common ncurses-terminfo ncurses ncurses-utils \
                     xz liblzma \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
-                    curl ntpclient
+                    curl ntpclient \
+                    nfs-utils rpcbind libtirpc
 
 
 RUN apt-get -y install  squashfs-tools \

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Start NFS client
+if [ -x /usr/local/etc/init.d/nfs-client ]; then
+  /usr/local/etc/init.d/nfs-client start
+fi
