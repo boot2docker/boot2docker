@@ -9,6 +9,11 @@
 # Automount a hard drive
 /etc/rc.d/automount
 
+if dmesg | grep Google; then
+  # Google Compute Engine magic
+  /etc/rc.d/google
+fi
+
 mkdir -p /var/lib/boot2docker/log
 
 #import settings from profile (or unset them)
