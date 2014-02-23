@@ -35,6 +35,9 @@ fi
 # Launch ACPId
 /etc/rc.d/acpid
 
+# Start NFS client
+/etc/rc.d/nfs-client
+
 # Launch Docker
 /etc/rc.d/docker
 
