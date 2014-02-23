@@ -20,18 +20,18 @@ test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
 cmd_exists() {
     while [ -n "$1" ]
     do
-        command -v $1 >/dev/null 2>&1 || { echo >&2 "command '$1' is required but not installed.  Aborting."; notOK=1; }
+        command -v $1 >/dev/null 2>&1 || { echo >&2 "command '$1' is required but not installed.  Aborting."; notOK=1; [[ "$1" == "$VBM" ]] && echo "You need to install VirtualBox https://www.virtualbox.org!"; }
         shift
     done
     [ -n "$notOK" ] && exit 1
 }
-cmd_exists nc curl grep head tr $VBM
+cmd_exists bc nc curl grep head tr $VBM
 
 mkdir -p "${BOOT2DOCKER_CFG_DIR}"
 
 get_latest_release_name() {
     local LRN
-    LRN=$(curl 'https://api.github.com/repos/steeve/boot2docker/releases' 2>/dev/null|grep -o -m 1 -e "\"tag_name\":[[:space:]]*\"[a-z0-9.]*\""|head -1|cut -d: -f2|tr -d ' "')
+    LRN=$(curl 'https://api.github.com/repos/boot2docker/boot2docker/releases' 2>/dev/null|grep -o -m 1 -e "\"tag_name\":[[:space:]]*\"[a-z0-9.]*\""|head -1|cut -d: -f2|tr -d ' "')
     if [ -z "$LRN" ]; then
         echo "ERROR"
     else
@@ -44,10 +44,10 @@ download_latest() {
     if [ ! "$LATEST_RELEASE" = "ERROR" ]; then
         log "Latest version is $LATEST_RELEASE, downloading..."
         mkdir -p "${BOOT2DOCKER_ISO%/*}"
-        curl -L -o "$BOOT2DOCKER_ISO" "https://github.com/steeve/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
+        curl -L -o "$BOOT2DOCKER_ISO" "https://github.com/boot2docker/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
         log "Done"
     else
-        log "Could not get lastest release name! Cannot download boot2docker.iso."
+        log "Could not get latest release name! Cannot download boot2docker.iso."
     fi
 }
 
@@ -140,16 +140,7 @@ init() {
 
     if [ ! -e "$VM_DISK" ]; then
         log "Creating $VM_DISK_SIZE Meg hard drive..."
-        # closemedium may complain when not needed
-        mkdir -p "${VM_DISK%/*}"
-        $VBM closemedium disk "$VM_DISK" > /dev/null 2>&1
-        ## make a simple text file, and use that as the flag to say 'format me'
-        $VBM createhd --format VMDK --filename "$VM_DISK" --size $VM_DISK_SIZE
-
-        echo "boot2docker, please format-me" | cat - /dev/zero | head -c 5242880 > format-flag.txt # 5M
-        $VBM convertfromraw format-flag.txt format-flag.vmdk --format VMDK
-        $VBM clonehd format-flag.vmdk "$VM_DISK" --existing
-        $VBM closemedium disk format-flag.vmdk > /dev/null 2>&1 && rm format-flag.txt format-flag.vmdk
+        echo "boot2docker, please format-me" | $VBM convertfromraw stdin "$VM_DISK" $(echo "$VM_DISK_SIZE * 1024 * 1024" | bc) --format VMDK
     fi
 
     $VBM storagectl $VM_NAME --name "SATA" --add sata --hostiocache on

@@ -1,7 +1,7 @@
 boot2docker
 ===========
 
-boot2docker is a lightweight Linux distribution based on [Tiny Core Linux](http://tinycorelinux.net) made specifically to run [Docker](https://www.docker.io/) containers. It runs completely from RAM, weighs ~27MB and boots in ~5s (YMMV). The [ISO can be download here](https://github.com/steeve/boot2docker/releases).
+boot2docker is a lightweight Linux distribution based on [Tiny Core Linux](http://tinycorelinux.net) made specifically to run [Docker](https://www.docker.io/) containers. It runs completely from RAM, weighs ~24MB and boots in ~5s (YMMV). The [ISO can be download here](https://github.com/boot2docker/boot2docker/releases).
 
 [![boot2docker Demo Video](http://i.imgur.com/hIwudK3.gif)](http://www.youtube.com/watch?v=QzfddDvNVv0&hd=1)
 
@@ -23,7 +23,7 @@ $ brew install boot2docker
 
 #### Linux/Unix (works also on OSX)
 ```
-$ curl https://raw.github.com/steeve/boot2docker/master/boot2docker > boot2docker
+$ curl https://raw.github.com/boot2docker/boot2docker/master/boot2docker > boot2docker
 $ chmod +x boot2docker
 ```
 
@@ -44,7 +44,7 @@ $ boot2docker up
 ## Advanced usage
 
 #### Port forwarding / folder sharing
-In order to use this features refer to [this workarounds](https://github.com/steeve/boot2docker/blob/master/doc/WORKAROUNDS.md)
+In order to use this features refer to [this workarounds](https://github.com/boot2docker/boot2docker/blob/master/doc/WORKAROUNDS.md)
 
 #### Customize
 You can customise the values of `VM_NAME`, `DOCKER_PORT`, `SSH_HOST_PORT`, `VM_DISK`, `VM_DISK_SIZE`, `VM_MEM` and `BOOT2DOCKER_ISO` by setting them in ``$HOME/.boot2docker/profile``
