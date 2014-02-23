@@ -40,5 +40,5 @@ fi
 
 # Allow local HD customisation
 if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
-    /var/lib/boot2docker/bootlocal.sh &
+    /var/lib/boot2docker/bootlocal.sh
 fi
