@@ -93,6 +93,9 @@ RUN for dep in $TCZ_DEPS; do \
         rm -f /tmp/$dep.tcz ;\
     done
 
+ADD isolinux /isolinux
+ADD make_iso.sh /
+
 # Copy over out custom rootfs
 ADD rootfs $ROOTFS
 
@@ -103,8 +106,5 @@ RUN find $ROOTFS/etc/rc.d/ -exec chmod +x {} \; && \
 #get the latest docker
 RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest && \
     chmod +x $ROOTFS/usr/local/bin/docker
-
-ADD isolinux /isolinux
-ADD make_iso.sh /
 
 CMD ["/bin/sh", "/make_iso.sh"]
