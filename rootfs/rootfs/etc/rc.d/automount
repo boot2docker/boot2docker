@@ -5,7 +5,7 @@ MAGIC="boot2docker, please format-me"
 
 # If there is a partition with `boot2docker-data` as its label, use it and be
 # very happy. Thus, you can come along if you feel like a room without a roof.
-BOOT2DOCKER_DATA=`blkid -o device -t LABEL=$LABEL | head -n 1`
+BOOT2DOCKER_DATA=`blkid -o device -l -t LABEL=$LABEL`
 
 if [ ! -n "$BOOT2DOCKER_DATA" ]; then
     # Is the disk unpartitioned?, test for the 'boot2docker format-me' string
@@ -35,7 +35,12 @@ fi
 if [ -n "$BOOT2DOCKER_DATA" ]; then
     PARTNAME=`echo "$BOOT2DOCKER_DATA" | sed 's/.*\///'`
     mkdir -p /mnt/$PARTNAME
-    mount $BOOT2DOCKER_DATA /mnt/$PARTNAME
+    if ! mount $BOOT2DOCKER_DATA /mnt/$PARTNAME 2>/dev/null; then
+        # for some reason, mount doesn't like to modprobe btrfs
+        BOOT2DOCKER_FSTYPE=`blkid -o export $BOOT2DOCKER_DATA | grep TYPE= | cut -d= -f2`
+        modprobe $BOOT2DOCKER_FSTYPE || true
+        mount $BOOT2DOCKER_DATA /mnt/$PARTNAME
+    fi
 
     # Just in case, the links will fail if not
     rm -rf /var/lib/docker /var/lib/boot2docker
