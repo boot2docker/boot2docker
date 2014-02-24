@@ -38,6 +38,11 @@ fi
 # Launch Docker
 /etc/rc.d/docker
 
+# Allow local bootsync.sh customisation
+if [ -e /var/lib/boot2docker/bootsync.sh ]; then
+    /var/lib/boot2docker/bootsync.sh
+fi
+
 # Allow local HD customisation
 if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
     /var/lib/boot2docker/bootlocal.sh &
