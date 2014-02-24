@@ -45,3 +45,35 @@ You can now use the shared directory with docker like that:
 ```sh
 $ docker run -v /mnt/sda1/myapp:/var/www 80e721db2a7b
 ```
+
+## BTRFS (ie, mkfs inside a privileged container)
+
+Note: AUFS on top of BTRFS has many, many issues.  If you do this, please don't
+forget to change your docker graph backend using the `-s btrfs` daemon flag.
+
+```console
+docker@boot2docker:~$ docker pull debian:latest
+Pulling repository debian
+...
+docker@boot2docker:~$ docker run -i -t --rm --privileged -v /dev:/hostdev debian bash
+root@5c3507fcae63:/# fdisk /hostdev/sda # if you need to partition your disk
+Command: o
+Command: n
+Select: p
+Partition: <enter>
+First sector: <enter>
+Last sector: <enter>
+Command: w
+root@5c3507fcae63:/# apt-get update && apt-get install btrfs-tools
+...
+The following NEW package will be installed:
+  btrfs-tools
+...
+Setting up btrfs-tools (...) ...
+root@5c3507fcae63:/# mkfs.btrfs -L boot2docker-data /hostdev/sda1
+...
+fs created label boot2docker-data on /hostdev/sda1
+...
+root@5c3507fcae63:/# exit
+docker@boot2docker:~$ sudo reboot
+```
