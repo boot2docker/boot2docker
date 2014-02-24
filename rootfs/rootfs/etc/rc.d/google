@@ -1,0 +1,5 @@
+ip link set eth0 up
+udhcpc
+ip route add 10.240.0.1 dev eth0
+ip route add default via 10.240.0.1 dev eth0
+ip addr show dev eth0 
