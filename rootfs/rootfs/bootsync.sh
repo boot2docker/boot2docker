@@ -9,6 +9,10 @@
 # Automount a hard drive
 /etc/rc.d/automount
 
+# Mount cgroups hierarchy
+/etc/rc.d/cgroupfs-mount
+# see https://github.com/tianon/cgroupfs-mount
+
 mkdir -p /var/lib/boot2docker/log
 
 #import settings from profile (or unset them)
