@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 #Load the user's profile and then default any remaining values
-BOOT2DOCKER_CFG_DIR=${HOME}/.boot2docker
+BOOT2DOCKER_CFG_DIR=${BOOT2DOCKER_CFG_DIR:=${HOME}/.boot2docker}
 BOOT2DOCKER_PROFILE=${BOOT2DOCKER_CFG_DIR}/profile
 test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
 : ${VM_NAME:=boot2docker-vm}
@@ -279,7 +279,19 @@ delete() {
         log "$VM_NAME needs to be stopped to delete it."
         exit 1
     fi
+    if [ ! "$1" == "--disk" ]; then
+      if `$VBM showvminfo $VM_NAME | grep SATA > /dev/null`; then
+          log "Removing $VM_DISK disk"
+          $VBM storagectl $VM_NAME --name "SATA" --remove
+      fi
+    fi
     $VBM unregistervm --delete $VM_NAME
+}
+
+reload() {
+    stop
+    delete
+    init
 }
 
 case $1 in
@@ -290,8 +302,9 @@ case $1 in
     restart) restart;;
     status) status;;
     info) info;;
-    delete) delete;;
+    delete) shift; delete "${@}" ;;
+    reload) reload;;
     ssh) shift; do_ssh "$@";;
     download) download_latest;;
-    *) echo "Usage $0 {init|start|up|save|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
+    *) echo "Usage $0 {init|start|up|save|pause|stop|restart|reload|status|info|delete|ssh|download}"; exit 1
 esac
