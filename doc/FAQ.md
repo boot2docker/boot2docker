@@ -56,3 +56,7 @@ su - docker -c "tce-load -i /var/lib/boot2docker/*.tcz"
 #start my management container if its not already there
 docker run -d -v /var/run/docker.sock:/var/run/docker.sock $(which docker):$(which docker)  -name dom0 svens-dom0
 ```
+
+**What is the development process**
+
+We are implementing the same process as [Docker merge approval](https://github.com/dotcloud/docker/blob/master/CONTRIBUTING.md#merge-approval), so all commits need to be done via pull requests, and will need 2 or more LGTMs.
