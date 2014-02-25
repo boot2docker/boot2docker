@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
 #Load the user's profile and then default any remaining values
-BOOT2DOCKER_CFG_DIR=${HOME}/.boot2docker
-BOOT2DOCKER_PROFILE=${BOOT2DOCKER_CFG_DIR}/profile
+: ${BOOT2DOCKER_CFG_DIR:=${HOME}/.boot2docker}
+: ${BOOT2DOCKER_PROFILE:=${BOOT2DOCKER_CFG_DIR}/profile}
 test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
 : ${VM_NAME:=boot2docker-vm}
 : ${VBM:=VBoxManage}
