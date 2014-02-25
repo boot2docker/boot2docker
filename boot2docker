@@ -188,7 +188,7 @@ mod_bashprofile() {
     grep -q "export DOCKER_HOST=" $HOME/.bash_profile
     if [[ "$?" == "1" ]]; then
         log "add 'export DOCKER_HOST=tcp://localhost:$DOCKER_PORT' to $HOME/.bash_profile"
-        sed -i.bak '/(export DOCKER_HOST=|docker.io)/d' $HOME/.bash_profile; 
+        sed -i .bak -E '/(export DOCKER_HOST=|docker.io)/d' $HOME/.bash_profile; 
         echo "\n### docker.io" >> $HOME/.bash_profile
         echo "export DOCKER_HOST=tcp://localhost:$DOCKER_PORT" >> $HOME/.bash_profile
         . $HOME/.bash_profile
@@ -203,7 +203,7 @@ mod_hosts() {
     if [[ "$?" == "1" ]]; then
         log "add '$BOOT2DOCKER_HOST_NAME $DOCKER_HOST_IP' to /etc/hosts"
 
-        MHD_HD_EXPORT_CMD="sudo sed -i.bak '/$BOOT2DOCKER_HOST_NAME/d' /etc/hosts; sudo echo \"$DOCKER_HOST_IP $BOOT2DOCKER_HOST_NAME\" >> /etc/hosts"
+        MHD_HD_EXPORT_CMD="sudo sed -i .bak -E '/$BOOT2DOCKER_HOST_NAME/d' /etc/hosts; sudo echo \"$DOCKER_HOST_IP $BOOT2DOCKER_HOST_NAME\" >> /etc/hosts"
         if [[ "$unamestr" == "Darwin" ]]; then
             MHD_HD_EXPORT_CMD="$MHD_HD_EXPORT_CMD; sudo killall -HUP mDNSResponder";
         fi
