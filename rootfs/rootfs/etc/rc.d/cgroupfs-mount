@@ -5,6 +5,13 @@
 #         Tianon Gravi <admwiggin@gmail.com>
 set -e
 
+# doh, TCL doesn't have "mountpoint"
+mountpoint() {
+	dashQ=$1
+	dir=$(readlink -f "$2")
+	grep -q " $dir " /proc/mounts
+}
+
 # for simplicity this script provides no flexibility
 
 # if cgroup is mounted by fstab, don't run
