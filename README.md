@@ -47,10 +47,20 @@ $ boot2docker up
 In order to use this features refer to [this workarounds](https://github.com/boot2docker/boot2docker/blob/master/doc/WORKAROUNDS.md)
 
 #### Customize
-You can customise the values of `VM_NAME`, `DOCKER_PORT`, `SSH_HOST_PORT`, `VM_DISK`, `VM_DISK_SIZE`, `VM_MEM` and `BOOT2DOCKER_ISO` by setting them in ``$HOME/.boot2docker/profile``
+You can customise the values of `VM_NAME`, `DOCKER_PORT`, `SSH_HOST_PORT`, `VM_DISK`, `VM_DISK_SIZE`, `VM_MEM` and `BOOT2DOCKER_ISO` by setting them in `$HOME/.boot2docker/profile`
 
 #### Persist data
-If you want your containers to persist across reboots, attach an ext4 formatted disk with the label ``boot2docker-data`` (``mkfs.ext4 -L boot2docker-data /dev/sdX5``) to your VM, and boot2docker will automount it on `/mnt/sdX` and then softlink `/mnt/sdX/var/lib/docker` to `/var/lib/docker`. It will also persist the SSH keys of the machine.
+When you run `boot2docker init`, the boot2docker manage script auto-creates
+a disk that will be automounted and used to persist your docker data in
+`/var/lib/docker` and `/var/lib/boot2docker`.
+This virtual disk will be removed when you run `boot2docker delete`.
+It will also persist the SSH keys of the machine.
+
+If you are not using the boot2docker VirtualBox manage script, you can create
+an ext4 formatted partition with the label `boot2docker-data`
+(`mkfs.ext4 -L boot2docker-data /dev/sdX5`) to your VM or host, and
+boot2docker will automount it on `/mnt/sdX` and then softlink
+`/mnt/sdX/var/lib/docker` to `/var/lib/docker`.
 
 #### SSH into VM
 ```
@@ -65,7 +75,7 @@ pass: tcuser
 
 #### Install on any device
 To 'install' the ISO onto an SD card, USB-Stick or even empty hard disk, you can
-use ``dd if=boot2docker.iso of=/dev/sdX``.
+use `dd if=boot2docker.iso of=/dev/sdX`.
 This will create the small boot partition, and install an MBR.
 
 
