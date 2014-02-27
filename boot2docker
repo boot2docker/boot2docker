@@ -233,23 +233,23 @@ is_installed() {
 }
 
 is_running() {
-    info | grep "State:\s\+running" > /dev/null
+    info | grep -E "State:[ ]+running" > /dev/null
 }
 
 is_paused() {
-    info | grep "State:\s\+paused" > /dev/null
+    info | grep -E "State:[ ]+paused" > /dev/null
 }
 
 is_suspended() {
-    info | grep "State:\s\+saved" > /dev/null
+    info | grep -E "State:[ ]+suspended" > /dev/null
 }
 
 is_stopped() {
-    info | grep "State:\s\+powered off" > /dev/null
+    info | grep -E "State:[ ]+powered off" > /dev/null
 }
 
 is_aborted() {
-    info | grep "State:\s\+aborted" > /dev/null
+    info | grep -E "State:[ ]+aborted" > /dev/null
 }
 
 status() {
