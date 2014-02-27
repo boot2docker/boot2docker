@@ -188,7 +188,7 @@ wait_vm() {
     done
 }
 
-suspend() {
+pause() {
     is_installed || status
     if is_running; then
         log "Suspending $VM_NAME..."
@@ -237,11 +237,7 @@ is_running() {
 }
 
 is_paused() {
-    info | grep -E "State:[ ]+paused" > /dev/null
-}
-
-is_suspended() {
-    info | grep -E "State:[ ]+suspended" > /dev/null
+    info | grep -E "State:[ ]+saved" > /dev/null
 }
 
 is_stopped() {
@@ -258,9 +254,6 @@ status() {
         exit 0
     elif is_paused; then
         log "$VM_NAME is paused."
-        exit 1
-    elif is_suspended; then
-        log "$VM_NAME is suspended."
         exit 1
     elif is_stopped; then
         log "$VM_NAME is stopped."
@@ -285,7 +278,7 @@ delete() {
 case $1 in
     init | setup) init;;
     start | up) start;;
-    save | pause | suspend) suspend;;
+    save | pause) pause;;
     stop | halt | down) stop;;
     restart) restart;;
     status) status;;
