@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:12.04
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
 ENV KERNEL_VERSION  3.13.3
