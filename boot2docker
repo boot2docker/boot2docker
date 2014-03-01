@@ -191,10 +191,10 @@ wait_vm() {
 save() {
     is_installed || status
     if is_running; then
-        log "$VM_NAME still running, shutting down..."
-        $VBM controlvm $VM_NAME savestate > /dev/null
+        log "$VM_NAME shutting down and saving state..."
+    	$VBM controlvm $VM_NAME savestate > /dev/null
     else
-        log "Saving state of $VM_NAME."
+        log "$VM_NAME not running, not saved"
     fi
 }
 
@@ -268,6 +268,9 @@ status() {
         exit 0
     elif is_paused; then
         log "$VM_NAME is paused."
+        exit 1
+    elif is_stopped; then
+        log "$VM_NAME is stopped."
         exit 1
     elif is_aborted; then
         log "$VM_NAME is aborted."
