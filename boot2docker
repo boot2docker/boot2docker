@@ -281,7 +281,7 @@ status() {
     else
         if is_installed;then
            log "$VM_NAME state unknown/in transition"
-	else
+        else
            log "$VM_NAME does not exist."
         fi 
         exit 1
