@@ -12,8 +12,9 @@ See [Frequently asked questions](doc/FAQ.md) for more details.
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
-
 ## Installation
+
+### Installation using the boot2docker manage script
 
 #### OSX
 ```
@@ -27,8 +28,14 @@ $ curl https://raw.github.com/boot2docker/boot2docker/master/boot2docker > boot2
 $ chmod +x boot2docker
 ```
 
+### Installing by hand
+
+You can also use the boot2docker.iso and make your own virtual machine, or install on physical hardware.
+
+Please remember to give the VM/hardware at least 512MB RAM - and you will need more if you want to do docker development on boot2docker.
+
 ## How to use
-boot2docker comes with a simple init script that leverage's VirtualBox's `VBoxManage`. You can start, stop and delete the VM right from the command line.
+boot2docker comes with an init script that leverages VirtualBox's `VBoxManage`. You can start, stop and delete the VM right from the command line.
 
 #### Initialize
 ```
