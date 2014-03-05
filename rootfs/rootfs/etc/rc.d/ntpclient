@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ -n "$NTP_SERVER" ]; then
+	echo "running ntpclient -s -h $NTP_SERVER in background" > /var/lib/boot2docker/log/ntpclient.log 2>&1 
+	/usr/local/bin/ntpclient -s -h $NTP_SERVER >> /var/lib/boot2docker/log/ntpclient.log 2>&1 
+else
+	echo "Skipping ntpclient" > /var/lib/boot2docker/log/ntpclient.log 2>&1 
+fi

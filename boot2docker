@@ -1,23 +1,38 @@
 #!/usr/bin/env sh
-VM_DIRECTORY=
-VM_NAME=boot2docker-vm
-VBM=VBoxManage
 
-DOCKER_PORT=4243
-SSH_HOST_PORT=2022
+#Load the user's profile and then default any remaining values
+: ${BOOT2DOCKER_CFG_DIR:=${HOME}/.boot2docker}
+: ${BOOT2DOCKER_PROFILE:=${BOOT2DOCKER_CFG_DIR}/profile}
+test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
+: ${VM_DIRECTORY:=}
+: ${VM_NAME:=boot2docker-vm}
+: ${VBM:=VBoxManage}
 
-VM_DISK=./boot2docker.vmdk
-VM_DISK_SIZE=40000
+: ${DOCKER_PORT:=4243}
+: ${SSH_HOST_PORT:=2022}
 
-VM_MEM=1024
+: ${VM_DISK_SIZE:=40000}
+: ${VM_MEM:=1024}
 
-BOOT2DOCKER_ISO=./boot2docker.iso
+: ${VM_DISK:=${BOOT2DOCKER_CFG_DIR}/${VM_NAME}.vmdk}
+: ${BOOT2DOCKER_ISO:=${BOOT2DOCKER_CFG_DIR}/boot2docker.iso}
 
-test -f $HOME/.boot2docker/profile && . $HOME/.boot2docker/profile
+#Check if all required commands exist
+cmd_exists() {
+    while [ -n "$1" ]
+    do
+        command -v $1 >/dev/null 2>&1 || { echo >&2 "command '$1' is required but not installed.  Aborting."; notOK=1; [[ "$1" == "$VBM" ]] && echo "You need to install VirtualBox https://www.virtualbox.org!"; }
+        shift
+    done
+    [ -n "$notOK" ] && exit 1
+}
+cmd_exists bc nc curl grep head tr $VBM
+
+mkdir -p "${BOOT2DOCKER_CFG_DIR}"
 
 get_latest_release_name() {
     local LRN
-    LRN=$(curl 'https://api.github.com/repos/steeve/boot2docker/releases' 2>/dev/null|grep -o -m 1 -e "\"tag_name\":[[:space:]]*\"[a-z0-9.]*\""|head -1|cut -d: -f2|tr -d ' "')
+    LRN=$(curl 'https://api.github.com/repos/boot2docker/boot2docker/releases' 2>/dev/null|grep -o -m 1 -e "\"tag_name\":[[:space:]]*\"[a-z0-9.]*\""|head -1|cut -d: -f2|tr -d ' "')
     if [ -z "$LRN" ]; then
         echo "ERROR"
     else
@@ -30,10 +45,10 @@ download_latest() {
     if [ ! "$LATEST_RELEASE" = "ERROR" ]; then
         log "Latest version is $LATEST_RELEASE, downloading..."
         mkdir -p "${BOOT2DOCKER_ISO%/*}"
-        curl -L -o "$BOOT2DOCKER_ISO" "https://github.com/steeve/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
+        curl -L -o "$BOOT2DOCKER_ISO" "https://github.com/boot2docker/boot2docker/releases/download/$LATEST_RELEASE/boot2docker.iso"
         log "Done"
     else
-        log "Could not get lastest release name! Cannot download boot2docker.iso."
+        log "Could not get latest release name! Cannot download boot2docker.iso."
     fi
 }
 
@@ -58,12 +73,12 @@ init() {
     esac
 
     if `nc -z -w2 localhost $DOCKER_PORT > /dev/null` ; then
-        log "DOCKER_PORT=$DOCKER_PORT on localhost is used by an other process! Change the port to a free port."
+        log "DOCKER_PORT=$DOCKER_PORT on localhost is used by an other process! Set the DOCKER_PORT in $BOOT2DOCKER_PROFILE free port."
         exit 1
     fi
 
     if `nc -z -w2 localhost $SSH_HOST_PORT > /dev/null` ; then
-        log "SSH_HOST_PORT=$SSH_HOST_PORT on localhost is used by an other process! Change the port to a free port."
+        log "SSH_HOST_PORT=$SSH_HOST_PORT on localhost is used by an other process! Set the SSH_HOST_PORT in $BOOT2DOCKER_PROFILE free port."
         exit 1
     fi
 
@@ -118,7 +133,7 @@ init() {
         --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
         --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,4243"
 
-    if [ ! -e $BOOT2DOCKER_ISO ]; then
+    if [ ! -e "$BOOT2DOCKER_ISO" ]; then
         log "boot2docker.iso not found."
         download_latest
     fi
@@ -128,22 +143,14 @@ init() {
         $VBM storagectl $VM_NAME --name "SATA" --remove
     fi
 
-    if [ ! -e $VM_DISK ]; then
+    if [ ! -e "$VM_DISK" ]; then
         log "Creating $VM_DISK_SIZE Meg hard drive..."
-        # closemedium may complain when not needed
-        $VBM closemedium disk $VM_DISK > /dev/null 2>&1
-        ## make a simple text file, and use that as the flag to say 'format me'
-        $VBM createhd --format VMDK --filename $VM_DISK --size $VM_DISK_SIZE
-
-        echo "boot2docker, please format-me" | cat - /dev/zero | head -c 5242880 > format-flag.txt # 5M
-        $VBM convertfromraw format-flag.txt format-flag.vmdk --format VMDK
-        $VBM clonehd format-flag.vmdk $VM_DISK --existing
-        $VBM closemedium disk format-flag.vmdk > /dev/null 2>&1 && rm format-flag.txt format-flag.vmdk
+        echo "boot2docker, please format-me" | $VBM convertfromraw stdin "$VM_DISK" $(echo "$VM_DISK_SIZE * 1024 * 1024" | bc) --format VMDK
     fi
 
     $VBM storagectl $VM_NAME --name "SATA" --add sata --hostiocache on
-    $VBM storageattach $VM_NAME --storagectl "SATA" --port 0 --device 0 --type dvddrive --medium $BOOT2DOCKER_ISO
-    $VBM storageattach $VM_NAME --storagectl "SATA" --port 1 --device 0 --type hdd --medium $VM_DISK
+    $VBM storageattach $VM_NAME --storagectl "SATA" --port 0 --device 0 --type dvddrive --medium "$BOOT2DOCKER_ISO"
+    $VBM storageattach $VM_NAME --storagectl "SATA" --port 1 --device 0 --type hdd --medium "$VM_DISK"
 
     log "Done."
     log "You can now type boot2docker up and wait for the VM to start."
@@ -151,7 +158,7 @@ init() {
 
 do_ssh() {
     is_installed || status
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $SSH_HOST_PORT docker@localhost $*
+    ssh -o StrictHostKeyChecking=no -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -p $SSH_HOST_PORT docker@localhost $*
 }
 
 start() {
@@ -171,6 +178,13 @@ start() {
     else
         log "$VM_NAME is already running."
     fi
+
+    if [ "$DOCKER_HOST" != "tcp://localhost:${DOCKER_PORT}" ]; then
+        echo
+        echo "To connect the docker client to the Docker daemon, please set:"
+        echo "export DOCKER_HOST=tcp://localhost:${DOCKER_PORT}"
+        echo
+    fi
 }
 
 wait_vm() {
@@ -179,11 +193,11 @@ wait_vm() {
     done
 }
 
-pause() {
+suspend() {
     is_installed || status
     if is_running; then
-        log "Pausing $VM_NAME..."
-        $VBM controlvm $VM_NAME pause > /dev/null
+        log "Suspending $VM_NAME..."
+        $VBM controlvm $VM_NAME savestate > /dev/null
     else
         log "$VM_NAME is not running."
     fi
@@ -224,19 +238,23 @@ is_installed() {
 }
 
 is_running() {
-    info | grep "State:\s\+running" > /dev/null
+    info | grep -E "State:[ ]+running" > /dev/null
 }
 
 is_paused() {
-    info | grep "State:\s\+paused" > /dev/null
+    info | grep -E "State:[ ]+paused" > /dev/null
+}
+
+is_suspended() {
+    info | grep -E "State:[ ]+suspended" > /dev/null
 }
 
 is_stopped() {
-    info | grep "State:\s\+powered off" > /dev/null
+    info | grep -E "State:[ ]+powered off" > /dev/null
 }
 
 is_aborted() {
-    info | grep "State:\s\+aborted" > /dev/null
+    info | grep -E "State:[ ]+aborted" > /dev/null
 }
 
 status() {
@@ -244,10 +262,16 @@ status() {
         log "$VM_NAME is running."
         exit 0
     elif is_paused; then
+        log "$VM_NAME is paused."
+        exit 1
+    elif is_suspended; then
         log "$VM_NAME is suspended."
         exit 1
     elif is_stopped; then
         log "$VM_NAME is stopped."
+        exit 1
+    elif is_aborted; then
+        log "$VM_NAME is aborted."
         exit 1
     else
         log "$VM_NAME does not exist."
@@ -266,7 +290,7 @@ delete() {
 case $1 in
     init | setup) init;;
     start | up) start;;
-    pause | suspend) pause;;
+    save | pause | suspend) suspend;;
     stop | halt | down) stop;;
     restart) restart;;
     status) status;;
@@ -274,5 +298,5 @@ case $1 in
     delete) delete;;
     ssh) shift; do_ssh "$@";;
     download) download_latest;;
-    *) echo "Usage $0 {init|start|up|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
+    *) echo "Usage $0 {init|start|up|save|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
 esac
