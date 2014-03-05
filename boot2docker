@@ -4,6 +4,7 @@
 : ${BOOT2DOCKER_CFG_DIR:=${HOME}/.boot2docker}
 : ${BOOT2DOCKER_PROFILE:=${BOOT2DOCKER_CFG_DIR}/profile}
 test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
+: ${VM_DIRECTORY:=}
 : ${VM_NAME:=boot2docker-vm}
 : ${VBM:=VBoxManage}
 
@@ -82,7 +83,11 @@ init() {
     fi
 
     log "Creating VM $VM_NAME"
-    $VBM createvm --name $VM_NAME --register
+    if [ -n "$VM_DIRECTORY" ]; then
+        $VBM createvm --name $VM_NAME --basefolder $VM_DIRECTORY --register
+    else
+        $VBM createvm --name $VM_NAME --register
+    fi
 
     log "Setting VM settings"
     TXUX_SUPPORT=""
