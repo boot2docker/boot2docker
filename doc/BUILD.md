@@ -12,9 +12,9 @@ It is composed in three distinct steps:
 So the build process goes like this:
 
 ```
-# $ sudo docker build -t boot2docker/boot2docker-base --rm base/
+# $ sudo docker build -t boot2docker/boot2docker:base --rm base/
 # OR for most uses, avoid re-building and downloading lots of ubuntu packages by:
-$ sudo docker pull boot2docker/boot2docker-base
+$ sudo docker pull boot2docker/boot2docker:base
 $ sudo docker build -t boot2docker --rm rootfs/
 ```
 
