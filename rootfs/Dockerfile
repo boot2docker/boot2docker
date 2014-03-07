@@ -1,4 +1,4 @@
-FROM steeve/boot2docker-base
+FROM boot2docker/boot2docker-base
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
 ENV ROOTFS          /rootfs
