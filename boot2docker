@@ -83,7 +83,9 @@ init() {
 
     log "Creating VM $VM_NAME"
     $VBM createvm --name $VM_NAME --register
-
+    log "Apply interim patch to VM $VM_NAME (https://www.virtualbox.org/ticket/12748)"
+    $VBM setextradata $VM_NAME VBoxInternal/CPUM/EnableHVP 1
+    
     log "Setting VM settings"
     TXUX_SUPPORT=""
     if $($VBM modifyvm|grep -q "\-\-vtxux"); then
