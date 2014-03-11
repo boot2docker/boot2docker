@@ -32,7 +32,7 @@ start() {
     # in case TMPDIR is a symlink, too, resolve it
     export TMPDIR="$(readlink -f "${TMPDIR:-/tmp}")"
     
-    /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $EXTRA_ARGS > /var/lib/boot2docker/docker.log 2>&1 &
+    /usr/local/bin/docker -d -e lxc -D -g "$DOCKER_DIR" -H unix:// $EXTRA_ARGS > /var/lib/boot2docker/docker.log 2>&1 &
 }
 
 stop() {
