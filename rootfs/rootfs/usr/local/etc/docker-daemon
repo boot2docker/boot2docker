@@ -1,3 +1,0 @@
-#!/bin/sh
-
-/usr/local/bin/docker -d -D > /var/lib/boot2docker/docker.log 2>&1 &

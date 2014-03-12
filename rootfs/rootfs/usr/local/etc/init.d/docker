@@ -5,34 +5,36 @@
 #import settings from profile (e.g. HTTP_PROXY, HTTPS_PROXY)
 test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
 
-: ${DOCKER_HOST:="tcp://0.0.0.0:4243"}
+: ${DOCKER_HOST:=""}
+: ${DOCKER_STORAGE:="auto"}
 
 start() {
-    mkdir -p /var/lib/docker
-    DOCKER_DIR="$(readlink -f /var/lib/docker)"
-    
-    # remove this softlink - the docker daemon recreates it and when its from the wrong os/docker version, things go boom
-    rm -f "$DOCKER_DIR/lxc-start-unconfined"
-    
-    EXTRA_ARGS=
-    
-    # if we're virtual, let's listen on $DOCKER_HOST, too
+    DOCKER_DIR=/var/lib/docker
+    mkdir -p "$DOCKER_DIR"
+
+    # if we're virtual, let's listen on tcp://, too
     if /bin/dmesg | /bin/egrep -q '(VirtualBox|VMware|QEMU)'; then
-        EXTRA_ARGS="$EXTRA_ARGS -H $DOCKER_HOST"
+        DOCKER_HOST="-H tcp://0.0.0.0:4243"
     fi
-    
-    # if /var/lib/docker is on BTRFS, let's use the native btrfs driver
-    # (AUFS on top of BTRFS does very bad things)
-    DOCKER_DEVICE="$(/bin/df -P "$DOCKER_DIR" | /usr/bin/awk 'END { print $1 }')"
-    DOCKER_FSTYPE="$(/sbin/blkid -o export "$DOCKER_DEVICE" | /bin/grep TYPE= | /usr/bin/cut -d= -f2)"
-    if [ "$DOCKER_FSTYPE" = 'btrfs' ]; then
-        EXTRA_ARGS="$EXTRA_ARGS -s $DOCKER_FSTYPE"
+
+    if [ "$DOCKER_STORAGE" = 'auto' ]; then
+        # if /var/lib/docker is on BTRFS, let's use the native btrfs driver
+        # (AUFS on top of BTRFS does very bad things)
+        DOCKER_DEVICE="$(/bin/df -P "$DOCKER_DIR" | /usr/bin/awk 'END { print $1 }')"
+        DOCKER_FSTYPE="$(/sbin/blkid -o export "$DOCKER_DEVICE" | /bin/grep TYPE= | /usr/bin/cut -d= -f2)"
+        if [ "$DOCKER_FSTYPE" = 'btrfs' ]; then
+            DOCKER_STORAGE="$DOCKER_FSTYPE"
+        fi
     fi
-    
-    # in case TMPDIR is a symlink, too, resolve it
-    export TMPDIR="$(readlink -f "${TMPDIR:-/tmp}")"
-    
-    /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $EXTRA_ARGS > /var/lib/boot2docker/docker.log 2>&1 &
+    if [ "$DOCKER_STORAGE" != 'auto' ]; then
+        # in the general case, let's trust Docker to "do the right thing"
+        EXTRA_ARGS="$EXTRA_ARGS -s $DOCKER_STORAGE"
+    fi
+
+    # can't pivot root on a ramdisk
+    export DOCKER_RAMDISK=please
+
+    /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS > /var/lib/boot2docker/docker.log 2>&1 &
 }
 
 stop() {

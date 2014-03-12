@@ -20,7 +20,11 @@ if [ ! -n "$BOOT2DOCKER_DATA" ]; then
             echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use"
             echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use" > /home/docker/log.log
 
-            # make one big partition
+            # Add a swap partition (so Docker doesn't complain about it missing)
+            (echo n; echo p; echo 2; echo ; echo +1000M ; echo w) | fdisk $UNPARTITIONED_HD
+            (echo t; echo 82) | fdisk $UNPARTITIONED_HD
+            mkswap "${UNPARTITIONED_HD}2"
+            # Add the data partition
             (echo n; echo p; echo 1; echo ; echo ; echo w) | fdisk $UNPARTITIONED_HD
             BOOT2DOCKER_DATA=`echo "${UNPARTITIONED_HD}1"`
             mkfs.ext4 -L $LABEL $BOOT2DOCKER_DATA
