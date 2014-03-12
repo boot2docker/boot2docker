@@ -8,76 +8,76 @@ MAGIC="boot2docker, please format-me"
 BOOT2DOCKER_DATA=`blkid -o device -l -t LABEL=$LABEL`
 
 if [ ! -n "$BOOT2DOCKER_DATA" ]; then
-     # Is the disk unpartitioned?, test for the 'boot2docker format-me' string
-     UNPARTITIONED_HD=`fdisk -l | grep "doesn't contain a valid partition table" | head -n 1 | sed 's/Disk \(.*\) doesn.*/\1/'`
+    # Is the disk unpartitioned?, test for the 'boot2docker format-me' string
+    UNPARTITIONED_HD=`fdisk -l | grep "doesn't contain a valid partition table" | head -n 1 | sed 's/Disk \(.*\) doesn.*/\1/'`
 
-     if [ -n "$UNPARTITIONED_HD" ]; then
-          # Test for our magic string (it means that the disk was made by ./boot2docker init)
-          HEADER=`dd if=$UNPARTITIONED_HD bs=1 count=${#MAGIC} 2>/dev/null`
+    if [ -n "$UNPARTITIONED_HD" ]; then
+        # Test for our magic string (it means that the disk was made by ./boot2docker init)
+        HEADER=`dd if=$UNPARTITIONED_HD bs=1 count=${#MAGIC} 2>/dev/null`
 
-          if [ "$HEADER" = "$MAGIC" ]; then
-                # Create the partition, format it and then mount it
-                echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use"
-                echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use" > /home/docker/log.log
+        if [ "$HEADER" = "$MAGIC" ]; then
+            # Create the partition, format it and then mount it
+            echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use"
+            echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use" > /home/docker/log.log
 
-         #add a swap partition
-                (echo n; echo p; echo 2; echo ; echo +1000M ; echo w) | fdisk $UNPARTITIONED_HD
-                (echo t; echo 82) | fdisk $UNPARTITIONED_HD
-         mkswap "${UNPARTITIONED_HD}2"
-         #add the data partition
-                (echo n; echo p; echo 1; echo ; echo ; echo w) | fdisk $UNPARTITIONED_HD
-                BOOT2DOCKER_DATA=`echo "${UNPARTITIONED_HD}1"`
-                mkfs.ext4 -L $LABEL $BOOT2DOCKER_DATA
-          fi
-     else
-          # Pick the first ext4 as a fallback
-          # TODO: mount all Linux partitions and look for a /var/lib/docker...
-          BOOT2DOCKER_DATA=`blkid | grep 'TYPE="ext4"' | head -n 1 | sed 's/:.*//'`
-     fi
+            # Add a swap partition (so Docker doesn't complain about it missing)
+            (echo n; echo p; echo 2; echo ; echo +1000M ; echo w) | fdisk $UNPARTITIONED_HD
+            (echo t; echo 82) | fdisk $UNPARTITIONED_HD
+            mkswap "${UNPARTITIONED_HD}2"
+            # Add the data partition
+            (echo n; echo p; echo 1; echo ; echo ; echo w) | fdisk $UNPARTITIONED_HD
+            BOOT2DOCKER_DATA=`echo "${UNPARTITIONED_HD}1"`
+            mkfs.ext4 -L $LABEL $BOOT2DOCKER_DATA
+        fi
+    else
+        # Pick the first ext4 as a fallback
+        # TODO: mount all Linux partitions and look for a /var/lib/docker...
+        BOOT2DOCKER_DATA=`blkid | grep 'TYPE="ext4"' | head -n 1 | sed 's/:.*//'`
+    fi
 fi
 
 if [ -n "$BOOT2DOCKER_DATA" ]; then
-     PARTNAME=`echo "$BOOT2DOCKER_DATA" | sed 's/.*\///'`
-     mkdir -p /mnt/$PARTNAME
-     if ! mount $BOOT2DOCKER_DATA /mnt/$PARTNAME 2>/dev/null; then
-          # for some reason, mount doesn't like to modprobe btrfs
-          BOOT2DOCKER_FSTYPE=`blkid -o export $BOOT2DOCKER_DATA | grep TYPE= | cut -d= -f2`
-          modprobe $BOOT2DOCKER_FSTYPE || true
-          mount $BOOT2DOCKER_DATA /mnt/$PARTNAME
-     fi
+    PARTNAME=`echo "$BOOT2DOCKER_DATA" | sed 's/.*\///'`
+    mkdir -p /mnt/$PARTNAME
+    if ! mount $BOOT2DOCKER_DATA /mnt/$PARTNAME 2>/dev/null; then
+        # for some reason, mount doesn't like to modprobe btrfs
+        BOOT2DOCKER_FSTYPE=`blkid -o export $BOOT2DOCKER_DATA | grep TYPE= | cut -d= -f2`
+        modprobe $BOOT2DOCKER_FSTYPE || true
+        mount $BOOT2DOCKER_DATA /mnt/$PARTNAME
+    fi
 
-     # Just in case, the links will fail if not
-     rm -rf /var/lib/docker /var/lib/boot2docker
-     if [ -d /mnt/$PARTNAME/vm ]; then
-          # The old behavior - use the entire disk for boot2docker data
-          ln -s /mnt/$PARTNAME /var/lib/docker
+    # Just in case, the links will fail if not
+    rm -rf /var/lib/docker /var/lib/boot2docker
+    if [ -d /mnt/$PARTNAME/vm ]; then
+        # The old behavior - use the entire disk for boot2docker data
+        ln -s /mnt/$PARTNAME /var/lib/docker
 
-          # Give us a link to the new cusomisation location
-          ln -s /var/lib/docker/vm /var/lib/boot2docker
+        # Give us a link to the new cusomisation location
+        ln -s /var/lib/docker/vm /var/lib/boot2docker
 
-          # Make sure /tmp is on the disk too too
-          if [ -d /var/lib/boot2docker/tmp ]; then
-                rm -rf /var/lib/boot2docker/tmp
-          fi
-          mv /tmp /var/lib/boot2docker/tmp
-          ln -s /var/lib/boot2docker/tmp /tmp
-     else
-          # Detected a disk with a normal linux install (/var/lib/docker + more))
-          mkdir -p /var/lib
+        # Make sure /tmp is on the disk too too
+        if [ -d /var/lib/boot2docker/tmp ]; then
+            rm -rf /var/lib/boot2docker/tmp
+        fi
+        mv /tmp /var/lib/boot2docker/tmp
+        ln -s /var/lib/boot2docker/tmp /tmp
+    else
+        # Detected a disk with a normal linux install (/var/lib/docker + more))
+        mkdir -p /var/lib
 
-          mkdir -p /mnt/$PARTNAME/var/lib/docker
-          ln -s /mnt/$PARTNAME/var/lib/docker /var/lib/docker
+        mkdir -p /mnt/$PARTNAME/var/lib/docker
+        ln -s /mnt/$PARTNAME/var/lib/docker /var/lib/docker
 
-          mkdir -p /mnt/$PARTNAME/var/lib/boot2docker
-          ln -s /mnt/$PARTNAME/var/lib/boot2docker /var/lib/boot2docker
+        mkdir -p /mnt/$PARTNAME/var/lib/boot2docker
+        ln -s /mnt/$PARTNAME/var/lib/boot2docker /var/lib/boot2docker
 
-          # Make sure /tmp is on the disk too too
-          if [ -d /mnt/$PARTNAME/tmp ]; then
-                rm -rf /mnt/$PARTNAME/tmp
-          fi
-          mv /tmp /mnt/$PARTNAME/tmp
-          ln -s /mnt/$PARTNAME/tmp /tmp
-     fi
+        # Make sure /tmp is on the disk too too
+        if [ -d /mnt/$PARTNAME/tmp ]; then
+            rm -rf /mnt/$PARTNAME/tmp
+        fi
+        mv /tmp /mnt/$PARTNAME/tmp
+        ln -s /mnt/$PARTNAME/tmp /tmp
+    fi
 
 fi
 # /etc dirs are initialised from /usr/local, to allow the user/admin to customise
