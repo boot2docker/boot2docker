@@ -48,8 +48,9 @@ $ docker run -v /mnt/sda1/myapp:/var/www 80e721db2a7b
 
 ## BTRFS (ie, mkfs inside a privileged container)
 
-Note: AUFS on top of BTRFS has many, many issues.  If you do this, please don't
-forget to change your docker graph backend using the `-s btrfs` daemon flag.
+Note: AUFS on top of BTRFS has many, many issues, so the boot2docker init script
+will autodetect that `/var/lib/docker` is a btrfs partition and will set `-s btrfs`
+for you.
 
 ```console
 docker@boot2docker:~$ docker pull debian:latest
