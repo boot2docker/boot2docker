@@ -15,6 +15,7 @@ So the full build process goes like this:
 $ sudo docker build -t boot2docker/boot2docker:base --rm base/
 $ sudo docker build -t boot2docker/boot2docker-rootfs --rm rootfs/
 $ sudo docker rm build-boot2docker
+# you will need more than 2GB memory for the next step
 $ sudo docker run --privileged -name build-boot2docker boot2docker/boot2docker-rootfs
 $ sudo docker cp build-boot2docker:/boot2docker.iso .
 ```
