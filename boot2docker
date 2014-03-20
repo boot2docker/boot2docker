@@ -190,11 +190,21 @@ wait_vm() {
     done
 }
 
+save() {
+    is_installed || status
+    if is_running; then
+        log "$VM_NAME shutting down and saving state..."
+    	$VBM controlvm $VM_NAME savestate > /dev/null
+    else
+        log "$VM_NAME not running, not saved"
+    fi
+}
+
 suspend() {
     is_installed || status
     if is_running; then
         log "Suspending $VM_NAME..."
-        $VBM controlvm $VM_NAME savestate > /dev/null
+        $VBM controlvm $VM_NAME pause > /dev/null
     else
         log "$VM_NAME is not running."
     fi
@@ -238,12 +248,12 @@ is_running() {
     info | grep -E "State:[ ]+running" > /dev/null
 }
 
-is_paused() {
-    info | grep -E "State:[ ]+paused" > /dev/null
+is_saved() {
+    info | grep -E "State:[ ]+saved" > /dev/null
 }
 
-is_suspended() {
-    info | grep -E "State:[ ]+suspended" > /dev/null
+is_paused() {
+    info | grep -E "State:[ ]+paused" > /dev/null
 }
 
 is_stopped() {
@@ -261,17 +271,21 @@ status() {
     elif is_paused; then
         log "$VM_NAME is paused."
         exit 1
-    elif is_suspended; then
-        log "$VM_NAME is suspended."
-        exit 1
     elif is_stopped; then
         log "$VM_NAME is stopped."
         exit 1
     elif is_aborted; then
         log "$VM_NAME is aborted."
         exit 1
+    elif is_saved; then
+        log "$VM_NAME in saved-state"
+	exit 1
     else
-        log "$VM_NAME does not exist."
+        if is_installed;then
+           log "$VM_NAME state unknown/in transition"
+        else
+           log "$VM_NAME does not exist."
+        fi 
         exit 1
     fi
 }
@@ -287,7 +301,8 @@ delete() {
 case $1 in
     init | setup) init;;
     start | up) start;;
-    save | pause | suspend) suspend;;
+    save ) save;; 
+    pause | suspend) suspend;;
     stop | halt | down) stop;;
     restart) restart;;
     status) status;;
