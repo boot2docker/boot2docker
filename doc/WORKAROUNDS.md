@@ -16,35 +16,7 @@ Now you can access your container from your host machine under `localhost:8000`
 
 ## Folder sharing
 
-If you want to access a folder on your host system from inside your docker container you neeed to have `sshfs` installed. (On OSX you can simply install it by `$ brew install sshfs`.)
-
-Then log into your boot2docker VM (password is `tcuser`) with `$ boot2docker ssh` and run the following commands:
-
-```sh
-$ sudo mkdir /mnt/sda1/myapp
-$ sudo chown -R docker:docker /mnt/sda1/myapp
-```
-
-Now you can logout again (by running `$ exit`) and create a file name `b2d-passwd` with the boot2docker password in it.
-
-```sh
-$ touch ~/.boot2docker/b2d-passwd
-$ echo "tcuser" >> ~/.boot2docker/b2d-passwd
-```
-
-As a last step we have to mount the folder. Lets say you want to mount the folder `~/myapp` then simply run:
-
-```sh
-$ sshfs docker@localhost:/mnt/sda1/myapp ~/myapp -oping_diskarb,volname=b2d-myapp -p 2022 -o reconnect -o UserKnownHostsFile=/dev/null -o password_stdin < ~/.boot2docker/b2d-passwd
-```
-
-You can later unmount the folder with `$ umount -f  ~/myapp`.
-
-You can now use the shared directory with docker like that:
-
-```sh
-$ docker run -v /mnt/sda1/myapp:/var/www 80e721db2a7b
-```
+See https://github.com/boot2docker/boot2docker/pull/284 for an experimental build with VirtualBox shared folders support.
 
 ## BTRFS (ie, mkfs inside a privileged container)
 
