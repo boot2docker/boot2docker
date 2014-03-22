@@ -7,7 +7,7 @@ It is composed in three distinct steps:
 
 * `base`: fetches, patches with AUFS support and builds the 3.13.3 Linux Kernel with Tiny Core base configuration
 * `rootfs`: builds the base rootfs for boot2docker (not complete)
-* running `rootfs`: when you run this image, it will build the rootfs, download the latest Docker release and create the `.iso` file on `/` of the container. 
+* running `rootfs`: when you run this image, it will build the rootfs, download the latest Docker release and create the `.iso` file on `/` of the container.
 
 So the full build process goes like this:
 
@@ -16,7 +16,7 @@ $ sudo docker build -t boot2docker/boot2docker:base --rm base/
 $ sudo docker build -t boot2docker/boot2docker-rootfs --rm rootfs/
 $ sudo docker rm build-boot2docker
 # you will need more than 2GB memory for the next step
-$ sudo docker run --privileged -name build-boot2docker boot2docker/boot2docker-rootfs
+$ sudo docker run --privileged --name build-boot2docker boot2docker/boot2docker-rootfs
 $ sudo docker cp build-boot2docker:/boot2docker.iso .
 ```
 
