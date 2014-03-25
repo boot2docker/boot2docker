@@ -12,8 +12,8 @@ It is composed in three distinct steps:
 So the full build process goes like this:
 
 ```
-$ sudo docker build -t boot2docker/boot2docker:base --rm base/
-$ sudo docker build -t boot2docker/boot2docker-rootfs --rm rootfs/
+$ sudo docker build -t boot2docker/boot2docker:base base/
+$ sudo docker build -t boot2docker/boot2docker-rootfs rootfs/
 $ sudo docker rm build-boot2docker
 # you will need more than 2GB memory for the next step
 $ sudo docker run --privileged --name build-boot2docker boot2docker/boot2docker-rootfs
