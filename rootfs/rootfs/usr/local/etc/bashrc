@@ -1,0 +1,33 @@
+HISTFILESIZE=500
+HISTCONTROL=ignoredups
+
+if [ "`id -u`" -eq 0 ]; then
+ HISTFILE=/root/.bash_history
+else
+ HISTFILE=$HOME/.bash_history
+fi
+
+if [ "`id -u`" -eq 0 ]; then
+ HOME=/root
+fi
+
+
+SHELL=/bin/bash
+ENV=$HOME/.bashrc
+
+
+export HISTFILE HISTFILESIZE HISTCONTROL TERM SHELL
+
+alias df='df -h'
+alias du='du -h'
+
+alias ls='ls -p'
+alias ll='ls -l'
+alias la='ls -la'
+
+# Avoid errors... use -f to skip confirmation.
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+
+/etc/profile.d/automated_script.sh
