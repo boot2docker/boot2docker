@@ -15,6 +15,7 @@ test -f "$BOOT2DOCKER_PROFILE" && . "$BOOT2DOCKER_PROFILE"
 
 : ${VM_DISK:=${BOOT2DOCKER_CFG_DIR}/${VM_NAME}.vmdk}
 : ${BOOT2DOCKER_ISO:=${BOOT2DOCKER_CFG_DIR}/boot2docker.iso}
+: ${BOOT2DOCKER_HOST:=127.0.0.1}
 
 #Check if all required commands exist
 cmd_exists() {
@@ -71,13 +72,13 @@ init() {
         *) echo "$unamestr not yet supported - please raise an issue" ; exit 1
     esac
 
-    if `nc -z -w2 localhost $DOCKER_PORT > /dev/null` ; then
-        log "DOCKER_PORT=$DOCKER_PORT on localhost is used by an other process! Set the DOCKER_PORT in $BOOT2DOCKER_PROFILE free port."
+    if `nc -z -w2 $BOOT2DOCKER_HOST $DOCKER_PORT > /dev/null` ; then
+        log "DOCKER_PORT=$DOCKER_PORT on $BOOT2DOCKER_HOST is used by an other process! Set the DOCKER_PORT in $BOOT2DOCKER_PROFILE free port."
         exit 1
     fi
 
-    if `nc -z -w2 localhost $SSH_HOST_PORT > /dev/null` ; then
-        log "SSH_HOST_PORT=$SSH_HOST_PORT on localhost is used by an other process! Set the SSH_HOST_PORT in $BOOT2DOCKER_PROFILE free port."
+    if `nc -z -w2 $BOOT2DOCKER_HOST $SSH_HOST_PORT > /dev/null` ; then
+        log "SSH_HOST_PORT=$SSH_HOST_PORT on $BOOT2DOCKER_HOST is used by an other process! Set the SSH_HOST_PORT in $BOOT2DOCKER_PROFILE free port."
         exit 1
     fi
 
@@ -127,8 +128,8 @@ init() {
         	--natpf1 delete "docker"
     fi
     $VBM modifyvm $VM_NAME \
-        --natpf1 "ssh,tcp,127.0.0.1,$SSH_HOST_PORT,,22" \
-        --natpf1 "docker,tcp,127.0.0.1,$DOCKER_PORT,,4243"
+        --natpf1 "ssh,tcp,$BOOT2DOCKER_HOST,$SSH_HOST_PORT,,22" \
+        --natpf1 "docker,tcp,$BOOT2DOCKER_HOST,$DOCKER_PORT,,4243"
 
     if [ ! -e "$BOOT2DOCKER_ISO" ]; then
         log "boot2docker.iso not found."
@@ -155,7 +156,7 @@ init() {
 
 do_ssh() {
     is_installed || status
-    ssh -o StrictHostKeyChecking=no -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -p $SSH_HOST_PORT docker@localhost $*
+    ssh -o StrictHostKeyChecking=no -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -p $SSH_HOST_PORT docker@$BOOT2DOCKER_HOST $*
 }
 
 start() {
@@ -176,16 +177,16 @@ start() {
         log "$VM_NAME is already running."
     fi
 
-    if [ "$DOCKER_HOST" != "tcp://localhost:${DOCKER_PORT}" ]; then
+    if [ "$DOCKER_HOST" != "tcp://$BOOT2DOCKER_HOST:${DOCKER_PORT}" ]; then
         echo
         echo "To connect the docker client to the Docker daemon, please set:"
-        echo "export DOCKER_HOST=tcp://localhost:${DOCKER_PORT}"
+        echo "export DOCKER_HOST=tcp://$BOOT2DOCKER_HOST:${DOCKER_PORT}"
         echo
     fi
 }
 
 wait_vm() {
-    while ! echo "ping" | nc localhost $SSH_HOST_PORT > /dev/null 2>&1; do
+    while ! echo "ping" | nc $BOOT2DOCKER_HOST $SSH_HOST_PORT > /dev/null 2>&1; do
         sleep 1
     done
 }
