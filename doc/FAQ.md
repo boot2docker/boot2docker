@@ -36,9 +36,9 @@ If you have a persistence partition, you can make customisations that are run at
 in the ``/var/lib/boot2docker/bootlocal.sh`` file.
 
 You can also set variables that will be used during the boot initialisation (after the automount) by setting them in
-``/var/lib/boot2docker/profile`` - at this point, its only ``NTP_SERVER``.
+``/var/lib/boot2docker/profile``
 
-for example, to download ``pipework``, install its pre-requisites (which you can download using ``tce-load -w package.tcz``), and then start a container:
+For example, to download ``pipework``, install its pre-requisites (which you can download using ``tce-load -w package.tcz``), and then start a container:
 
 ```
 #!/bin/sh
@@ -55,6 +55,13 @@ su - docker -c "tce-load -i /var/lib/boot2docker/*.tcz"
 
 #start my management container if its not already there
 docker run -d -v /var/run/docker.sock:/var/run/docker.sock $(which docker):$(which docker)  -name dom0 svens-dom0
+```
+
+Or, if you need to tell the Docker daemon to use a specific DNS server, add the 
+following to ``/var/lib/boot2docker/profile``:
+
+``
+EXTRA_ARGS="--dns 192.168.1.2"
 ```
 
 **What is the development process**
