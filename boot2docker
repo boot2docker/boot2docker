@@ -242,6 +242,10 @@ is_paused() {
     info | grep -E "State:[ ]+paused" > /dev/null
 }
 
+is_saved() {
+    info | grep -E "State:[ ]+saved" > /dev/null
+}
+
 is_suspended() {
     info | grep -E "State:[ ]+suspended" > /dev/null
 }
@@ -260,6 +264,9 @@ status() {
         exit 0
     elif is_paused; then
         log "$VM_NAME is paused."
+        exit 1
+    elif is_saved; then
+        log "$VM_NAME is saved."
         exit 1
     elif is_suspended; then
         log "$VM_NAME is suspended."
