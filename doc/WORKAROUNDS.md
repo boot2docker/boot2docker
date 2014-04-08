@@ -10,6 +10,25 @@ Let's say your docker container exposes the port 8000 and you want access it fro
 ```sh
 $ boot2docker ssh -L 8000:localhost:8000
 ```
+## Port forwarding on steroid
+
+If you use a lot of containers which expose the same port, you have to use docker dynamic port forwarding.
+So for example running 3 **nginx** conatiner:
+
+ - container-1 : 80 -> 49153
+ - container-2 : 80 -> 49154
+ - container-3 : 80 -> 49155
+
+If you forward all 49XXX ports to your host. You can easily access all 3 webserver in you browser, without
+any ssh localforwarding hack
+
+``` sh
+# vm must be powered off
+for i in {49000..49900}; do
+ VBoxManage modifyvm "boot2docker-vm" --natpf1 "tcp-port$i,tcp,,$i,,$i";
+ VBoxManage modifyvm "boot2docker-vm" --natpf1 "udp-port$i,udp,,$i,,$i";
+done
+```
 
 Now you can access your container from your host machine under `localhost:8000`
 
