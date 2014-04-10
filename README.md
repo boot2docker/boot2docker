@@ -8,7 +8,7 @@ boot2docker is a lightweight Linux distribution based on [Tiny Core Linux](http:
 See [Frequently asked questions](doc/FAQ.md) for more details.
 
 ## Features
-* Kernel 3.13.3 with AUFS, Docker 0.10.0, LXC 0.8.0
+* Kernel 3.14.0 with AUFS, Docker 0.10.0, LXC 0.8.0
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
