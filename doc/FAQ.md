@@ -60,7 +60,7 @@ docker run -d -v /var/run/docker.sock:/var/run/docker.sock $(which docker):$(whi
 Or, if you need to tell the Docker daemon to use a specific DNS server, add the 
 following to ``/var/lib/boot2docker/profile``:
 
-``
+```
 EXTRA_ARGS="--dns 192.168.1.2"
 ```
 
