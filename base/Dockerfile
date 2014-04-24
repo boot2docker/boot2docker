@@ -1,7 +1,7 @@
 FROM ubuntu:12.04
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
-ENV KERNEL_VERSION  3.14
+ENV KERNEL_VERSION  3.14.1
 ENV AUFS_BRANCH     aufs3.14
 
 # make sure the package repository is up to date
