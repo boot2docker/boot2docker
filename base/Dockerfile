@@ -1,19 +1,16 @@
-FROM ubuntu:12.04
+FROM debian:jessie
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
 ENV KERNEL_VERSION  3.14.1
 ENV AUFS_BRANCH     aufs3.14
 
-# make sure the package repository is up to date
-RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
-RUN apt-get update
-
-RUN apt-get -y install  unzip \
+RUN apt-get update && apt-get -y install  unzip \
                         xz-utils \
                         curl \
                         bc \
                         git \
                         build-essential \
+                        cpio \
                         gcc-multilib libc6-i386 libc6-dev-i386
 
 
