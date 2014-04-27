@@ -1,8 +1,6 @@
 #!/bin/sh
 set -e
 
-##TODO: as soon as we can run mknod from docker build, this can move into the Dockerfile
-
 # Download Tiny Core Linux rootfs
 cd $ROOTFS
 zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames

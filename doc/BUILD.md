@@ -13,13 +13,9 @@ So the full build process goes like this:
 
 ```
 $ sudo docker build -t boot2docker/boot2docker:base base/
-$ sudo docker build -t boot2docker/boot2docker-rootfs rootfs/
-$ sudo docker rm build-boot2docker
 # you will need more than 2GB memory for the next step
-$ sudo docker run --privileged --name build-boot2docker boot2docker/boot2docker-rootfs
-$ sudo docker cp build-boot2docker:/boot2docker.iso .
-$ sudo docker cp build-boot2docker:/linux-kernel/.config .
-$ mv .config base/kernel_config
+$ sudo docker build -t boot2docker/boot2docker-rootfs rootfs/
+$ sudo docker run --rm boot2docker/boot2docker-rootfs > boot2docker.iso
 ```
 
 Now you can install the iso to a USB drive, SD card, CD-Rom or hard-disk. The image contains
@@ -47,7 +43,6 @@ $ echo "RUN somescript.sh" >> Dockerfile
 
 $ sudo docker build -t my-boot2docker-img .
 $ sudo docker rm my-boot2docker
-$ sudo docker run --privileged -name my-boot2docker my-boot2docker-img
-$ sudo docker cp my-boot2docker:/boot2docker.iso .
+$ sudo docker run --rm my-boot2docker-img > boot2docker.iso
 
 ```

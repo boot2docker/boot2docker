@@ -108,4 +108,5 @@ RUN find $ROOTFS/etc/rc.d/ -exec chmod +x {} \; && \
 RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest && \
     chmod +x $ROOTFS/usr/local/bin/docker
 
-CMD ["/bin/sh", "/make_iso.sh"]
+RUN /make_iso.sh
+CMD ["cat", "boot2docker.iso"]
