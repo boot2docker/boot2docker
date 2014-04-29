@@ -6,6 +6,10 @@ cd $ROOTFS
 zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 cd -
 
+# from 3.14 we seem to be missing the modules.dep files - rebuild
+# TODO: look into why depmod isn't in /sbin/ anymore
+$ROOTFS/sbin/depmod -b $ROOTFS ${KERNEL_VERSION}-tinycore64
+
 # Post download rootfs overwrites
 # Append the fstab entries for LXC
 cat $ROOTFS/usr/local/etc/fstab >> $ROOTFS/etc/fstab
