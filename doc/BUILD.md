@@ -1,21 +1,21 @@
 How to build boot2docker locally
 ================================
 
-boot2docker is built with Docker, via Dockerfiles.
+boot2docker is built with Docker, via a Dockerfile.
 
-It is composed in three distinct steps:
+During `docker build` we
+* fetch, patch with AUFS support and build the 3.14.0 Linux Kernel with Tiny Core base configuration
+* build the base rootfs for boot2docker (not complete)
+* build the rootfs, download the latest Docker release and create the `.iso` file on `/` of the container.
 
-* `base`: fetches, patches with AUFS support and builds the 3.14.0 Linux Kernel with Tiny Core base configuration
-* `rootfs`: builds the base rootfs for boot2docker (not complete)
-* running `rootfs`: when you run this image, it will build the rootfs, download the latest Docker release and create the `.iso` file on `/` of the container.
+Running the resultant image will cat the iso file to STDOUT.
 
 So the full build process goes like this:
 
 ```
-$ sudo docker build -t boot2docker/boot2docker:base base/
-# you will need more than 2GB memory for the next step
-$ sudo docker build -t boot2docker/boot2docker-rootfs rootfs/
-$ sudo docker run --rm boot2docker/boot2docker-rootfs > boot2docker.iso
+# you will need more than 2GB memory
+$ sudo docker build -t boot2docker .
+$ sudo docker run --rm boot2docker > boot2docker.iso
 ```
 
 Now you can install the iso to a USB drive, SD card, CD-Rom or hard-disk. The image contains
@@ -36,10 +36,12 @@ and then run that to generate your boot2docker.iso file:
 
 
 ```
-$ sudo docker pull boot2docker/boot2docker-rootfs
-$ echo "FROM boot2docker/boot2docker-rootfs" > Dockerfile
+$ sudo docker pull boot2docker/boot2docker
+$ echo "FROM boot2docker/boot2docker" > Dockerfile
 $ echo "ADD . /data/" >> Dockerfile
 $ echo "RUN somescript.sh" >> Dockerfile
+$ echo "RUN /make_iso.sh" >> Dockerfile
+$ echo "CMD [\"cat\", \"boot2docker.iso\"]" >> Dockerfile
 
 $ sudo docker build -t my-boot2docker-img .
 $ sudo docker rm my-boot2docker
