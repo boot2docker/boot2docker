@@ -16,10 +16,8 @@ if [ ! -n "$BOOT2DOCKER_DATA" ]; then
         HEADER=`dd if=$UNPARTITIONED_HD bs=1 count=${#MAGIC} 2>/dev/null`
 
         if [ "$HEADER" = "$MAGIC" ]; then
-            # See if its a tarfile
-	    mkdir /tmp/test
-	    cd /tmp/test
-	    tar x /dev/sda
+            # save the preload userdata.tar file
+            dd if=$UNPARTITIONED_HD of=/userdata.tar bs=1 count=4096 2>/dev/null
             # Create the partition, format it and then mount it
             echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use"
             echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use" > /home/docker/log.log
@@ -48,9 +46,6 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
         BOOT2DOCKER_FSTYPE=`blkid -o export $BOOT2DOCKER_DATA | grep TYPE= | cut -d= -f2`
         modprobe $BOOT2DOCKER_FSTYPE || true
         mount $BOOT2DOCKER_DATA /mnt/$PARTNAME
-	if [ -e "/tmp/test" ]; then
-		cp -r /tmp/test /mnt/$PARTNAME/
-	fi
     fi
 
     # Just in case, the links will fail if not
@@ -85,7 +80,9 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
         mv /tmp /mnt/$PARTNAME/tmp
         ln -s /mnt/$PARTNAME/tmp /tmp
     fi
-
+    if [ -e "/userdata.tar" ]; then
+        mv /userdata.tar /var/lib/boot2docker/
+    fi
 fi
 # /etc dirs are initialised from /usr/local, to allow the user/admin to customise
 mkdir -p /var/lib/boot2docker/etc/

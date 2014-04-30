@@ -41,7 +41,7 @@ $ echo "FROM boot2docker/boot2docker" > Dockerfile
 $ echo "ADD . /data/" >> Dockerfile
 $ echo "RUN somescript.sh" >> Dockerfile
 $ echo "RUN /make_iso.sh" >> Dockerfile
-$ echo "CMD [\"cat\", \"boot2docker.iso\"]" >> Dockerfile
+$ echo 'CMD ["cat", "boot2docker.iso"]' >> Dockerfile
 
 $ sudo docker build -t my-boot2docker-img .
 $ sudo docker rm my-boot2docker
