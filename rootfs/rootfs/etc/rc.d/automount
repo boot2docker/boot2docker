@@ -16,6 +16,10 @@ if [ ! -n "$BOOT2DOCKER_DATA" ]; then
         HEADER=`dd if=$UNPARTITIONED_HD bs=1 count=${#MAGIC} 2>/dev/null`
 
         if [ "$HEADER" = "$MAGIC" ]; then
+            # See if its a tarfile
+	    mkdir /tmp/test
+	    cd /tmp/test
+	    tar x /dev/sda
             # Create the partition, format it and then mount it
             echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use"
             echo "NEW boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use" > /home/docker/log.log
@@ -44,6 +48,9 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
         BOOT2DOCKER_FSTYPE=`blkid -o export $BOOT2DOCKER_DATA | grep TYPE= | cut -d= -f2`
         modprobe $BOOT2DOCKER_FSTYPE || true
         mount $BOOT2DOCKER_DATA /mnt/$PARTNAME
+	if [ -e "/tmp/test" ]; then
+		cp -r /tmp/test /mnt/$PARTNAME/
+	fi
     fi
 
     # Just in case, the links will fail if not
