@@ -22,6 +22,8 @@ $ brew update
 $ brew install boot2docker
 ```
 
+For backup / Time Machine exclusion considerations: The virtual machine disk image lives in ~/.boot2docker, not in the standard place (~/VirtualBox VMs).
+
 #### Linux/Unix (works also on OSX)
 ```
 $ curl https://raw.github.com/boot2docker/boot2docker/master/boot2docker > boot2docker
