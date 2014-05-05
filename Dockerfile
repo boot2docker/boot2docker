@@ -135,5 +135,23 @@ RUN cd /gitrepo && \
     DATE=$(date) && \
     echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
 
+# Download Tiny Core Linux rootfs
+RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
+
+# Post download rootfs overwrites
+# Append the fstab entries for LXC
+RUN cat $ROOTFS/usr/local/etc/fstab >> $ROOTFS/etc/fstab
+
+# Change MOTD
+RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
+
+# Make sure we have the correct bootsync
+RUN mv $ROOTFS/bootsync.sh $ROOTFS/opt/bootsync.sh
+RUN chmod +x $ROOTFS/opt/bootsync.sh
+
+# Make sure we have the correct shutdown
+RUN mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh
+RUN chmod +x $ROOTFS/opt/shutdown.sh
+
 RUN /make_iso.sh
 CMD ["cat", "boot2docker.iso"]
