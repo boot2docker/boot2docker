@@ -67,3 +67,7 @@ EXTRA_ARGS="--dns 192.168.1.2"
 **What is the development process**
 
 We are implementing the same process as [Docker merge approval](https://github.com/dotcloud/docker/blob/master/CONTRIBUTING.md#merge-approval), so all commits need to be done via pull requests, and will need 2 or more LGTMs.
+
+**Is boot2docker only for VirtualBox?**
+
+There are two parts of boot2docker: the iso image, and the boot2docker wrapper script to set up and mange a VM. The wrapper script only works with VirtualBox, but the iso image is designed to also be used with physical hardware. There are no plans to make separate iso images for different configurations.
