@@ -54,8 +54,6 @@ ENV TCZ_DEPS        iptables \
                     tar \
                     gcc_libs \
                     acpid \
-                    bash \
-                    ncurses-common ncurses-terminfo ncurses ncurses-utils \
                     xz liblzma \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
                     nfs-utils tcp_wrappers portmap rpcbind libtirpc \
