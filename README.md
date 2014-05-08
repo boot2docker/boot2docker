@@ -53,7 +53,7 @@ $ boot2docker up
 ## Advanced usage
 
 #### Port forwarding / folder sharing
-In order to use this features refer to [this workarounds](https://github.com/boot2docker/boot2docker/blob/master/doc/WORKAROUNDS.md)
+In order to use this features refer to [these workarounds](https://github.com/boot2docker/boot2docker/blob/master/doc/WORKAROUNDS.md)
 
 #### Customize
 You can customise the values of `VM_NAME`, `DOCKER_PORT`, `SSH_HOST_PORT`, `VM_DISK`, `VM_DISK_SIZE`, `VM_MEM` and `BOOT2DOCKER_ISO` by setting them in `$HOME/.boot2docker/profile`
