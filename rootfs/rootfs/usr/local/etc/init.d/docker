@@ -39,8 +39,6 @@ start() {
 
 stop() {
     kill $(cat /var/run/docker.pid)
-    # remove this softlink - the docker daemon recreates it and when its from the wrong os/docker version, things go boom
-    rm -f /var/lib/docker/lxc-start-unconfined
 }
 
 restart() {
