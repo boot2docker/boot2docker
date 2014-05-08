@@ -94,22 +94,6 @@ RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.o
     mkdir -p $ROOTFS/usr/local/lib && \
     cp -av `pwd`/output/lib64/* $ROOTFS/usr/local/lib
 
-ADD rootfs/lxc-0.8.0-boot2docker.patch /
-
-# Download LXC, patch it with a 0.8.0 port of @sebp's patch to properly change root from a ramdisk, compile and install
-# Based on https://github.com/spahl/lxc/commit/d6b2904d50cac7c44e6f490308b8dd1417281529
-RUN curl -L https://github.com/lxc/lxc/archive/lxc-0.8.0.tar.gz | tar -C / -xz && \
-    cd /lxc-lxc-0.8.0 && \
-    patch -p2 < /lxc-0.8.0-boot2docker.patch && \
-    ./autogen.sh && \
-    LIBCAPLIB=/libcap-2.22/output/ CFLAGS="-m32 -I${LIBCAPLIB}/include -L${LIBCAPLIB}/lib64" ./configure prefix=/usr/local --disable-apparmor --disable-bash && \
-    make && \
-    make prefix=$ROOTFS install && \
-    mkdir -p $ROOTFS/usr/var/lib/lxc && \
-    mkdir -p $ROOTFS/usr/local/lib/lxc/rootfs && \
-    mkdir -p $ROOTFS/cgroup && \
-    mkdir -p $ROOTFS/dev/mqueue
-
 # Make sure the kernel headers are installed for aufs-util, and then build it
 RUN cd /linux-kernel && \
     make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \

@@ -6,11 +6,6 @@ cd $ROOTFS
 zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 cd -
 
-# Post download rootfs overwrites
-# Append the fstab entries for LXC
-cat $ROOTFS/usr/local/etc/fstab >> $ROOTFS/etc/fstab
-rm -f $ROOTFS/usr/local/etc/fstab
-
 # Change MOTD
 mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 
