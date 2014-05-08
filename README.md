@@ -26,7 +26,7 @@ For backup / Time Machine exclusion considerations: The virtual machine disk ima
 
 #### Linux/Unix (works also on OSX)
 ```
-$ curl https://raw.githubusercontent.com/boot2docker/boot2docker/master/boot2docker > boot2docker
+$ curl -L -O https://raw.githubusercontent.com/boot2docker/boot2docker/master/boot2docker
 $ chmod +x boot2docker
 ```
 
