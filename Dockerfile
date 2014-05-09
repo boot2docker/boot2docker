@@ -108,6 +108,7 @@ RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.g
 
 # Install the TCZ dependencies
 RUN for dep in $TCZ_DEPS; do \
+	echo "Download $TCL_REPO_BASE/tcz/$dep.tcz" &&\
         curl -L -o /tmp/$dep.tcz $TCL_REPO_BASE/tcz/$dep.tcz && \
         unsquashfs -f -d $ROOTFS /tmp/$dep.tcz && \
         rm -f /tmp/$dep.tcz ;\

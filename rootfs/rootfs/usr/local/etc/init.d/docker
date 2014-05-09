@@ -31,9 +31,6 @@ start() {
         EXTRA_ARGS="$EXTRA_ARGS -s $DOCKER_STORAGE"
     fi
 
-    # can't pivot root on a ramdisk
-    export DOCKER_RAMDISK=please
-
     /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS > /var/lib/boot2docker/docker.log 2>&1 &
 }
 
