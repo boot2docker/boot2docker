@@ -38,13 +38,12 @@ and then run that to generate your boot2docker.iso file:
 ```
 $ sudo docker pull boot2docker/boot2docker
 $ echo "FROM boot2docker/boot2docker" > Dockerfile
-$ echo "ADD . /data/" >> Dockerfile
+$ echo "ADD . $ROOTFS/data/" >> Dockerfile
 $ echo "RUN somescript.sh" >> Dockerfile
 $ echo "RUN /make_iso.sh" >> Dockerfile
 $ echo 'CMD ["cat", "boot2docker.iso"]' >> Dockerfile
 
 $ sudo docker build -t my-boot2docker-img .
-$ sudo docker rm my-boot2docker
 $ sudo docker run --rm my-boot2docker-img > boot2docker.iso
 
 ```
