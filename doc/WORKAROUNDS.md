@@ -13,7 +13,7 @@ $ boot2docker ssh -L 8000:localhost:8000
 ## Port forwarding on steroid
 
 If you use a lot of containers which expose the same port, you have to use docker dynamic port forwarding.
-So for example running 3 **nginx** conatiners:
+So for example running 3 **nginx** containers:
 
  - container-1 : 80 -> 49153
  - container-2 : 80 -> 49154
