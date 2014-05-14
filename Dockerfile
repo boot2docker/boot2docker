@@ -139,10 +139,6 @@ RUN cd /gitrepo && \
 # Download Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
-# Post download rootfs overwrites
-# Append the fstab entries for LXC
-RUN cat $ROOTFS/usr/local/etc/fstab >> $ROOTFS/etc/fstab
-
 # Change MOTD
 RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 
