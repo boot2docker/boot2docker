@@ -302,5 +302,5 @@ case $1 in
     delete) delete;;
     ssh) shift; do_ssh "$@";;
     download) download_latest;;
-    *) echo "Usage $0 {init|start|up|save|pause|stop|restart|status|info|delete|ssh|download}"; exit 1
+    *) echo "Usage $0 {init|start|up|save|pause|stop|restart|down|status|info|delete|ssh|download}"; exit 1
 esac
