@@ -11,8 +11,10 @@ find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';'
 mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 
 # Make sure we have the correct bootsync
-mv $ROOTFS/bootsync.sh $ROOTFS/opt/bootsync.sh
-chmod +x $ROOTFS/opt/bootsync.sh
+mv $ROOTFS/boot*.sh $ROOTFS/opt/
+chmod +x $ROOTFS/opt/*.sh
+
+
 
 # Make sure we have the correct shutdown
 mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh
@@ -57,6 +59,14 @@ HOME_URL="http://boot2docker.io"
 SUPPORT_URL="https://github.com/boot2docker/boot2docker"
 BUG_REPORT_URL="https://github.com/boot2docker/boot2docker/issues"
 EOOS
+
+# from the bootlog PR
+rm -rf $ROOTFS/var/log/docker.log
+rm -rf $ROOTFS/etc/init.d/docker
+ln -s /var/lib/boot2docker/docker.log $ROOTFS/var/log/
+ln -s /usr/local/etc/init.d/docker $ROOTFS/etc/init.d/
+#chmod +x  /usr/local/etc/init.d/docker
+chmod +x /gitrepo/rootfs/rootfs/usr/local/etc/init.d/docker
 
 # Prepare the ISO directory with the kernel
 mkdir -p /tmp/iso/boot
