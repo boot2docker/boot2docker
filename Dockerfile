@@ -78,7 +78,6 @@ RUN cd $ROOTFS/lib/modules && \
     rm -rf ./*/kernel/fs/ocfs2/* && \
     rm -rf ./*/kernel/net/bluetooth/* && \
     rm -rf ./*/kernel/net/mac80211/* && \
-    rm -rf ./*/kernel/net/sunrpc/* && \
     rm -rf ./*/kernel/net/wireless/*
 
 # Install libcap
