@@ -20,12 +20,11 @@ If you use a lot of containers which expose the same port, you have to use docke
 
 For example, running 3 **nginx** containers:
 
- - container-1 : 80 -> 49153
- - container-2 : 80 -> 49154
- - container-3 : 80 -> 49155
+ - container-1 : 80 -> 49153 (i.e. `docker run -p 49153:80 ...`)
+ - container-2 : 80 -> 49154 (i.e. `docker run -p 49154:80 ...`)
+ - container-3 : 80 -> 49155 (i.e. `docker run -p 49155:80 ...`)
 
-If you forward all 49XXX ports to your host, you can easily access all 3 web servers in you browser, without
-using SSH port forwarding.
+By using the `VBoxManage modifyvm` command of VirtualBox you can forward all 49XXX ports to your host. This way you can easily access all 3 webservers in you browser, without any ssh localforwarding hack. Here's how it looks like:
 
 ``` sh
 # vm must be powered off
