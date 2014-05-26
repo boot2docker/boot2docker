@@ -10,17 +10,21 @@ Let's say your docker container exposes the port 8000 and you want access it fro
 ```sh
 $ boot2docker ssh -L 8000:localhost:8000
 ```
-## Port forwarding on steroid
+
+Now you can access your container from your host machine under `localhost:8000`.
+
+## Port forwarding on steroids
 
 If you use a lot of containers which expose the same port, you have to use docker dynamic port forwarding.
-So for example running 3 **nginx** containers:
+
+For example, running 3 **nginx** containers:
 
  - container-1 : 80 -> 49153
  - container-2 : 80 -> 49154
  - container-3 : 80 -> 49155
 
-If you forward all 49XXX ports to your host. You can easily access all 3 webservers in you browser, without
-any ssh localforwarding hack
+If you forward all 49XXX ports to your host, you can easily access all 3 web servers in you browser, without
+using SSH port forwarding.
 
 ``` sh
 # vm must be powered off
@@ -30,8 +34,7 @@ for i in {49000..49900}; do
 done
 ```
 
-Now you can access your container from your host machine under `localhost:8000`
-
+This makes `container-1` accessible at `localhost:49153`, and so on.
 
 ## Folder sharing
 
