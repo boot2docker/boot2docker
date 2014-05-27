@@ -13,7 +13,7 @@ $ boot2docker ssh -L 8000:localhost:8000
 
 Now you can access your container from your host machine under `localhost:8000`.
 
-## Port forwarding on steroid
+## Port forwarding on steroids
 
 If you use a lot of containers which expose the same port, you have to use docker dynamic port forwarding.
 So for example running 3 **nginx** containers:
