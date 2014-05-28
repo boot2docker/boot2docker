@@ -36,6 +36,16 @@ done
 
 This makes `container-1` accessible at `localhost:49153`, and so on.
 
+In order to reverse this change, you can do:
+
+``` sh
+# vm must be powered off
+for i in {49000..49900}; do
+ VBoxManage modifyvm "boot2docker-vm" --natpf1 delete "tcp-port$i";
+ VBoxManage modifyvm "boot2docker-vm" --natpf1 delete "udp-port$i";
+done
+```
+
 ## Folder sharing
 
 See https://github.com/boot2docker/boot2docker/pull/284 for an experimental build with VirtualBox shared folders support.
