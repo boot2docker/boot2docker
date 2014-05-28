@@ -19,9 +19,9 @@ See [Frequently asked questions](doc/FAQ.md) for more details.
 We have built installers for [OS X](
 https://github.com/boot2docker/osx-installer/releases) and [MS Windows](
 https://github.com/boot2docker/windows-installer/releases) which will install
-the `boot2docker` management tool, VirtualBox and any tools needed to run Boot2Docker.
+the boot2docker management tool, VirtualBox and any tools needed to run Boot2Docker.
 
-### Installation using the `boot2docker` manage tool
+### Installation using the boot2docker manage tool
 
 If you have the pre-requisites, or want to help develop Boot2Docker, you can 
 also download the appropriate [boot2docker management release](
