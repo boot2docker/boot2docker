@@ -5,7 +5,8 @@ Workarounds
 
 ## Port forwarding
 
-Let's say your docker container exposes the port 8000 and you want access it from your host machine. Just run following command (and keep it open):
+Let's say your docker container exposes the port 8000 and you want access it from
+your other computers on your LAN. Run following command (and keep it open):
 
 ```sh
 $ boot2docker ssh -L 8000:localhost:8000
@@ -52,7 +53,7 @@ See https://github.com/boot2docker/boot2docker/pull/284 for an experimental buil
 
 ## BTRFS (ie, mkfs inside a privileged container)
 
-Note: AUFS on top of BTRFS has many, many issues, so the boot2docker init script
+Note: AUFS on top of BTRFS has many, many issues, so the Docker engine's init script
 will autodetect that `/var/lib/docker` is a btrfs partition and will set `-s btrfs`
 for you.
 
