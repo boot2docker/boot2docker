@@ -15,7 +15,8 @@ RUN apt-get update && apt-get -y install  unzip \
                         xorriso \
                         syslinux \
                         automake \
-                        pkg-config
+                        pkg-config \
+                        p7zip-full
 
 ENV KERNEL_VERSION  3.16.1
 ENV AUFS_BRANCH     aufs3.16
@@ -46,6 +47,7 @@ RUN jobs=$(nproc); \
 # The post kernel build process
 
 ENV ROOTFS          /rootfs
+ENV VBOX_VERSION    4.3.12
 ENV TCL_REPO_BASE   http://tinycorelinux.net/5.x/x86
 ENV TCZ_DEPS        iptables \
                     iproute2 \
@@ -107,6 +109,18 @@ RUN cd /linux-kernel && \
 # Prepare the ISO directory with the kernel
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
+# Build VBox guest additions
+RUN mkdir -p /vboxguest && \
+    cd /vboxguest && \
+    curl -L -o vboxguest.iso http://download.virtualbox.org/virtualbox/${VBOX_VERSION}/VBoxGuestAdditions_${VBOX_VERSION}.iso && \
+    7z x vboxguest.iso -ir'!VBoxLinuxAdditions.run' && \
+    sh VBoxLinuxAdditions.run --noexec --target . && \
+    mkdir x86 && cd x86 && tar xvjf ../VBoxGuestAdditions-x86.tar.bz2 && cd .. && \
+    mkdir amd64 && cd amd64 && tar xvjf ../VBoxGuestAdditions-amd64.tar.bz2 && cd .. && \
+    cd amd64/src/vboxguest-${VBOX_VERSION} && KERN_DIR=/linux-kernel/ make && cd ../../.. && \
+    cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-tinycore64 && \
+    mkdir -p $ROOTFS/sbin && cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
+
 # Download the rootfs, don't unpack it though:
 RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.gz
 
@@ -117,6 +131,9 @@ RUN for dep in $TCZ_DEPS; do \
         unsquashfs -f -d $ROOTFS /tmp/$dep.tcz && \
         rm -f /tmp/$dep.tcz ;\
     done
+
+# Make sure that all the modules we might have added are recognized
+RUN depmod -a -b $ROOTFS $KERNEL_VERSION-tinycore64
 
 # get generate_cert
 RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.1/generate_cert-0.1-linux-386/ && \
