@@ -37,6 +37,7 @@ initialise, start, stop and delete the VM right from the command line.
 ```
 $ boot2docker init
 ```
+or [via Puppet](https://github.com/shaftoe/puppet-boot2docker)
 
 #### Start vm
 ```
