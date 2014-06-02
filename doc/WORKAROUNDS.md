@@ -5,7 +5,7 @@ Workarounds
 
 ## Port forwarding
 
-Let's say your docker container exposes the port 8000 and you want access it from
+Let's say your Docker container exposes the port 8000 and you want access it from
 your other computers on your LAN. Run following command (and keep it open):
 
 ```sh
@@ -50,7 +50,7 @@ done
 ## BTRFS (ie, mkfs inside a privileged container)
 
 Note: AUFS on top of BTRFS has many, many issues, so the Docker engine's init script
-will autodetect that `/var/lib/docker` is a btrfs partition and will set `-s btrfs`
+will autodetect that `/var/lib/docker` is a `btrfs` partition and will set `-s btrfs`
 for you.
 
 ```console
