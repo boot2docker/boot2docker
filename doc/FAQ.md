@@ -8,7 +8,7 @@ FAQ
 * 1gb memory
 * Autoboots to Boot2Docker
 * `virtio` high performance networking
-* NAT networked (Docker `4243->4243` and SSH `22->2022` are forwarded to the host)
+* NAT networked (Docker `2375->2375` and SSH `22->2022` are forwarded to the host)
 
 **How can I solve my problems with SSH?**
 
