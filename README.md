@@ -11,9 +11,12 @@ https://github.com/boot2docker/boot2docker/releases).
 See [Frequently asked questions](doc/FAQ.md) for more details.
 
 ## Features
-* Kernel 3.14.1 with AUFS, Docker 0.11.1 - using libcontainer
+* Kernel 3.14.1 with AUFS, Docker 0.12.0 - using libcontainer
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
+
+> **Note:** This version of Docker uses port **2375**, the newly registered [IANA
+> port](http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?search=docker)
 
 ## Installation
 
