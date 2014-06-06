@@ -11,7 +11,7 @@ https://github.com/boot2docker/boot2docker/releases).
 See [Frequently asked questions](doc/FAQ.md) for more details.
 
 ## Features
-* Kernel 3.14.1 with AUFS, Docker 0.11.1 - using libcontainer
+* Kernel 3.14.1 with AUFS, Docker 0.12.0 - using libcontainer
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
