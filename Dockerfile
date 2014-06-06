@@ -126,7 +126,8 @@ RUN find $ROOTFS/etc/rc.d/ -exec chmod +x {} \; && \
 
 #get the latest docker
 RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest && \
-    chmod +x $ROOTFS/usr/local/bin/docker
+    chmod +x $ROOTFS/usr/local/bin/docker && \
+    $ROOTFS/usr/local/bin/docker version || true
 
 # get the git versioning info
 ADD . /gitrepo
