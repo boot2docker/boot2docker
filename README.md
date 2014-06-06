@@ -101,7 +101,7 @@ e.g:
     # Make a volume container
     $ docker run -v /data --name my-data busybox true
 	# Share it using Samba (Windows file sharing)
-	$ docker docker run --rm -v /usr/local/bin/docker:/docker -v /var/run/docker.sock:/docker.sock svendowideit/samba my-data
+	$ docker run --rm -v /usr/local/bin/docker:/docker -v /var/run/docker.sock:/docker.sock svendowideit/samba my-data
 	# then find out the IP address of your Boot2Docker host
 	$ boot2docker ip
 	192.168.59.103
