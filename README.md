@@ -15,6 +15,9 @@ See [Frequently asked questions](doc/FAQ.md) for more details.
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
+> **Note:** This version of Docker uses port **2375**, the newly registered [IANA
+> port](http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?search=docker)
+
 ## Installation
 
 ### All in one Installers for OS X and MS Mindows
