@@ -3,12 +3,15 @@ Boot2Docker
 
 Boot2Docker is a lightweight Linux distribution made specifically to run [Docker]
 (https://www.docker.io/) containers. It runs completely from RAM, is a small ~24MB
-download and boots in ~5s (YMMV). The [ISO can be download here](
+download and boots in ~5s (YMMV).
+
+
+Installation instructions for [OS X](http://docs.docker.io/installation/mac/) and [Windows](http://docs.docker.io/installation/windows/) available on the Docker documentation site.
+
+
+The [ISO can be download here](
 https://github.com/boot2docker/boot2docker/releases).
 
-[![Boot2Docker Demo Video](http://i.imgur.com/hIwudK3.gif)](http://www.youtube.com/watch?v=QzfddDvNVv0&hd=1)
-
-See [Frequently asked questions](doc/FAQ.md) for more details.
 
 ## Features
 * Kernel 3.14.1 with AUFS, Docker 0.12.0 - using libcontainer
@@ -20,7 +23,7 @@ See [Frequently asked questions](doc/FAQ.md) for more details.
 
 ## Installation
 
-### All in one Installers for OS X and MS Mindows
+### All in one Installers for OS X and MS Windows
 
 We have built installers for [OS X](
 https://github.com/boot2docker/osx-installer/releases) and [MS Windows](
@@ -44,19 +47,19 @@ initialise, start, stop and delete the VM right from the command line.
 $ boot2docker init
 ```
 
-#### Start vm
+#### Start VM
 ```
 $ boot2docker up
 ```
 
-#### Upgrade the Boot2docker vm image
+#### Upgrade the Boot2docker VM image
 ```
 $ boot2docker stop
 $ boot2docker download
 $ boot2docker up
 ```
 
-If your Boot2Docker virtualmachine was created prior to 0.11.1-pre1, its best to
+If your Boot2Docker virtual machine was created prior to 0.11.1-pre1, its best to
 delete -  `boot2docker delete` and then `boot2docker init` to create a new VM.
 
 The main changes are to add a `/var/lib/boot2docker/userdata.tar` file that is
@@ -65,6 +68,8 @@ un-tarred into the `/home/docker` directory on boot. This file contains a
 
 
 ## More information
+
+See [Frequently asked questions](doc/FAQ.md) for more details.
 
 #### Container Port redirection 
 
