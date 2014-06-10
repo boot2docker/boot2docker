@@ -14,7 +14,7 @@ start() {
 
     # if we're virtual, let's listen on tcp://, too
     if /bin/dmesg | /bin/egrep -q '(VirtualBox|VMware|QEMU)'; then
-        DOCKER_HOST="-H tcp://0.0.0.0:4243"
+        DOCKER_HOST="-H tcp://0.0.0.0:2375"
     fi
 
     if [ "$DOCKER_STORAGE" = 'auto' ]; then

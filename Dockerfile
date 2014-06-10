@@ -126,7 +126,8 @@ RUN find $ROOTFS/etc/rc.d/ -exec chmod +x {} \; && \
 
 #get the latest docker
 RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest && \
-    chmod +x $ROOTFS/usr/local/bin/docker
+    chmod +x $ROOTFS/usr/local/bin/docker && \
+    $ROOTFS/usr/local/bin/docker version || true
 
 # get the git versioning info
 ADD . /gitrepo
@@ -135,6 +136,26 @@ RUN cd /gitrepo && \
     GITSHA1=$(git rev-parse --short HEAD) && \
     DATE=$(date) && \
     echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
+
+# Download Tiny Core Linux rootfs
+RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
+
+# Change MOTD
+RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
+
+# Make sure we have the correct bootsync
+RUN mv $ROOTFS/bootsync.sh $ROOTFS/opt/bootsync.sh
+RUN chmod +x $ROOTFS/opt/bootsync.sh
+
+# Make sure we have the correct shutdown
+RUN mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh
+RUN chmod +x $ROOTFS/opt/shutdown.sh
+
+#add serial console
+RUN echo "ttyS0:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100" >> $ROOTFS/etc/inittab
+RUN echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
+    echo "/bin/login -f docker" >> $ROOTFS/usr/local/bin/autologin && \
+    chmod 755 $ROOTFS/usr/local/bin/autologin
 
 RUN /make_iso.sh
 CMD ["cat", "boot2docker.iso"]
