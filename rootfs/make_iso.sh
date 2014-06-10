@@ -10,8 +10,10 @@ cd -
 mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 
 # Make sure we have the correct bootsync
-mv $ROOTFS/bootsync.sh $ROOTFS/opt/bootsync.sh
-chmod +x $ROOTFS/opt/bootsync.sh
+mv $ROOTFS/boot*.sh $ROOTFS/opt/
+chmod +x $ROOTFS/opt/*.sh
+
+
 
 # Make sure we have the correct shutdown
 mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh
@@ -29,8 +31,12 @@ test -x \"/opt/shutdown.sh\" && /opt/shutdown.sh\n
 grep "/opt/shutdown.sh" $ROOTFS/etc/init.d/rc.shutdown || ( echo "Error: failed to insert shutdown script into /etc/init.d/rc.shutdown"; exit 1 )
 
 # Make some handy symlinks (so these things are easier to find)
+rm -rf $ROOTFS/var/log/docker.log
+rm -rf $ROOTFS/etc/init.d/docker
 ln -s /var/lib/boot2docker/docker.log $ROOTFS/var/log/
 ln -s /usr/local/etc/init.d/docker $ROOTFS/etc/init.d/
+#chmod +x  /usr/local/etc/init.d/docker
+chmod +x /gitrepo/rootfs/rootfs/usr/local/etc/init.d/docker
 
 # Prepare the ISO directory with the kernel
 mkdir -p /tmp/iso/boot
