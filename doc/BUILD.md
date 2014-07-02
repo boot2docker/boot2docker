@@ -14,8 +14,7 @@ So the full build process goes like this:
 
 ```
 # you will need more than 2GB memory
-$ sudo docker build -t boot2docker .
-$ sudo docker run --rm boot2docker > boot2docker.iso
+$ docker build -t boot2docker . && docker run --rm boot2docker > boot2docker.iso
 ```
 
 Now you can install the iso to a USB drive, SD card, CD-Rom or hard-disk. The image contains
