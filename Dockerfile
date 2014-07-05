@@ -10,7 +10,6 @@ RUN apt-get update && apt-get -y install  unzip \
                         curl \
                         bc \
                         git \
-                        subversion \
                         build-essential \
                         cpio \
                         gcc-multilib libc6-i386 libc6-dev-i386 \
