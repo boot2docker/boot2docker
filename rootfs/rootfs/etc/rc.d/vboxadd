@@ -1,0 +1,4 @@
+#!/bin/sh
+
+sudo /usr/local/etc/init.d/vboxadd start
+sudo /usr/local/etc/init.d/vboxadd-service start

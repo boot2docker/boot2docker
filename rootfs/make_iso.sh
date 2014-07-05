@@ -15,6 +15,8 @@ grep "/opt/shutdown.sh" $ROOTFS/etc/init.d/rc.shutdown || ( echo "Error: failed 
 # Make some handy symlinks (so these things are easier to find)
 ln -fs /var/lib/boot2docker/docker.log $ROOTFS/var/log/
 ln -fs /usr/local/etc/init.d/docker $ROOTFS/etc/init.d/
+ln -fs /usr/local/etc/init.d/vboxadd $ROOTFS/etc/init.d/
+ln -fs /usr/local/etc/init.d/vboxadd-service $ROOTFS/etc/init.d/
 
 # Prepare the ISO directory with the kernel
 mkdir -p /tmp/iso/boot

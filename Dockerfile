@@ -3,12 +3,14 @@ MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
 ENV KERNEL_VERSION  3.15.3
 ENV AUFS_BRANCH     aufs3.15
+ENV VBOX_VERSION    4.3.12
 
 RUN apt-get update && apt-get -y install  unzip \
                         xz-utils \
                         curl \
                         bc \
                         git \
+                        subversion \
                         build-essential \
                         cpio \
                         gcc-multilib libc6-i386 libc6-dev-i386 \
@@ -18,7 +20,8 @@ RUN apt-get update && apt-get -y install  unzip \
                         xorriso \
                         syslinux \
                         automake \
-                        pkg-config
+                        pkg-config \
+			procps
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
@@ -36,6 +39,10 @@ RUN git clone git://git.code.sf.net/p/aufs/aufs3-standalone && \
     cp -r /aufs3-standalone/fs /linux-kernel && \
     cp -r /aufs3-standalone/include/uapi/linux/aufs_type.h /linux-kernel/include/uapi/linux/
 
+RUN mkdir /vbox
+RUN curl -Lo /vbox/VBoxGuestAdditions_$VBOX_VERSION.iso http://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso
+RUN xorriso -osirrox on -dev /vbox/VBoxGuestAdditions_$VBOX_VERSION.iso -extract / /vbox
+RUN test -x /vbox/autorun.sh
 ADD kernel_config /linux-kernel/.config
 
 RUN jobs=$(nproc); \
@@ -79,6 +86,42 @@ RUN cd $ROOTFS/lib/modules && \
     rm -rf ./*/kernel/net/bluetooth/* && \
     rm -rf ./*/kernel/net/mac80211/* && \
     rm -rf ./*/kernel/net/wireless/*
+
+RUN mkdir -p /lib/modules/${KERNEL_VERSION}-tinycore64
+RUN ln -s /linux-kernel/ /lib/modules/${KERNEL_VERSION}-tinycore64/build
+RUN /vbox/VBoxLinuxAdditions.run --nox11 --keep --target /tmp/ || true
+RUN rm -rf /opt/VBoxGuestAdditions-$VBOX_VERSION/*
+RUN mkdir -p $ROOTFS/opt/VBoxGuestAdditions-$VBOX_VERSION
+RUN tar -C $ROOTFS/opt/VBoxGuestAdditions-$VBOX_VERSION -jxf /tmp/VBoxGuestAdditions-x86.tar.bz2
+RUN rm -rf /tmp/*
+RUN mkdir -p $ROOTFS/lib/modules/${KERNEL_VERSION}-tinycore64/misc
+RUN cp -av /lib/modules/${KERNEL_VERSION}-tinycore64/misc/vbox* $ROOTFS/lib/modules/${KERNEL_VERSION}-tinycore64/misc/
+RUN mkdir -p $ROOTFS/usr/bin
+RUN mkdir -p $ROOTFS/usr/sbin
+RUN mkdir -p $ROOTFS/usr/lib
+RUN mkdir -p $ROOTFS/usr/share
+RUN mkdir -p $ROOTFS/usr/src
+RUN mkdir -p $ROOTFS/usr/local/etc/init.d
+RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/bin/*; do \
+      test -e "$i" && ln -sf "/$i" "$ROOTFS/usr/bin/$(basename $i)"; \
+    done
+RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/sbin/*; do \
+      test -e "$i" && ln -sf "/$i" "$ROOTFS/usr/sbin/$(basename $i)"; \
+    done
+RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/lib/*; do \
+      ln -sf "/$i" "$ROOTFS/usr/lib/$(basename $i)"; \
+    done
+RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/share/*; do \
+      test -e "$i" && ln -sf "/$i" "$ROOTFS/usr/share/$(basename $i)"; \
+    done
+RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/src/*; do \
+      test -e "$i" && ln -sf "/$i" "$ROOTFS/usr/src/$(basename $i)"; \
+    done
+RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/init/*; do \
+      test -e "$i" && ln -sf "/$i" "$ROOTFS/usr/local/etc/init.d/$(basename $i)"; \
+    done
+
+RUN depmod -b $ROOTFS ${KERNEL_VERSION}-tinycore64
 
 # Install libcap
 RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
