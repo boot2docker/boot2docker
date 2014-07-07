@@ -1,4 +1,4 @@
 #!/bin/sh
-
-sudo /usr/local/etc/init.d/vboxadd start
-sudo /usr/local/etc/init.d/vboxadd-service start
+/sbin/modprobe vboxsf
+/bin/mkdir /Users
+/sbin/mount.vboxsf -o rw,uid=1000,gid=50 users /Users

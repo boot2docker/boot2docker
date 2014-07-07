@@ -86,41 +86,40 @@ RUN cd $ROOTFS/lib/modules && \
     rm -rf ./*/kernel/net/mac80211/* && \
     rm -rf ./*/kernel/net/wireless/*
 
-RUN mkdir -p /lib/modules/${KERNEL_VERSION}-tinycore64
-RUN ln -s /linux-kernel/ /lib/modules/${KERNEL_VERSION}-tinycore64/build
-RUN /vbox/VBoxLinuxAdditions.run --nox11 --keep --target /tmp/ || true
-RUN rm -rf /opt/VBoxGuestAdditions-$VBOX_VERSION/*
-RUN mkdir -p $ROOTFS/opt/VBoxGuestAdditions-$VBOX_VERSION
-RUN tar -C $ROOTFS/opt/VBoxGuestAdditions-$VBOX_VERSION -jxf /tmp/VBoxGuestAdditions-x86.tar.bz2
-RUN rm -rf /tmp/*
-RUN mkdir -p $ROOTFS/lib/modules/${KERNEL_VERSION}-tinycore64/misc
-RUN cp -av /lib/modules/${KERNEL_VERSION}-tinycore64/misc/vbox* $ROOTFS/lib/modules/${KERNEL_VERSION}-tinycore64/misc/
+RUN /vbox/VBoxLinuxAdditions.run --noexec --nox11 --keep --target /tmp/
+# Annoyingly installs from x86_64 but creates our /var/lib/VBoxGuestAdditions files
+RUN cd /tmp && ./install.sh /tmp/VBoxGuestAdditions-x86.tar.bz2 --force --no-setup || true # still returns 1
+# Overwrite with correct binaries.
+RUN tar -C /opt/VBoxGuestAdditions-$VBOX_VERSION -jxf /tmp/VBoxGuestAdditions-x86.tar.bz2
+
 RUN mkdir -p $ROOTFS/usr/bin
-RUN mkdir -p $ROOTFS/usr/sbin
-RUN mkdir -p $ROOTFS/usr/lib
-RUN mkdir -p $ROOTFS/usr/share
-RUN mkdir -p $ROOTFS/usr/src
-RUN mkdir -p $ROOTFS/usr/local/etc/init.d
-RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/bin/*; do \
-      test -e "$i" && ln -sf "/$i" "$ROOTFS/usr/bin/$(basename $i)"; \
-    done
-RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/sbin/*; do \
-      test -e "$i" && ln -sf "/$i" "$ROOTFS/usr/sbin/$(basename $i)"; \
-    done
-RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/lib/*; do \
-      ln -sf "/$i" "$ROOTFS/usr/lib/$(basename $i)"; \
-    done
-RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/share/*; do \
-      test -e "$i" && ln -sf "/$i" "$ROOTFS/usr/share/$(basename $i)"; \
-    done
-RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/src/*; do \
-      test -e "$i" && ln -sf "/$i" "$ROOTFS/usr/src/$(basename $i)"; \
-    done
-RUN cd $ROOTFS; for i in opt/VBoxGuestAdditions-$VBOX_VERSION/init/*; do \
-      test -e "$i" && ln -sf "/$i" "$ROOTFS/usr/local/etc/init.d/$(basename $i)"; \
+RUN for i in /opt/VBoxGuestAdditions-$VBOX_VERSION/bin/*; do \
+      test -e "$i" && cp "/$i" "$ROOTFS/usr/bin/$(basename $i)"; \
     done
 
+RUN mkdir -p $ROOTFS/sbin
+RUN mkdir -p $ROOTFS/usr/sbin
+RUN install -m 0755 -o root -g root -t $ROOTFS/sbin /opt/VBoxGuestAdditions-4.3.12/lib/VBoxGuestAdditions/mount.vboxsf
+RUN cd /opt/VBoxGuestAdditions-4.3.12/sbin; install -m 0755 -o root -g root -t $ROOTFS/usr/sbin /opt/VBoxGuestAdditions-4.3.12/sbin/VBoxService
+
+RUN mkdir -p $ROOTFS/usr/local/etc/init.d
+RUN cd opt/VBoxGuestAdditions-4.3.12/init; install -m 0755 -o root -g root -t $ROOTFS/usr/local/etc/init.d vboxadd vboxadd-service
+
+RUN mkdir -p $ROOTFS/var/lib/VBoxGuestAdditions
+RUN cd /var/lib/VBoxGuestAdditions; install -m 0644 -o root -g root -t $ROOTFS/var/lib/VBoxGuestAdditions config filelist
+
+# Manually build the kernel modules
+RUN mkdir -p $ROOTFS/lib/modules/${KERNEL_VERSION}-tinycore64
+RUN cd /opt/VBoxGuestAdditions-$VBOX_VERSION/src/vboxguest-$VBOX_VERSION; for i in vboxguest vboxsf; do \
+      test -d $i && \
+      make -C $i KERN_DIR=/linux-kernel MODULE_DIR=$ROOTFS/lib/modules/${KERNEL_VERSION}-tinycore64/misc install; \
+    done || true
+
+# Make sure the dependencies get updated
 RUN depmod -b $ROOTFS ${KERNEL_VERSION}-tinycore64
+
+# Cleanup
+RUN rm -rf /tmp/*
 
 # Install libcap
 RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
