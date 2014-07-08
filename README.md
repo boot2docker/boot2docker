@@ -110,7 +110,7 @@ One well tested approach is to use a file sharing container like `svendowideit/s
 e.g:
 
 ```
-    # Make a volume container
+    # Make a volume container (only need to do this once)
     $ docker run -v /data --name my-data busybox true
 	# Share it using Samba (Windows file sharing)
 	$ docker run --rm -v /usr/local/bin/docker:/docker -v /var/run/docker.sock:/docker.sock svendowideit/samba my-data
@@ -121,10 +121,21 @@ e.g:
 Connect to the shared folder using Finder (OS X):
 
 	 Connect to cifs://192.168.59.103/data
+	 Once mounted, will appear as /Volumes/data
+
 
 Or on Windows, use Explorer to Connect to:
 
 	\\192.168.59.103\data
+
+
+You can then use your data container from any container you like:
+
+```
+	docker run -it --volumes-from my-data ubuntu 
+```
+
+You will find the "data" volume mounted as "/data" in that container. Note that "my-data" is the name of volume container, this is shared via the "network" by the "samba" container that refers to it by name. So, in this example, if you were on OS-X you now have /Volumes/data and /data in container being shared. You can change the paths as needed. 
 
 #### Customize
 The `boot2docker` management tool allows you to customise many options from both the
