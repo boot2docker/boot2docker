@@ -3,6 +3,7 @@ MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
 ENV KERNEL_VERSION  3.15.3
 ENV AUFS_BRANCH     aufs3.15
+ENV VBOX_VERSION    4.3.12
 
 RUN apt-get update && apt-get -y install  unzip \
                         xz-utils \
@@ -18,7 +19,8 @@ RUN apt-get update && apt-get -y install  unzip \
                         xorriso \
                         syslinux \
                         automake \
-                        pkg-config
+                        pkg-config \
+			procps
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
@@ -36,6 +38,10 @@ RUN git clone git://git.code.sf.net/p/aufs/aufs3-standalone && \
     cp -r /aufs3-standalone/fs /linux-kernel && \
     cp -r /aufs3-standalone/include/uapi/linux/aufs_type.h /linux-kernel/include/uapi/linux/
 
+RUN mkdir /vbox
+RUN curl -Lo /vbox/VBoxGuestAdditions_$VBOX_VERSION.iso http://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso
+RUN xorriso -osirrox on -dev /vbox/VBoxGuestAdditions_$VBOX_VERSION.iso -extract / /vbox
+RUN test -x /vbox/autorun.sh
 ADD kernel_config /linux-kernel/.config
 
 RUN jobs=$(nproc); \
@@ -79,6 +85,41 @@ RUN cd $ROOTFS/lib/modules && \
     rm -rf ./*/kernel/net/bluetooth/* && \
     rm -rf ./*/kernel/net/mac80211/* && \
     rm -rf ./*/kernel/net/wireless/*
+
+RUN /vbox/VBoxLinuxAdditions.run --noexec --nox11 --keep --target /tmp/
+# Annoyingly installs from x86_64 but creates our /var/lib/VBoxGuestAdditions files
+RUN cd /tmp && ./install.sh /tmp/VBoxGuestAdditions-x86.tar.bz2 --force --no-setup || true # still returns 1
+# Overwrite with correct binaries.
+RUN tar -C /opt/VBoxGuestAdditions-$VBOX_VERSION -jxf /tmp/VBoxGuestAdditions-x86.tar.bz2
+
+RUN mkdir -p $ROOTFS/usr/bin
+RUN for i in /opt/VBoxGuestAdditions-$VBOX_VERSION/bin/*; do \
+      test -e "$i" && cp "/$i" "$ROOTFS/usr/bin/$(basename $i)"; \
+    done
+
+RUN mkdir -p $ROOTFS/sbin
+RUN mkdir -p $ROOTFS/usr/sbin
+RUN install -m 0755 -o root -g root -t $ROOTFS/sbin /opt/VBoxGuestAdditions-4.3.12/lib/VBoxGuestAdditions/mount.vboxsf
+RUN cd /opt/VBoxGuestAdditions-4.3.12/sbin; install -m 0755 -o root -g root -t $ROOTFS/usr/sbin /opt/VBoxGuestAdditions-4.3.12/sbin/VBoxService
+
+RUN mkdir -p $ROOTFS/usr/local/etc/init.d
+RUN cd opt/VBoxGuestAdditions-4.3.12/init; install -m 0755 -o root -g root -t $ROOTFS/usr/local/etc/init.d vboxadd vboxadd-service
+
+RUN mkdir -p $ROOTFS/var/lib/VBoxGuestAdditions
+RUN cd /var/lib/VBoxGuestAdditions; install -m 0644 -o root -g root -t $ROOTFS/var/lib/VBoxGuestAdditions config filelist
+
+# Manually build the kernel modules
+RUN mkdir -p $ROOTFS/lib/modules/${KERNEL_VERSION}-tinycore64
+RUN cd /opt/VBoxGuestAdditions-$VBOX_VERSION/src/vboxguest-$VBOX_VERSION; for i in vboxguest vboxsf; do \
+      test -d $i && \
+      make -C $i KERN_DIR=/linux-kernel MODULE_DIR=$ROOTFS/lib/modules/${KERNEL_VERSION}-tinycore64/misc install; \
+    done || true
+
+# Make sure the dependencies get updated
+RUN depmod -b $ROOTFS ${KERNEL_VERSION}-tinycore64
+
+# Cleanup
+RUN rm -rf /tmp/*
 
 # Install libcap
 RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \

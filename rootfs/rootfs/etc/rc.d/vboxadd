@@ -1,0 +1,4 @@
+#!/bin/sh
+/sbin/modprobe vboxsf
+/bin/mkdir /Users
+/sbin/mount.vboxsf -o rw,uid=1000,gid=50 users /Users
