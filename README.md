@@ -14,7 +14,7 @@ https://github.com/boot2docker/boot2docker/releases).
 
 
 ## Features
-* Kernel 3.15.3 with AUFS, Docker 1.1.0 - using libcontainer
+* Kernel 3.15.3 with AUFS, Docker v1.1.1 - using libcontainer
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
