@@ -1,9 +1,6 @@
 FROM debian:jessie
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
-ENV KERNEL_VERSION  3.15.3
-ENV AUFS_BRANCH     aufs3.15
-
 RUN apt-get update && apt-get -y install  unzip \
                         xz-utils \
                         curl \
@@ -19,6 +16,9 @@ RUN apt-get update && apt-get -y install  unzip \
                         syslinux \
                         automake \
                         pkg-config
+
+ENV KERNEL_VERSION  3.15.3
+ENV AUFS_BRANCH     aufs3.15
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
@@ -123,10 +123,11 @@ ADD rootfs/rootfs $ROOTFS
 RUN find $ROOTFS/etc/rc.d/ -exec chmod +x {} \; && \
     find $ROOTFS/usr/local/etc/init.d/ -exec chmod +x {} \;
 
-#get the latest docker
+# get the latest docker
+# Note: `docker version` returns non-true when there is no server to ask
 RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest && \
     chmod +x $ROOTFS/usr/local/bin/docker && \
-    $ROOTFS/usr/local/bin/docker version || true
+    ( $ROOTFS/usr/local/bin/docker version || true )
 
 # get the git versioning info
 ADD . /gitrepo
