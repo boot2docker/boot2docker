@@ -26,6 +26,7 @@ if [ ! -n "$BOOT2DOCKER_DATA" ]; then
             (echo n; echo p; echo 2; echo ; echo +1000M ; echo w) | fdisk $UNPARTITIONED_HD
             (echo t; echo 82) | fdisk $UNPARTITIONED_HD
             mkswap "${UNPARTITIONED_HD}2"
+            swapon "${UNPARTITIONED_HD}2"
             # Add the data partition
             (echo n; echo p; echo 1; echo ; echo ; echo w) | fdisk $UNPARTITIONED_HD
             BOOT2DOCKER_DATA=`echo "${UNPARTITIONED_HD}1"`
