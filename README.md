@@ -9,7 +9,7 @@ download and boots in ~5s (YMMV).
 Installation instructions for [OS X](http://docs.docker.io/installation/mac/) and [Windows](http://docs.docker.io/installation/windows/) available on the Docker documentation site.
 
 
-The [ISO can be download here](
+The [ISO can be downloaded here](
 https://github.com/boot2docker/boot2docker/releases).
 
 
