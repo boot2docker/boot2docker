@@ -22,7 +22,7 @@ use could take information from the host as an identifier and announce itself us
 ## Extracting initrd and vmlinuz64
 You mount the iso and the files are located in ```/boot```.
 
-## Extracting boot paramemers
+## Extracting boot parameters
 Extracting the parameters and adjusting these will help you boot and provision using iPxe. It will also
 help you understand how boot2docker is being run currently.
 
