@@ -8,7 +8,7 @@ http://ipxe.org/
 
 ## Summary
 Automated script allows you to run an arbitrary script as a boot parameter. The script 
-parses ```/proc/cmdline``` for ```script``` variable and download the script if its either
+parses `/proc/cmdline` for `script` variable and download the script if its either
 an ftp or http uri. This method is used by Archlinux to install unattendedly. Please see the
 following link for reference:
 
@@ -16,11 +16,11 @@ https://projects.archlinux.org/archiso.git/tree/configs/releng/airootfs/root/.au
 
 ## Usecase
 Lets say you want to run boot2docker on multiple physical machines and you want run hashicorp/consul
-on all machines. You boot the machine via ipxe and add ```script``` as a parameter. The script you
+on all machines. You boot the machine via ipxe and add `script` as a parameter. The script you
 use could take information from the host as an identifier and announce itself using that information.
 
 ## Extracting initrd and vmlinuz64
-You mount the iso and the files are located in ```/boot```.
+You mount the iso and the files are located in `/boot`.
 
 ## Extracting boot parameters
 Extracting the parameters and adjusting these will help you boot and provision using iPxe. It will also
