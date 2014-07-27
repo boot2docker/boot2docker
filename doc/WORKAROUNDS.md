@@ -3,7 +3,7 @@ Workarounds
 
 *Note: The following steps are meant as a temporary solution and won't be needed anymore in the future.*
 
-## Port forwarding
+## Port forwarding via SSH
 
 Let's say your Docker container exposes the port 8000 and you want access it from
 your other computers on your LAN. Run following command (and keep it open):
@@ -13,6 +13,12 @@ $ boot2docker ssh -L 8000:localhost:8000
 ```
 
 Now you can access your container from your host machine under `localhost:8000`.
+
+If you have jq installed (http://stedolan.github.io/jq/), this command will automatically create a SSH tunnel redirecting all the ports for all running containers:
+
+```sh
+docker ps  -q | xargs -n 1 docker inspect  | jq '.[0].NetworkSettings.Ports +{} | map(select(. != null)[0].HostPort) | map("-L \(.):localhost:\(.)") ' | sed -n 's/.*"\(.*\)".*/\1/p' |xargs boot2docker ssh -N 
+```
 
 ## Port forwarding on steroids
 
