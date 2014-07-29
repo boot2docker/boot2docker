@@ -16,6 +16,23 @@ grep "/opt/shutdown.sh" $ROOTFS/etc/init.d/rc.shutdown || ( echo "Error: failed 
 ln -fs /var/lib/boot2docker/docker.log $ROOTFS/var/log/
 ln -fs /usr/local/etc/init.d/docker $ROOTFS/etc/init.d/
 
+# Setup /etc/os-release with some nice contents
+b2dVersion="$(cat $ROOTFS/etc/version)" # something like "1.1.0"
+b2dDetail="$(cat $ROOTFS/etc/boot2docker)" # something like "master : 740106c - Tue Jul 29 03:29:25 UTC 2014"
+tclVersion="$(cat $ROOTFS/usr/share/doc/tc/release.txt)" # something like "5.3"
+cat > $ROOTFS/etc/os-release <<-EOOS
+NAME=Boot2Docker
+VERSION=$b2dVersion
+ID=boot2docker
+ID_LIKE=tcl
+VERSION_ID=$b2dVersion
+PRETTY_NAME="Boot2Docker $b2dVersion (TCL $tclVersion); $b2dDetail"
+ANSI_COLOR="1;34"
+HOME_URL="http://boot2docker.io"
+SUPPORT_URL="https://github.com/boot2docker/boot2docker"
+BUG_REPORT_URL="https://github.com/boot2docker/boot2docker/issues"
+EOOS
+
 # Prepare the ISO directory with the kernel
 mkdir -p /tmp/iso/boot
 cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
