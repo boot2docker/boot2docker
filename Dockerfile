@@ -25,9 +25,8 @@ RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_V
     mv /linux-$KERNEL_VERSION /linux-kernel
 
 # Download AUFS and apply patches and files, then remove it
-RUN git clone git://git.code.sf.net/p/aufs/aufs3-standalone && \
+RUN git clone -b $AUFS_BRANCH --depth 1 git://git.code.sf.net/p/aufs/aufs3-standalone && \
     cd aufs3-standalone && \
-    git checkout $AUFS_BRANCH && \
     cd /linux-kernel && \
     for patch in aufs3-kbuild aufs3-base aufs3-mmap aufs3-standalone; do \
         patch -p1 < /aufs3-standalone/$patch.patch; \
@@ -36,7 +35,7 @@ RUN git clone git://git.code.sf.net/p/aufs/aufs3-standalone && \
     cp -r /aufs3-standalone/fs /linux-kernel && \
     cp -r /aufs3-standalone/include/uapi/linux/aufs_type.h /linux-kernel/include/uapi/linux/
 
-ADD kernel_config /linux-kernel/.config
+COPY kernel_config /linux-kernel/.config
 
 RUN jobs=$(nproc); \
     cd /linux-kernel && \
@@ -107,55 +106,33 @@ RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.g
 
 # Install the TCZ dependencies
 RUN for dep in $TCZ_DEPS; do \
-	echo "Download $TCL_REPO_BASE/tcz/$dep.tcz" &&\
+    echo "Download $TCL_REPO_BASE/tcz/$dep.tcz" &&\
         curl -L -o /tmp/$dep.tcz $TCL_REPO_BASE/tcz/$dep.tcz && \
         unsquashfs -f -d $ROOTFS /tmp/$dep.tcz && \
         rm -f /tmp/$dep.tcz ;\
     done
 
-ADD rootfs/isolinux /isolinux
-ADD rootfs/make_iso.sh /
+COPY VERSION $ROOTFS/etc/version
 
-# Copy over out custom rootfs
-ADD rootfs/rootfs $ROOTFS
-
-# Make sure init scripts are executable
-RUN find $ROOTFS/etc/rc.d/ -exec chmod +x {} \; && \
-    find $ROOTFS/usr/local/etc/init.d/ -exec chmod +x {} \;
-
-# get the latest docker
+# Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
-RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-latest && \
+RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
     chmod +x $ROOTFS/usr/local/bin/docker && \
-    ( $ROOTFS/usr/local/bin/docker version || true )
+    { $ROOTFS/usr/local/bin/docker version || true; }
 
-# get the git versioning info
-ADD . /gitrepo
-RUN cd /gitrepo && \
-    GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) && \
+# Get the git versioning info
+COPY .git /git/.git
+RUN cd /git && \
+    GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) && \
     GITSHA1=$(git rev-parse --short HEAD) && \
     DATE=$(date) && \
     echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
 
-# Download Tiny Core Linux rootfs
-RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
+COPY rootfs/isolinux /isolinux
 
-# Change MOTD
-RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
+# Copy our custom rootfs
+COPY rootfs/rootfs $ROOTFS
 
-# Make sure we have the correct bootsync
-RUN mv $ROOTFS/bootsync.sh $ROOTFS/opt/bootsync.sh
-RUN chmod +x $ROOTFS/opt/bootsync.sh
-
-# Make sure we have the correct shutdown
-RUN mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh
-RUN chmod +x $ROOTFS/opt/shutdown.sh
-
-#add serial console
-RUN echo "ttyS0:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100" >> $ROOTFS/etc/inittab
-RUN echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
-    echo "/bin/login -f docker" >> $ROOTFS/usr/local/bin/autologin && \
-    chmod 755 $ROOTFS/usr/local/bin/autologin
-
+COPY rootfs/make_iso.sh /
 RUN /make_iso.sh
 CMD ["cat", "boot2docker.iso"]
