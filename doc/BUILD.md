@@ -43,6 +43,6 @@ $ echo "RUN /make_iso.sh" >> Dockerfile
 $ echo 'CMD ["cat", "boot2docker.iso"]' >> Dockerfile
 
 $ sudo docker build -t my-boot2docker-img .
-$ sudo docker run --rm my-boot2docker-img > boot2docker.iso
+$ sudo docker run -i --rm my-boot2docker-img > boot2docker.iso
 
 ```
