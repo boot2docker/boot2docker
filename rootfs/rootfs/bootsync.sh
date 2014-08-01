@@ -3,5 +3,5 @@
 
 echo "${YELLOW}Running boot2docker init script...${NORMAL}"
 
-nohup /opt/bootscript.sh >> /boot.log &
-
+# This log is started before the persistence partition is mounted
+/opt/bootscript.sh 2>&1 | tee -a /boot.log

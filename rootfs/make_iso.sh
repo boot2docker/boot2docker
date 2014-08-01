@@ -14,8 +14,6 @@ mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 mv $ROOTFS/boot*.sh $ROOTFS/opt/
 chmod +x $ROOTFS/opt/*.sh
 
-
-
 # Make sure we have the correct shutdown
 mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh
 chmod +x $ROOTFS/opt/shutdown.sh
@@ -66,7 +64,7 @@ rm -rf $ROOTFS/etc/init.d/docker
 ln -s /var/lib/boot2docker/docker.log $ROOTFS/var/log/
 ln -s /usr/local/etc/init.d/docker $ROOTFS/etc/init.d/
 #chmod +x  /usr/local/etc/init.d/docker
-chmod +x /gitrepo/rootfs/rootfs/usr/local/etc/init.d/docker
+chmod +x $ROOTFS/usr/local/etc/init.d/docker
 
 # Prepare the ISO directory with the kernel
 mkdir -p /tmp/iso/boot

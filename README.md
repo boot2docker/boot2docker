@@ -71,6 +71,12 @@ un-tarred into the `/home/docker` directory on boot. This file contains a
 
 See [Frequently asked questions](doc/FAQ.md) for more details.
 
+#### Boot script log
+
+The bootup script output is logged to `/boot.log`, so you can see (and potentially debug)
+what happens. Note that this is not persistent between boots because we're logging
+from before the persistence partition is mounted (and it may not exist at all).
+
 #### Container Port redirection 
 
 The latest version of `boot2docker` sets up two network adaptors, one using NAT
