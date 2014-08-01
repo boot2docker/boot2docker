@@ -57,3 +57,6 @@ fi
 if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
     /var/lib/boot2docker/bootlocal.sh &
 fi
+
+# Execute automated_script
+/etc/rc.d/automated_script.sh
