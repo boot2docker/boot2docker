@@ -31,6 +31,9 @@ start() {
         EXTRA_ARGS="$EXTRA_ARGS -s $DOCKER_STORAGE"
     fi
 
+    # Increasing the number of open files by docker process
+    ulimit -n 10000
+
     /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS > /var/lib/boot2docker/docker.log 2>&1 &
 }
 
