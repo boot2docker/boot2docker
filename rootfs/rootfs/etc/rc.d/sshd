@@ -16,4 +16,9 @@ if [ ! -f /usr/local/etc/ssh/sshd_config ]; then
     mv /usr/local/etc/ssh/sshd_config.example /usr/local/etc/ssh/sshd_config
 fi
 
+if ! grep -q "^UseDNS no" /usr/local/etc/ssh/sshd_config; then
+    # speed up login
+    echo "UseDNS no" >> /usr/local/etc/ssh/sshd_config
+fi
+
 /usr/local/etc/init.d/openssh start
