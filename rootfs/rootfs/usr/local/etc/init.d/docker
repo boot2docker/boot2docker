@@ -7,7 +7,7 @@ test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
 
 : ${DOCKER_HOST:=""}
 : ${DOCKER_STORAGE:="auto"}
-: ${DOCKER_FILES_ULIMIT:="1048576"}
+: ${DOCKER_ULIMITS:="1048576"}
 
 start() {
     DOCKER_DIR=/var/lib/docker
@@ -32,9 +32,9 @@ start() {
         EXTRA_ARGS="$EXTRA_ARGS -s $DOCKER_STORAGE"
     fi
 
-    # Increasing the number of open files by docker process
-    ulimit -n $DOCKER_FILES_ULIMIT
-    ulimit -u $DOCKER_FILES_ULIMIT
+    # Increasing the number of open files and processes by docker
+    ulimit -n $DOCKER_ULIMITS
+    ulimit -p $DOCKER_ULIMITS
 
     /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS > /var/lib/boot2docker/docker.log 2>&1 &
 }
