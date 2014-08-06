@@ -2,7 +2,7 @@
 
 if [ -n "$NTP_SERVER" ]; then
     # Wait on the network
-    while ! ping -c 1 $NTP_SERVER; do
+    while ! ping -c 1 $NTP_SERVER &> /dev/null; do
         sleep 1
     done
 
