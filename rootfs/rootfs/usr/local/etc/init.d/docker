@@ -1,21 +1,22 @@
 #!/bin/sh
 # docker daemon start script
-[ $(id -u) = 0 ] || { echo "must be root" ; exit 1; }
+[ $(id -u) = 0 ] || { echo 'must be root' ; exit 1; }
 
 #import settings from profile (e.g. HTTP_PROXY, HTTPS_PROXY)
-test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
+test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 
-: ${DOCKER_HOST:=""}
-: ${DOCKER_STORAGE:="auto"}
-: ${DOCKER_ULIMITS:="1048576"}
+: ${DOCKER_HOST:=''}
+: ${DOCKER_STORAGE:=auto}
+: ${DOCKER_DIR:=/var/lib/docker}
+: ${DOCKER_ULIMITS:=1048576}
+: ${DOCKER_LOGFILE:=/var/lib/boot2docker/docker.log}
 
 start() {
-    DOCKER_DIR=/var/lib/docker
     mkdir -p "$DOCKER_DIR"
 
     # if we're virtual, let's listen on tcp://, too
     if /bin/dmesg | /bin/egrep -q '(VirtualBox|VMware|QEMU)'; then
-        DOCKER_HOST="-H tcp://0.0.0.0:2375"
+        DOCKER_HOST='-H tcp://0.0.0.0:2375'
     fi
 
     if [ "$DOCKER_STORAGE" = 'auto' ]; then
@@ -36,7 +37,7 @@ start() {
     ulimit -n $DOCKER_ULIMITS
     ulimit -p $DOCKER_ULIMITS
 
-    /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS > /var/lib/boot2docker/docker.log 2>&1 &
+    /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> "$DOCKER_LOGFILE" 2>&1 &
 }
 
 stop() {
@@ -57,10 +58,10 @@ check() {
 
 status() {
     if check; then
-        echo "Docker daemon is running"
+        echo 'Docker daemon is running'
         exit 0
     else
-        echo "Docker daemon is not running"
+        echo 'Docker daemon is not running'
         exit 1
     fi
 }
