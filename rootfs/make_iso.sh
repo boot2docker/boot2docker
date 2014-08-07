@@ -58,14 +58,6 @@ SUPPORT_URL="https://github.com/boot2docker/boot2docker"
 BUG_REPORT_URL="https://github.com/boot2docker/boot2docker/issues"
 EOOS
 
-# from the bootlog PR
-rm -rf $ROOTFS/var/log/docker.log
-rm -rf $ROOTFS/etc/init.d/docker
-ln -s /var/lib/boot2docker/docker.log $ROOTFS/var/log/
-ln -s /usr/local/etc/init.d/docker $ROOTFS/etc/init.d/
-#chmod +x  /usr/local/etc/init.d/docker
-chmod +x $ROOTFS/usr/local/etc/init.d/docker
-
 # Prepare the ISO directory with the kernel
 mkdir -p /tmp/iso/boot
 cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
