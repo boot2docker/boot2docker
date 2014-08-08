@@ -23,7 +23,7 @@ test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
 /etc/rc.d/hostname
 
 # sync the clock (in the background, it takes 40s to timeout)
-/etc/rc.d/ntpclient &
+/etc/rc.d/ntpclient > /var/log/ntpclient.log 2>&1 &
 
 # TODO: move this (and the docker user creation&pwd out to its own over-rideable?))
 if grep -q '^docker:' /etc/passwd; then
@@ -34,7 +34,7 @@ if grep -q '^docker:' /etc/passwd; then
 
     #preload data from boot2docker-cli
     if [ -e "/var/lib/boot2docker/userdata.tar" ]; then
-        tar xf /var/lib/boot2docker/userdata.tar -C /home/docker/
+        tar xf /var/lib/boot2docker/userdata.tar -C /home/docker/ > /var/log/userdata.log 2>&1
         chown -R docker:staff /home/docker
     fi
 fi
@@ -55,7 +55,7 @@ fi
 
 # Allow local HD customisation
 if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
-    /var/lib/boot2docker/bootlocal.sh &
+    /var/lib/boot2docker/bootlocal.sh > /var/log/bootlocal.log 2>&1 &
 fi
 
 # Execute automated_script
