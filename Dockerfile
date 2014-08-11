@@ -120,6 +120,10 @@ RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x
     chmod +x $ROOTFS/usr/local/bin/docker && \
     { $ROOTFS/usr/local/bin/docker version || true; }
 
+# get generate_cert
+RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.1/generate_cert-0.1-linux-386/ && \
+    chmod +x $ROOTFS/usr/local/bin/generate_cert
+
 # Get the git versioning info
 COPY .git /git/.git
 RUN cd /git && \

@@ -15,10 +15,10 @@ case "$1" in
 
 	renew|bound)
 		/sbin/ifconfig $interface $ip $BROADCAST $NETMASK
-		echo "ifconfig $interface $ip $BROADCAST $NETMASK" >> /var/log/udhcp.log
+		echo "$(date) ifconfig $interface $ip $BROADCAST $NETMASK" >> /var/log/udhcp.log
 
 		if [ -n "$router" ] ; then
-			echo "deleting routers" >> /var/log/udhcp.log
+			echo "$(date) deleting routers" >> /var/log/udhcp.log
 			echo "deleting routers"
 			while route del default gw 0.0.0.0 dev $interface ; do
 				:
@@ -26,21 +26,21 @@ case "$1" in
 
 			metric=0
 			for i in $router ; do
-				echo "route add default gw $i dev $interface metric $((metric++))" >> /var/log/udhcp.log
+				echo "$(date) route add default gw $i dev $interface metric $((metric++))" >> /var/log/udhcp.log
 				route add default gw $i dev $interface metric $((metric++))
 			done
 		fi
 
 		if [ -n "$dns" ] ; then
-			echo "reset $RESOLV_CONF" >> /var/log/udhcp.log
+			echo "$(date) reset $RESOLV_CONF" >> /var/log/udhcp.log
 			echo -n > $RESOLV_CONF
 		fi
 		if [ -n "$domain" ] ; then
-			echo search $domain >> /var/log/udhcp.log
+			echo "$(date) search $domain" >> /var/log/udhcp.log
 			echo search $domain >> $RESOLV_CONF
 		fi
 		for i in $dns ; do
-			echo adding dns $i >> /var/log/udhcp.log
+			echo "$(date) adding dns $i" >> /var/log/udhcp.log
 			echo adding dns $i
 			echo nameserver $i >> $RESOLV_CONF
 		done

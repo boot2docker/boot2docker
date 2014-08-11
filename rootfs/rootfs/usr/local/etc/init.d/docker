@@ -11,13 +11,71 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${DOCKER_ULIMITS:=1048576}
 : ${DOCKER_LOGFILE:=/var/lib/boot2docker/docker.log}
 
+: ${CERTDIR:=/var/lib/boot2docker/tls/}
+: ${CACERT:="${CERTDIR}ca.pem"}
+: ${CAKEY:="${CERTDIR}cakey.pem"}
+: ${SERVERCERT:="${CERTDIR}server.pem"}
+: ${SERVERKEY:="${CERTDIR}serverkey.pem"}
+: ${CERT:="${CERTDIR}cert.pem"}
+: ${KEY:="${CERTDIR}key.pem"}
+
+echo "-------------------"
+echo $(date)
+#maybe the links will be up by now - trouble is, on some setups, they may never happen, so we can't just wait until they are
+sleep 5
+echo $(date)
+echo $(ip a)
+echo "-------------------"
+# TODO: generate_cert can't cope with duplicates, do can't do $(hostname -f)
+# TODO: it also may be very brittle and needs to start with the hostname?
+CERTHOSTNAMES="$(hostname -s),$(hostname -i)"
+ETH0=$(ip addr show eth0 |sed -nEe 's/^[ \t]*inet[ \t]*([0-9.]+)\/.*$/\1/p')
+ETH1=$(ip addr show eth1 |sed -nEe 's/^[ \t]*inet[ \t]*([0-9.]+)\/.*$/\1/p')
+if [ "$ETH0" != "" ]; then
+    CERTHOSTNAMES="$CERTHOSTNAMES,$ETH0"
+fi
+if [ "$ETH1" != "" ]; then
+    CERTHOSTNAMES="$CERTHOSTNAMES,$ETH1"
+fi
+echo "Need TLS certs for $CERTHOSTNAMES"
+echo "-------------------"
+
 start() {
     mkdir -p "$DOCKER_DIR"
 
-    # if we're virtual, let's listen on tcp://, too
-    if /bin/dmesg | /bin/egrep -q '(VirtualBox|VMware|QEMU)'; then
-        DOCKER_HOST='-H tcp://0.0.0.0:2375'
+    DOCKER_HOST='-H tcp://0.0.0.0:2376'
+
+    mkdir -p "$CERTDIR"
+    chmod 700 "$CERTDIR"
+    if [ ! -f "$CACERT" ] || [ ! -f "$CAKEY" ]; then
+        echo "Generating CA cert"
+        /usr/local/bin/generate_cert --cert="$CACERT" --key="$CAKEY"
+        rm "$SERVERCERT" "$SERVERKEY" "$CERT" "$KEY" "$CERTDIR/hostnames"
     fi
+
+    CERTSEXISTFOR=$(cat "$CERTDIR/hostnames" 2>/dev/null)
+    if [ "$CERTHOSTNAMES" != "$CERTSEXISTFOR" ]; then
+        echo "Generate server cert"
+        echo /usr/local/bin/generate_cert --host="$CERTHOSTNAMES" --ca="$CACERT" --ca-key="$CAKEY" --cert="$SERVERCERT" --key="$SERVERKEY" 
+        /usr/local/bin/generate_cert --host="$CERTHOSTNAMES" --ca="$CACERT" --ca-key="$CAKEY" --cert="$SERVERCERT" --key="$SERVERKEY" 
+        echo "$CERTHOSTNAMES" > "$CERTDIR/hostnames"
+    fi
+
+    if [ ! -f "$CERT" ] || [ ! -f "$KEY" ]; then
+        echo "Generating client cert"
+        /usr/local/bin/generate_cert --ca="$CACERT" --ca-key="$CAKEY" --cert="$CERT" --key="$KEY"
+    fi
+
+    EXTRA_ARGS="$EXTRA_ARGS --tlsverify --tlscacert=$CACERT --tlscert=$SERVERCERT --tlskey=$SERVERKEY"
+
+    # now make the client certificates available to the docker user
+    USERCFG="/home/docker/.docker"
+    mkdir -p "$USERCFG"
+    chmod 700 "$USERCFG"
+    cp "$CACERT" "$USERCFG"
+    cp "$CERT" "$USERCFG"
+    cp "$KEY" "$USERCFG"
+    chown -R docker:staff "$USERCFG"
 
     if [ "$DOCKER_STORAGE" = 'auto' ]; then
         # if /var/lib/docker is on BTRFS, let's use the native btrfs driver
