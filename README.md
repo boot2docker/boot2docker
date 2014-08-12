@@ -39,7 +39,7 @@ the [`boot2docker.iso`](
 https://github.com/boot2docker/boot2docker/releases).
 
 ## How to use
-The `boot2docker` managment tool leverages VirtualBox's `VBoxManage` to
+The `boot2docker` management tool leverages VirtualBox's `VBoxManage` to
 initialise, start, stop and delete the VM right from the command line.
 
 #### Initialize
@@ -59,7 +59,7 @@ $ boot2docker download
 $ boot2docker up
 ```
 
-If your Boot2Docker virtual machine was created prior to 0.11.1-pre1, its best to
+If your Boot2Docker virtual machine was created prior to 0.11.1-pre1, it's best to
 delete -  `boot2docker delete` and then `boot2docker init` to create a new VM.
 
 The main changes are to add a `/var/lib/boot2docker/userdata.tar` file that is
