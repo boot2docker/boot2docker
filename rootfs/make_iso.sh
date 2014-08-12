@@ -11,8 +11,8 @@ find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';'
 mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 
 # Make sure we have the correct bootsync
-mv $ROOTFS/bootsync.sh $ROOTFS/opt/bootsync.sh
-chmod +x $ROOTFS/opt/bootsync.sh
+mv $ROOTFS/boot*.sh $ROOTFS/opt/
+chmod +x $ROOTFS/opt/*.sh
 
 # Make sure we have the correct shutdown
 mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh
