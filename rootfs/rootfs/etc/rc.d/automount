@@ -77,8 +77,7 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
 
     # Make sure /tmp is on the disk too too
     rm -rf /mnt/$PARTNAME/tmp || true
-    rm -rf /tmp || true
-    mkdir -p /mnt/$PARTNAME/tmp
+    mv /tmp /mnt/$PARTNAME/tmp
     ln -fs /mnt/$PARTNAME/tmp /tmp
 
     if [ -e "/userdata.tar" ]; then
