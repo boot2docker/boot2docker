@@ -1,31 +1,6 @@
 #!/bin/sh
 set -e
 
-# Make sure init scripts are executable
-find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';'
-
-# Download Tiny Core Linux rootfs
-( cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames )
-
-# Change MOTD
-mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
-
-# Make sure we have the correct bootsync
-mv $ROOTFS/boot*.sh $ROOTFS/opt/
-chmod +x $ROOTFS/opt/*.sh
-
-# Make sure we have the correct shutdown
-mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh
-chmod +x $ROOTFS/opt/shutdown.sh
-
-# Add serial console
-cat > $ROOTFS/usr/local/bin/autologin <<'EOF'
-#!/bin/sh
-/bin/login -f docker
-EOF
-chmod 755 $ROOTFS/usr/local/bin/autologin
-echo 'ttyS0:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab
-
 # Ensure init system invokes /opt/shutdown.sh on reboot or shutdown.
 #  1) Find three lines with `useBusyBox`, blank, and `clear`
 #  2) insert run op after those three lines
@@ -73,8 +48,11 @@ cp -v $ROOTFS/etc/version /tmp/iso/version
 # Make the ISO
 # Note: only "-isohybrid-mbr /..." is specific to xorriso.
 # It builds an image that can be used as an ISO *and* a disk image.
-xorriso -as mkisofs \
-    -l -J -R -V boot2docker -no-emul-boot -boot-load-size 4 -boot-info-table \
+xorriso  \
+    -publisher "Docker Inc."
+    -as mkisofs \
+    -l -J -R -V "Boot2Bocker-v$(cat $ROOTFS/etc/version)" \
+    -no-emul-boot -boot-load-size 4 -boot-info-table \
     -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat \
     -isohybrid-mbr /usr/lib/syslinux/isohdpfx.bin \
     -o /boot2docker.iso /tmp/iso

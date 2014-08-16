@@ -137,6 +137,28 @@ COPY rootfs/isolinux /isolinux
 # Copy our custom rootfs
 COPY rootfs/rootfs $ROOTFS
 
+# These steps can only be run once, so can't be in make_iso.sh (which can be run in chained Dockerfiles)
+# see https://github.com/boot2docker/boot2docker/blob/master/doc/BUILD.md
+RUN    \
+# Make sure init scripts are executable && \
+	find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';' && \
+# Download Tiny Core Linux rootfs  && \
+	( cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames ) && \
+# Change MOTD && \
+	mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd && \
+# Make sure we have the correct bootsync && \
+	mv $ROOTFS/boot*.sh $ROOTFS/opt/ && \
+	chmod +x $ROOTFS/opt/*.sh && \
+# Make sure we have the correct shutdown && \
+	mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh && \
+	chmod +x $ROOTFS/opt/shutdown.sh && \
+# Add serial console && \
+	echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
+	echo "/bin/login -f docker" >> $ROOTFS/usr/local/bin/autologin && \
+	chmod 755 $ROOTFS/usr/local/bin/autologin && \
+	echo 'ttyS0:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab
+
+
 COPY rootfs/make_iso.sh /
 RUN /make_iso.sh
 CMD ["cat", "boot2docker.iso"]
