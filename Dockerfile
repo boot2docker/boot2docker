@@ -17,7 +17,7 @@ RUN apt-get update && apt-get -y install  unzip \
                         automake \
                         pkg-config
 
-ENV KERNEL_VERSION  3.15.3
+ENV KERNEL_VERSION  3.15.10
 ENV AUFS_BRANCH     aufs3.15
 
 # Fetch the kernel sources
@@ -28,12 +28,12 @@ RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_V
 RUN git clone -b $AUFS_BRANCH --depth 1 git://git.code.sf.net/p/aufs/aufs3-standalone && \
     cd aufs3-standalone && \
     cd /linux-kernel && \
-    for patch in aufs3-kbuild aufs3-base aufs3-mmap aufs3-standalone; do \
-        patch -p1 < /aufs3-standalone/$patch.patch; \
-    done && \
     cp -r /aufs3-standalone/Documentation /linux-kernel && \
     cp -r /aufs3-standalone/fs /linux-kernel && \
-    cp -r /aufs3-standalone/include/uapi/linux/aufs_type.h /linux-kernel/include/uapi/linux/
+    cp -r /aufs3-standalone/include/uapi/linux/aufs_type.h /linux-kernel/include/uapi/linux/ &&\
+    for patch in aufs3-kbuild aufs3-base aufs3-mmap aufs3-standalone aufs3-loopback; do \
+        patch -p1 < /aufs3-standalone/$patch.patch; \
+    done
 
 COPY kernel_config /linux-kernel/.config
 
