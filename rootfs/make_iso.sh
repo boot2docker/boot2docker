@@ -49,7 +49,7 @@ cp -v $ROOTFS/etc/version /tmp/iso/version
 # Note: only "-isohybrid-mbr /..." is specific to xorriso.
 # It builds an image that can be used as an ISO *and* a disk image.
 xorriso  \
-    -publisher "Docker Inc."
+    -publisher "Docker Inc." \
     -as mkisofs \
     -l -J -R -V "Boot2Bocker-v$(cat $ROOTFS/etc/version)" \
     -no-emul-boot -boot-load-size 4 -boot-info-table \
