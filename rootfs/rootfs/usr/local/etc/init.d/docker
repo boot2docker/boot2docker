@@ -11,6 +11,7 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${DOCKER_DIR:=/var/lib/docker}
 : ${DOCKER_ULIMITS:=1048576}
 : ${DOCKER_LOGFILE:=/var/lib/boot2docker/docker.log}
+: ${TRIES_BEFORE_DOCKER_KILL:=10}
 
 : ${CERTDIR:=/var/lib/boot2docker/tls/}
 : ${CACERT:="${CERTDIR}ca.pem"}
@@ -121,6 +122,14 @@ getPid() {
 
 stop() {
     kill "$(getPid)"
+    sleep 1
+    TRIES=0
+    while [ check -a $TRIES -lt $TRIES_BEFORE_DOCKER_KILL ]; do
+        sleep 1
+        TRIES=$((TRIES + 1))
+    done
+    kill -9 "$(getPid)" # After $TRIES_BEFORE_DOCKER_KILL check, we assume that docker as to be killed
+    rm -f /var/run/docker.pid # (delete pid file to ensure consistency)
 }
 
 restart() {
