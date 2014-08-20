@@ -41,6 +41,11 @@ echo "Need TLS certs for $CERTHOSTNAMES"
 echo "-------------------"
 
 start() {
+    if check; then
+        echo >&2 'error: Docker daemon is already running; please stop it first'
+        exit 1
+    fi
+
     mkdir -p "$DOCKER_DIR"
 
     DOCKER_HOST='-H tcp://0.0.0.0:2376'
