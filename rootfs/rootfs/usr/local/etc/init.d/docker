@@ -21,6 +21,12 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${KEY:="${CERTDIR}key.pem"}
 
 start() {
+    
+    if check; then
+        echo >&2 'error: Docker daemon is already running; please stop it first'
+        exit 1
+    fi
+
     # Not enabling Docker daemon TLS by default.
     if [ "$DOCKER_TLS" != "" ]; then
         CERTHOSTNAMES="$(hostname -s),$(hostname -i)"
@@ -41,7 +47,7 @@ start() {
             echo "Generating CA cert"
             /usr/local/bin/generate_cert --cert="$CACERT" --key="$CAKEY"
             rm "$SERVERCERT" "$SERVERKEY" "$CERT" "$KEY" "$CERTDIR/hostnames"
-        fi
+        fi    
 
         CERTSEXISTFOR=$(cat "$CERTDIR/hostnames" 2>/dev/null)
         if [ "$CERTHOSTNAMES" != "$CERTSEXISTFOR" ]; then
