@@ -103,8 +103,23 @@ start() {
     /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> "$DOCKER_LOGFILE" 2>&1 &
 }
 
+getPid() {
+    if [ -f /var/run/docker.pid ]; then
+        cat /var/run/docker.pid
+        return
+    elif [ $(ps aux | grep 'docker -d' | grep -v grep | wc -l) -ne 0 ]; then
+        DOCKER_PID=$(ps aux | grep 'docker -d' | grep -v grep | awk '{print $1}')
+        echo "$DOCKER_PID" > /var/run/docker.pid
+        echo "$DOCKER_PID"
+        return
+    else
+        echo ""
+        return
+    fi
+}
+
 stop() {
-    kill $(cat /var/run/docker.pid)
+    kill "$(getPid)"
 }
 
 restart() {
@@ -116,7 +131,7 @@ restart() {
 }
 
 check() {
-    [ -f /var/run/docker.pid ] && ps $(cat /var/run/docker.pid) > /dev/null 2>&1
+    [ -n "$(getPid)" ] && ps "$(getPid)" > /dev/null 2>&1
 }
 
 status() {
