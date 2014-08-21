@@ -17,8 +17,8 @@ RUN apt-get update && apt-get -y install  unzip \
                         automake \
                         pkg-config
 
-ENV KERNEL_VERSION  3.15.10
-ENV AUFS_BRANCH     aufs3.15
+ENV KERNEL_VERSION  3.16.1
+ENV AUFS_BRANCH     aufs3.16
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
