@@ -45,6 +45,14 @@ fi
 # Launch ACPId
 /etc/rc.d/acpid
 
+echo "-------------------"
+date
+#maybe the links will be up by now - trouble is, on some setups, they may never happen, so we can't just wait until they are
+sleep 5
+date
+ip a
+echo "-------------------"
+
 # Launch Docker
 /etc/rc.d/docker
 
