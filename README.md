@@ -195,7 +195,7 @@ boot boot2docker after some updates or a system restart and you get an output
 such as the following:
 
 ```
-~$ boot2docker up
+$ boot2docker up
 error in run: Failed to start machine "boot2docker-vm" (run again with -v for details)
 ```
 
@@ -205,7 +205,12 @@ functioning again.
 In this case, try running the following script (supplied with Virtual Box):
 
 ```
-~$ sudo /Library/Application\ Support/VirtualBox/LaunchDaemons/VirtualBoxStartup.sh restart
+$ sudo /Library/Application\ Support/VirtualBox/LaunchDaemons/VirtualBoxStartup.sh restart
+```
+
+You should see output such as:
+
+```
 /Applications/VirtualBox.app/Contents/MacOS/VBoxAutostart => /Applications/VirtualBox.app/Contents/MacOS/VBoxAutostart-amd64
 /Applications/VirtualBox.app/Contents/MacOS/VBoxBalloonCtrl => /Applications/VirtualBox.app/Contents/MacOS/VBoxBalloonCtrl-amd64
 /Applications/VirtualBox.app/Contents/MacOS/VBoxDD2GC.gc => /Applications/VirtualBox.app/Contents/MacOS/VBoxDD2GC.gc-amd64
