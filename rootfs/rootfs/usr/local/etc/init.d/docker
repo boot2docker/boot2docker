@@ -11,7 +11,9 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${DOCKER_DIR:=/var/lib/docker}
 : ${DOCKER_ULIMITS:=1048576}
 : ${DOCKER_LOGFILE:=/var/lib/boot2docker/docker.log}
-: ${TRIES_BEFORE_DOCKER_KILL:=10}
+
+DOCKER_SSD_PIDFILE=/var/run/docker-ssd.pid
+DOCKER_BIN=/usr/local/bin/docker
 
 : ${CERTDIR:=/var/lib/boot2docker/tls/}
 : ${CACERT:="${CERTDIR}ca.pem"}
@@ -22,12 +24,6 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${KEY:="${CERTDIR}key.pem"}
 
 start() {
-    
-    if check; then
-        echo >&2 'error: Docker daemon is already running; please stop it first'
-        exit 1
-    fi
-
     # Not enabling Docker daemon TLS by default.
     if [ "$DOCKER_TLS" != "" ]; then
         CERTHOSTNAMES="$(hostname -s),$(hostname -i)"
@@ -48,7 +44,7 @@ start() {
             echo "Generating CA cert"
             /usr/local/bin/generate_cert --cert="$CACERT" --key="$CAKEY"
             rm "$SERVERCERT" "$SERVERKEY" "$CERT" "$KEY" "$CERTDIR/hostnames"
-        fi    
+        fi
 
         CERTSEXISTFOR=$(cat "$CERTDIR/hostnames" 2>/dev/null)
         if [ "$CERTHOSTNAMES" != "$CERTSEXISTFOR" ]; then
@@ -100,60 +96,34 @@ start() {
     ulimit -n $DOCKER_ULIMITS
     ulimit -p $DOCKER_ULIMITS
 
+    DOCKER_DAEMON_ARGS="-d -D -g \"$DOCKER_DIR\" -H unix:// $DOCKER_HOST $EXTRA_ARGS"
     echo "------------------------" >> "$DOCKER_LOGFILE"
-    echo "/usr/local/bin/docker -d -D -g \"$DOCKER_DIR\" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> \"$DOCKER_LOGFILE\"" >> "$DOCKER_LOGFILE"
-    /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> "$DOCKER_LOGFILE" 2>&1 &
-}
-
-getPid() {
-    if [ -f /var/run/docker.pid ]; then
-        cat /var/run/docker.pid
-        return
-    elif [ $(ps aux | grep 'docker -d' | grep -v grep | wc -l) -ne 0 ]; then
-        DOCKER_PID=$(ps aux | grep 'docker -d' | grep -v grep | awk '{print $1}')
-        echo "$DOCKER_PID" > /var/run/docker.pid
-        echo "$DOCKER_PID"
-        return
-    else
-        echo ""
-        return
-    fi
+    echo "Starting Docker daemon with these args : ${DOCKER_DAEMON_ARGS}" >> "$DOCKER_LOGFILE"
+    start-stop-daemon \
+        --pidfile "$DOCKER_SSD_PIDFILE" \
+        --exec "$DOCKER_BIN" \
+        --background \
+        --make-pidfile \
+        -S \
+        -- -d -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> "$DOCKER_LOGFILE" 2>&1
 }
 
 stop() {
-    kill "$(getPid)"
-    sleep 1
-    TRIES=0
-    while [ check -a $TRIES -lt $TRIES_BEFORE_DOCKER_KILL ]; do
-        sleep 1
-        TRIES=$((TRIES + 1))
-    done
-    if check; then
-        kill -9 "$(getPid)" # After $TRIES_BEFORE_DOCKER_KILL check, we assume that docker as to be killed
-        rm -f /var/run/docker.pid # (delete pid file to ensure consistency)
-    fi
+    echo "------------------------" >> "$DOCKER_LOGFILE"
+    echo "Stopping Docker daemon."
+    start-stop-daemon --stop --pidfile "$DOCKER_SSD_PIDFILE"
 }
 
 restart() {
-    if check; then
-        stop && sleep 1 && start
-    else
-        start
-    fi
-}
-
-check() {
-    [ -n "$(getPid)" ] && ps "$(getPid)" > /dev/null 2>&1
+    docker_pid=`cat "$DOCKER_SSD_PIDFILE" 2>/dev/null`
+        [ -n "$docker_pid" ] \
+            && ps -p $docker_pid > /dev/null 2>&1 \
+            && $0 stop
+        $0 start
 }
 
 status() {
-    if check; then
-        echo 'Docker daemon is running'
-        exit 0
-    else
-        echo 'Docker daemon is not running'
-        exit 1
-    fi
+    status_of_proc -p "$DOCKER_SSD_PIDFILE" "$DOCKER_BIN" "$DOCKER_DESC"
 }
 
 case $1 in
