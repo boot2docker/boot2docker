@@ -155,6 +155,40 @@ the "samba" container that refers to it by name. So, in this example, if you
 were on OS-X you now have /Volumes/data and /data in container being shared. You
 can change the paths as needed.
 
+##### VirtualBox Guest Additions
+
+Alternatively, Boot2Docker includes the VirtualBox Guest Additions built in for
+the express purpose of using VirtualBox folder sharing.
+
+The first of the following share names that exists (if any) will be
+automatically mounted at the location specified:
+
+1. `Users` share at `/Users`
+2. `/Users` share at `/Users`
+3. `c/Users` share at `/c/Users`
+4. `/c/Users` share at `/c/Users`
+5. `c:/Users` share at `/c/Users`
+
+If some other path or share is desired, it can be mounted at run time by doing
+something like:
+
+```console
+$ mount -t vboxsf -o uid=1000,gid=50 your-other-share-name /some/mount/location
+```
+
+It is also important to note that in the future, the plan is to have any share
+which is created in VirtualBox with the "automount" flag turned on be mounted
+during boot at the directory of the share name (ie, a share named `home/jsmith`
+would be automounted at `/home/jsmith`).
+
+In case it isn't already clear, the Linux host support here is currently hazy.
+You can share your `/home` or `/home/jsmith` directory as `Users` or one of the
+other supported automount locations listed above, but note that you will then
+need to manually convert your `docker run -v /home/...:...` bind-mount host
+paths accordingly (ie, `docker run -v /Users/...:...`).  As noted in the
+previous paragraph however, this is likely to change in the future as soon as a
+more suitable/scalable solution is found and implemented.
+
 #### Customize
 
 The `boot2docker` management tool allows you to customise many options from both

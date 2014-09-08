@@ -47,7 +47,6 @@ RUN jobs=$(nproc); \
 # The post kernel build process
 
 ENV ROOTFS          /rootfs
-ENV VBOX_VERSION    4.3.12
 ENV TCL_REPO_BASE   http://tinycorelinux.net/5.x/x86
 ENV TCZ_DEPS        iptables \
                     iproute2 \
@@ -109,18 +108,6 @@ RUN cd /linux-kernel && \
 # Prepare the ISO directory with the kernel
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
-# Build VBox guest additions
-RUN mkdir -p /vboxguest && \
-    cd /vboxguest && \
-    curl -L -o vboxguest.iso http://download.virtualbox.org/virtualbox/${VBOX_VERSION}/VBoxGuestAdditions_${VBOX_VERSION}.iso && \
-    7z x vboxguest.iso -ir'!VBoxLinuxAdditions.run' && \
-    sh VBoxLinuxAdditions.run --noexec --target . && \
-    mkdir x86 && cd x86 && tar xvjf ../VBoxGuestAdditions-x86.tar.bz2 && cd .. && \
-    mkdir amd64 && cd amd64 && tar xvjf ../VBoxGuestAdditions-amd64.tar.bz2 && cd .. && \
-    cd amd64/src/vboxguest-${VBOX_VERSION} && KERN_DIR=/linux-kernel/ make && cd ../../.. && \
-    cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-tinycore64 && \
-    mkdir -p $ROOTFS/sbin && cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
-
 # Download the rootfs, don't unpack it though:
 RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.gz
 
@@ -132,12 +119,34 @@ RUN for dep in $TCZ_DEPS; do \
         rm -f /tmp/$dep.tcz ;\
     done
 
-# Make sure that all the modules we might have added are recognized
-RUN depmod -a -b $ROOTFS $KERNEL_VERSION-tinycore64
-
 # get generate_cert
 RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.1/generate_cert-0.1-linux-386/ && \
     chmod +x $ROOTFS/usr/local/bin/generate_cert
+
+# Build VBox guest additions
+# For future reference, we have to use x86 versions of several of these bits because TCL doesn't support ELFCLASS64
+# (... and we can't use VBoxControl or VBoxService at all because of this)
+ENV VBOX_VERSION 4.3.16
+RUN mkdir -p /vboxguest && \
+    cd /vboxguest && \
+    \
+    curl -L -o vboxguest.iso http://download.virtualbox.org/virtualbox/${VBOX_VERSION}/VBoxGuestAdditions_${VBOX_VERSION}.iso && \
+    7z x vboxguest.iso -ir'!VBoxLinuxAdditions.run' && \
+    rm vboxguest.iso && \
+    \
+    sh VBoxLinuxAdditions.run --noexec --target . && \
+    mkdir amd64 && tar -C amd64 -xjf VBoxGuestAdditions-amd64.tar.bz2 && \
+    mkdir x86 && tar -C x86 -xjf VBoxGuestAdditions-x86.tar.bz2 && \
+    rm VBoxGuestAdditions*.tar.bz2 && \
+    \
+    KERN_DIR=/linux-kernel/ make -C amd64/src/vboxguest-${VBOX_VERSION} && \
+    cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-tinycore64/ && \
+    \
+    mkdir -p $ROOTFS/sbin && \
+    cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
+
+# Make sure that all the modules we might have added are recognized (especially VBox guest additions)
+RUN depmod -a -b $ROOTFS $KERNEL_VERSION-tinycore64
 
 COPY VERSION $ROOTFS/etc/version
 RUN cp -v $ROOTFS/etc/version /tmp/iso/version
