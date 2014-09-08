@@ -66,6 +66,9 @@ The main changes are to add a `/var/lib/boot2docker/userdata.tar` file that is
 un-tarred into the `/home/docker` directory on boot. This file contains a
 `.ssh/authorized_keys` and `.ssh/authorized_keys2` files containing a public sshkey.
 
+## Docker Hub
+To save and share container images, automate workflows, and more sign-up for a
+free [Docker Hub account](https://hub.docker.com).
 
 ## More information
 
