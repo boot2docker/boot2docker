@@ -115,15 +115,25 @@ stop() {
 }
 
 restart() {
-    docker_pid=`cat "$DOCKER_SSD_PIDFILE" 2>/dev/null`
-        [ -n "$docker_pid" ] \
-            && ps -p $docker_pid > /dev/null 2>&1 \
-            && $0 stop
-        $0 start
+    if check; then
+        stop && sleep 1 && start
+    else
+        start
+    fi
+}
+
+check() {
+    [ -f "$DOCKER_SSD_PIDFILE" ] && [ $(ps | grep $(cat $DOCKER_SSD_PIDFILE) | grep -v grep | wc -l) -eq 1 ] > /dev/null 2>&1
 }
 
 status() {
-    status_of_proc -p "$DOCKER_SSD_PIDFILE" "$DOCKER_BIN" "$DOCKER_DESC"
+    if check; then
+        echo 'Docker daemon is running'
+        exit 0
+    else
+        echo 'Docker daemon is not running'
+        exit 1
+    fi
 }
 
 case $1 in
