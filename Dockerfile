@@ -25,7 +25,7 @@ RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_V
     mv /linux-$KERNEL_VERSION /linux-kernel
 
 # Download AUFS and apply patches and files, then remove it
-RUN git clone -b $AUFS_BRANCH --depth 1 git://git.code.sf.net/p/aufs/aufs3-standalone && \
+RUN git clone -b $AUFS_BRANCH --depth 1 http://git.code.sf.net/p/aufs/aufs3-standalone && \
     cd aufs3-standalone && \
     cd /linux-kernel && \
     cp -r /aufs3-standalone/Documentation /linux-kernel && \
@@ -94,7 +94,7 @@ RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.o
 RUN cd /linux-kernel && \
     make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
     cd / && \
-    git clone git://git.code.sf.net/p/aufs/aufs-util && \
+    git clone http://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
     git checkout aufs3.9 && \
     CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
