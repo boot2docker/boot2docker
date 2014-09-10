@@ -83,7 +83,7 @@ RUN cd $ROOTFS/lib/modules && \
     rm -rf ./*/kernel/net/wireless/*
 
 # Install libcap
-RUN curl -L http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
+RUN curl -L http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
     cd /libcap-2.22 && \
     sed -i 's/LIBATTR := yes/LIBATTR := no/' Make.Rules && \
     sed -i 's/\(^CFLAGS := .*\)/\1 -m32/' Make.Rules && \
@@ -102,9 +102,10 @@ RUN cd /linux-kernel && \
     git checkout aufs3.9 && \
     CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
-    rm -rf /tmp/kheaders && \
-# Prepare the ISO directory with the kernel && \
-    cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
+    rm -rf /tmp/kheaders
+
+# Prepare the ISO directory with the kernel
+RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
 # Download the rootfs, don't unpack it though:
 RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.gz
@@ -118,6 +119,7 @@ RUN for dep in $TCZ_DEPS; do \
     done
 
 COPY VERSION $ROOTFS/etc/version
+RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
@@ -164,8 +166,6 @@ RUN    \
 	echo 'ttyS1:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab && \
 # fix su - && \
 	echo root > $ROOTFS/etc/sysconfig/superuser
-
-COPY VERSION /tmp/iso/version
 
 # Copy boot params
 COPY  rootfs/isolinux /tmp/iso/boot/isolinux
