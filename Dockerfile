@@ -61,6 +61,9 @@ ENV TCZ_DEPS        iptables \
 # Make the ROOTFS
 RUN mkdir -p $ROOTFS
 
+# Prepare the build directory (/tmp/iso)
+RUN mkdir -p /tmp/iso/boot
+
 # Install the kernel modules in $ROOTFS
 RUN cd /linux-kernel && \
     make INSTALL_MOD_PATH=$ROOTFS modules_install firmware_install
@@ -99,7 +102,9 @@ RUN cd /linux-kernel && \
     git checkout aufs3.9 && \
     CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
-    rm -rf /tmp/kheaders
+    rm -rf /tmp/kheaders && \
+# Prepare the ISO directory with the kernel && \
+    cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
 # Download the rootfs, don't unpack it though:
 RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.gz
@@ -132,7 +137,6 @@ RUN cd /git && \
     DATE=$(date) && \
     echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
 
-COPY rootfs/isolinux /isolinux
 
 # Copy our custom rootfs
 COPY rootfs/rootfs $ROOTFS
@@ -161,7 +165,12 @@ RUN    \
 # fix su - && \
 	echo root > $ROOTFS/etc/sysconfig/superuser
 
+COPY VERSION /tmp/iso/version
+
+# Copy boot params
+COPY  rootfs/isolinux /tmp/iso/boot/isolinux
 
 COPY rootfs/make_iso.sh /
+
 RUN /make_iso.sh
 CMD ["cat", "boot2docker.iso"]

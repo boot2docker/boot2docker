@@ -33,17 +33,10 @@ SUPPORT_URL="https://github.com/boot2docker/boot2docker"
 BUG_REPORT_URL="https://github.com/boot2docker/boot2docker/issues"
 EOOS
 
-# Prepare the ISO directory with the kernel
-mkdir -p /tmp/iso/boot
-cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
-cp -vr /isolinux /tmp/iso/boot
-
 # Pack the rootfs
 cd $ROOTFS
 find | ( set -x; cpio -o -H newc | xz -9 --format=lzma --verbose --verbose ) > /tmp/iso/boot/initrd.img
 cd -
-
-cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Make the ISO
 # Note: only "-isohybrid-mbr /..." is specific to xorriso.
