@@ -24,6 +24,12 @@ DOCKER_BIN=/usr/local/bin/docker
 : ${KEY:="${CERTDIR}key.pem"}
 
 start() {
+
+    if check; then
+        echo >&2 'error: Docker daemon is already running; please stop it first'
+        exit 1
+    fi
+
     # Not enabling Docker daemon TLS by default.
     if [ "$DOCKER_TLS" != "" ]; then
         CERTHOSTNAMES="$(hostname -s),$(hostname -i)"
