@@ -32,7 +32,7 @@ the boot2docker management tool, VirtualBox and any tools needed to run Boot2Doc
 
 ### Installation using the boot2docker management tool
 
-If you have the prerequisites, or want to help develop Boot2Docker, you can 
+If you have the prerequisites, or want to help develop Boot2Docker, you can
 also download the appropriate [boot2docker management release](
 https://github.com/boot2docker/boot2docker-cli/releases) and use it to download
 the [`boot2docker.iso`](
@@ -66,6 +66,9 @@ The main changes are to add a `/var/lib/boot2docker/userdata.tar` file that is
 un-tarred into the `/home/docker` directory on boot. This file contains a
 `.ssh/authorized_keys` and `.ssh/authorized_keys2` files containing a public sshkey.
 
+## Docker Hub
+To save and share container images, automate workflows, and more sign-up for a
+free [Docker Hub account](https://hub.docker.com).
 
 ## More information
 
@@ -77,28 +80,26 @@ The bootup script output is logged to `/boot.log`, so you can see (and potential
 what happens. Note that this is not persistent between boots because we're logging
 from before the persistence partition is mounted (and it may not exist at all).
 
-#### Container Port redirection 
+#### Container Port redirection
 
 The latest version of `boot2docker` sets up two network adaptors, one using NAT
 to allow the VM to download images and files from the internet, and a host only
 network that Docker container's ports will be exposed on.
 
-If you run a container with an exposed port:
+If you run a container with an exposed port, and then use OSX's `open` command:
 
 ```
-   $ docker run --rm -i -t -p 80:80 apache
+	$ boot2docker up
+	$ $(boot2docker shellinit)
+	$ docker run --name nginx-test -d -p 80:80 nginx
+	$ open http://$(boot2docker ip 2>/dev/null)/
+	$ docker stop nginx-test
+	$ docker rm nginx-test
 ```
 
-Then you should be able to access that apache server using the IP address reported
-to you using:
-
-```
-   $ boot2docker ip
-   192.168.59.103
-```
-
-Typically, it is 192.168.59.103, but it can change as its dynamically allocated
-by the VirtualBox DHCP server.
+The `$(boot2docker shellinit)` sets the `DOCKER_HOST` environment variable for this
+shell, then the `docker run` starts the webserver as a daemon, and `open` will then
+show the default page in your default web browser (using `boot2eocker ip`).
 
 If you want to share container ports with other computers on your LAN, you will
 need to set up [NAT adaptor based port forwarding](
@@ -138,10 +139,10 @@ Or on Windows, use Explorer to Connect to:
 You can then use your data container from any container you like:
 
 ```
-	docker run -it --volumes-from my-data ubuntu 
+	docker run -it --volumes-from my-data ubuntu
 ```
 
-You will find the "data" volume mounted as "/data" in that container. Note that "my-data" is the name of volume container, this is shared via the "network" by the "samba" container that refers to it by name. So, in this example, if you were on OS-X you now have /Volumes/data and /data in container being shared. You can change the paths as needed. 
+You will find the "data" volume mounted as "/data" in that container. Note that "my-data" is the name of volume container, this is shared via the "network" by the "samba" container that refers to it by name. So, in this example, if you were on OS-X you now have /Volumes/data and /data in container being shared. You can change the paths as needed.
 
 #### Customize
 The `boot2docker` management tool allows you to customise many options from both the
