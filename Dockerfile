@@ -80,7 +80,7 @@ RUN cd $ROOTFS/lib/modules && \
     rm -rf ./*/kernel/net/wireless/*
 
 # Install libcap
-RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
+RUN curl -L http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
     cd /libcap-2.22 && \
     sed -i 's/LIBATTR := yes/LIBATTR := no/' Make.Rules && \
     sed -i 's/\(^CFLAGS := .*\)/\1 -m32/' Make.Rules && \
