@@ -25,7 +25,7 @@ RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_V
     mv /linux-$KERNEL_VERSION /linux-kernel
 
 # Download AUFS and apply patches and files, then remove it
-RUN git clone -b $AUFS_BRANCH --depth 1 git://git.code.sf.net/p/aufs/aufs3-standalone && \
+RUN git clone -b $AUFS_BRANCH --depth 1 http://git.code.sf.net/p/aufs/aufs3-standalone && \
     cd aufs3-standalone && \
     cd /linux-kernel && \
     cp -r /aufs3-standalone/Documentation /linux-kernel && \
@@ -61,6 +61,9 @@ ENV TCZ_DEPS        iptables \
 # Make the ROOTFS
 RUN mkdir -p $ROOTFS
 
+# Prepare the build directory (/tmp/iso)
+RUN mkdir -p /tmp/iso/boot
+
 # Install the kernel modules in $ROOTFS
 RUN cd /linux-kernel && \
     make INSTALL_MOD_PATH=$ROOTFS modules_install firmware_install
@@ -80,7 +83,7 @@ RUN cd $ROOTFS/lib/modules && \
     rm -rf ./*/kernel/net/wireless/*
 
 # Install libcap
-RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
+RUN curl -L http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
     cd /libcap-2.22 && \
     sed -i 's/LIBATTR := yes/LIBATTR := no/' Make.Rules && \
     sed -i 's/\(^CFLAGS := .*\)/\1 -m32/' Make.Rules && \
@@ -94,12 +97,15 @@ RUN curl -L ftp://ftp.de.debian.org/debian/pool/main/libc/libcap2/libcap2_2.22.o
 RUN cd /linux-kernel && \
     make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
     cd / && \
-    git clone git://git.code.sf.net/p/aufs/aufs-util && \
+    git clone http://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
     git checkout aufs3.9 && \
     CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
     rm -rf /tmp/kheaders
+
+# Prepare the ISO directory with the kernel
+RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
 # Download the rootfs, don't unpack it though:
 RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.gz
@@ -113,6 +119,7 @@ RUN for dep in $TCZ_DEPS; do \
     done
 
 COPY VERSION $ROOTFS/etc/version
+RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
@@ -132,7 +139,6 @@ RUN cd /git && \
     DATE=$(date) && \
     echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
 
-COPY rootfs/isolinux /isolinux
 
 # Copy our custom rootfs
 COPY rootfs/rootfs $ROOTFS
@@ -157,10 +163,14 @@ RUN    \
 	echo "/bin/login -f docker" >> $ROOTFS/usr/local/bin/autologin && \
 	chmod 755 $ROOTFS/usr/local/bin/autologin && \
 	echo 'ttyS0:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab && \
+	echo 'ttyS1:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab && \
 # fix su - && \
 	echo root > $ROOTFS/etc/sysconfig/superuser
 
+# Copy boot params
+COPY  rootfs/isolinux /tmp/iso/boot/isolinux
 
 COPY rootfs/make_iso.sh /
+
 RUN /make_iso.sh
 CMD ["cat", "boot2docker.iso"]
