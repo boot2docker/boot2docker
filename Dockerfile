@@ -118,6 +118,10 @@ RUN for dep in $TCZ_DEPS; do \
         rm -f /tmp/$dep.tcz ;\
     done
 
+# get generate_cert
+RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.1/generate_cert-0.1-linux-386/ && \
+    chmod +x $ROOTFS/usr/local/bin/generate_cert
+
 COPY VERSION $ROOTFS/etc/version
 RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
@@ -126,10 +130,6 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
     chmod +x $ROOTFS/usr/local/bin/docker && \
     { $ROOTFS/usr/local/bin/docker version || true; }
-
-# get generate_cert
-RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.1/generate_cert-0.1-linux-386/ && \
-    chmod +x $ROOTFS/usr/local/bin/generate_cert
 
 # Get the git versioning info
 COPY .git /git/.git
@@ -145,27 +145,33 @@ COPY rootfs/rootfs $ROOTFS
 
 # These steps can only be run once, so can't be in make_iso.sh (which can be run in chained Dockerfiles)
 # see https://github.com/boot2docker/boot2docker/blob/master/doc/BUILD.md
-RUN    \
-# Make sure init scripts are executable && \
-	find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';' && \
-# Download Tiny Core Linux rootfs  && \
-	( cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames ) && \
-# Change MOTD && \
-	mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd && \
-# Make sure we have the correct bootsync && \
-	mv $ROOTFS/boot*.sh $ROOTFS/opt/ && \
-	chmod +x $ROOTFS/opt/*.sh && \
-# Make sure we have the correct shutdown && \
-	mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh && \
-	chmod +x $ROOTFS/opt/shutdown.sh && \
-# Add serial console && \
-	echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
+
+# Make sure init scripts are executable
+RUN find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';'
+
+# Download Tiny Core Linux rootfs
+RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
+
+# Change MOTD
+RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
+
+# Make sure we have the correct bootsync
+RUN mv $ROOTFS/boot*.sh $ROOTFS/opt/ && \
+	chmod +x $ROOTFS/opt/*.sh
+
+# Make sure we have the correct shutdown
+RUN mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh && \
+	chmod +x $ROOTFS/opt/shutdown.sh
+
+# Add serial console
+RUN echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
 	echo "/bin/login -f docker" >> $ROOTFS/usr/local/bin/autologin && \
 	chmod 755 $ROOTFS/usr/local/bin/autologin && \
 	echo 'ttyS0:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab && \
-	echo 'ttyS1:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab && \
-# fix su - && \
-	echo root > $ROOTFS/etc/sysconfig/superuser
+	echo 'ttyS1:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab
+
+# fix "su -"
+RUN echo root > $ROOTFS/etc/sysconfig/superuser
 
 # Copy boot params
 COPY  rootfs/isolinux /tmp/iso/boot/isolinux
@@ -173,4 +179,5 @@ COPY  rootfs/isolinux /tmp/iso/boot/isolinux
 COPY rootfs/make_iso.sh /
 
 RUN /make_iso.sh
+
 CMD ["cat", "boot2docker.iso"]
