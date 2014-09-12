@@ -12,6 +12,11 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${DOCKER_ULIMITS:=1048576}
 : ${DOCKER_LOGFILE:=/var/lib/boot2docker/docker.log}
 
+# We need to manage docker pid sepfately from daemon father
+# See https://github.com/docker/docker/issues/5359 why
+DOCKER_SSD_PIDFILE=/var/run/docker-ssd.pid
+DOCKER_BIN=/usr/local/bin/docker
+
 : ${CERTDIR:=/var/lib/boot2docker/tls/}
 : ${CERT_INTERFACES:='eth0 eth1'}
 : ${CACERT:="${CERTDIR}ca.pem"}
@@ -22,6 +27,12 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${KEY:="${CERTDIR}key.pem"}
 
 start() {
+
+    if check; then
+        echo >&2 'error: Docker daemon is already running; please stop it first'
+        exit 1
+    fi
+
     # Not enabling Docker daemon TLS by default.
     if [ "$DOCKER_TLS" != "no" ]; then
         CERTHOSTNAMES="$(hostname -s),$(hostname -i)"
@@ -92,13 +103,22 @@ start() {
     ulimit -n $DOCKER_ULIMITS
     ulimit -p $DOCKER_ULIMITS
 
+    DOCKER_DAEMON_ARGS="-d -D -g \"$DOCKER_DIR\" -H unix:// $DOCKER_HOST $EXTRA_ARGS"
     echo "------------------------" >> "$DOCKER_LOGFILE"
-    echo "/usr/local/bin/docker -d -D -g \"$DOCKER_DIR\" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> \"$DOCKER_LOGFILE\"" >> "$DOCKER_LOGFILE"
-    /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> "$DOCKER_LOGFILE" 2>&1 &
+    echo "Starting Docker daemon with these args : ${DOCKER_DAEMON_ARGS}" >> "$DOCKER_LOGFILE"
+    start-stop-daemon \
+        --pidfile "$DOCKER_SSD_PIDFILE" \
+        --exec "$DOCKER_BIN" \
+        --background \
+        --make-pidfile \
+        -S \
+        -- ${DOCKER_DAEMON_ARGS} >> "$DOCKER_LOGFILE" 2>&1
 }
 
 stop() {
-    kill $(cat /var/run/docker.pid)
+    echo "------------------------" >> "$DOCKER_LOGFILE"
+    echo "Stopping Docker daemon." >> "$DOCKER_LOGFILE"
+    start-stop-daemon --stop --pidfile "$DOCKER_SSD_PIDFILE" >> "$DOCKER_LOGFILE"
 }
 
 restart() {
@@ -110,7 +130,7 @@ restart() {
 }
 
 check() {
-    [ -f /var/run/docker.pid ] && ps $(cat /var/run/docker.pid) > /dev/null 2>&1
+    [ -f "$DOCKER_SSD_PIDFILE" ] && [ $(ps | grep $(cat $DOCKER_SSD_PIDFILE) | grep -v grep | wc -l) -eq 1 ] > /dev/null 2>&1
 }
 
 status() {
