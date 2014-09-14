@@ -1,72 +1,79 @@
-Boot2Docker
-===========
+# Boot2Docker
 
-Boot2Docker is a lightweight Linux distribution made specifically to run [Docker]
-(https://www.docker.io/) containers. It runs completely from RAM, is a small ~24MB
-download and boots in ~5s (YMMV).
-
-
-Installation instructions for [OS X](http://docs.docker.io/installation/mac/) and [Windows](http://docs.docker.io/installation/windows/) available on the Docker documentation site.
-
-
-The [ISO can be downloaded here](
-https://github.com/boot2docker/boot2docker/releases).
-
+Boot2Docker is a lightweight Linux distribution made specifically to run
+[Docker](https://www.docker.com/) containers. It runs completely from RAM, is a
+small ~24MB download and boots in ~5s (YMMV).
 
 ## Features
+
 * Kernel 3.16.1 with AUFS, Docker v1.2.0 - using libcontainer
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
-> **Note:** This version of Docker uses port **2375**, the newly registered [IANA
+> **Note:** Boot2Docker uses port **2375**, the [registered IANA Docker
 > port](http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?search=docker)
 
 ## Installation
 
-### All in one Installers for OS X and MS Windows
+Installation instructions for [OS X](https://docs.docker.com/installation/mac/)
+and [Windows](https://docs.docker.com/installation/windows/) are available on
+the Docker documentation site.
 
-We have built installers for [OS X](
-https://github.com/boot2docker/osx-installer/releases) and [MS Windows](
-https://github.com/boot2docker/windows-installer/releases) which will install
-the boot2docker management tool, VirtualBox and any tools needed to run Boot2Docker.
+The [ISO can be downloaded
+here](https://github.com/boot2docker/boot2docker/releases).
 
-### Installation using the boot2docker management tool
+### All in one Installers for OS X and Windows
 
-If you have the prerequisites, or want to help develop Boot2Docker, you can
-also download the appropriate [boot2docker management release](
-https://github.com/boot2docker/boot2docker-cli/releases) and use it to download
-the [`boot2docker.iso`](
-https://github.com/boot2docker/boot2docker/releases).
+We have built installers for [OS
+X](https://github.com/boot2docker/osx-installer/releases) and
+[Windows](https://github.com/boot2docker/windows-installer/releases) which will
+install the `boot2docker` management tool, VirtualBox, and any tools needed to
+run Boot2Docker.
+
+### Installation using the `boot2docker` management tool
+
+If you have the prerequisites, or want to help develop Boot2Docker, you can also
+download the appropriate [boot2docker management
+release](https://github.com/boot2docker/boot2docker-cli/releases) and use it to
+download
+[`boot2docker.iso`](https://github.com/boot2docker/boot2docker/releases).
 
 ## How to use
+
 The `boot2docker` management tool leverages VirtualBox's `VBoxManage` to
 initialise, start, stop and delete the VM right from the command line.
 
 #### Initialize
-```
+
+```console
 $ boot2docker init
 ```
 
 #### Start VM
-```
+
+```console
 $ boot2docker up
 ```
 
 #### Upgrade the Boot2docker VM image
-```
+
+```console
 $ boot2docker stop
 $ boot2docker download
 $ boot2docker up
 ```
 
-If your Boot2Docker virtual machine was created prior to 0.11.1-pre1, it's best to
-delete -  `boot2docker delete` and then `boot2docker init` to create a new VM.
+If your Boot2Docker virtual machine was created prior to 0.11.1-pre1, it's best
+to delete -  `boot2docker delete` and then `boot2docker init` to create a new
+VM.
 
 The main changes are to add a `/var/lib/boot2docker/userdata.tar` file that is
 un-tarred into the `/home/docker` directory on boot. This file contains a
-`.ssh/authorized_keys` and `.ssh/authorized_keys2` files containing a public sshkey.
+`.ssh/authorized_keys` and `.ssh/authorized_keys2` files containing a public
+SSH key.
 
 ## Docker Hub
+
 To save and share container images, automate workflows, and more sign-up for a
 free [Docker Hub account](https://hub.docker.com).
 
@@ -76,9 +83,10 @@ See [Frequently asked questions](doc/FAQ.md) for more details.
 
 #### Boot script log
 
-The bootup script output is logged to `/boot.log`, so you can see (and potentially debug)
-what happens. Note that this is not persistent between boots because we're logging
-from before the persistence partition is mounted (and it may not exist at all).
+The bootup script output is logged to `/boot.log`, so you can see (and
+potentially debug) what happens. Note that this is not persistent between boots
+because we're logging from before the persistence partition is mounted (and it
+may not exist at all).
 
 #### Container Port redirection
 
@@ -88,114 +96,122 @@ network that Docker container's ports will be exposed on.
 
 If you run a container with an exposed port, and then use OSX's `open` command:
 
-```
-	$ boot2docker up
-	$ $(boot2docker shellinit)
-	$ docker run --name nginx-test -d -p 80:80 nginx
-	$ open http://$(boot2docker ip 2>/dev/null)/
-	$ docker stop nginx-test
-	$ docker rm nginx-test
+```console
+$ boot2docker up
+$ $(boot2docker shellinit)
+$ docker run --name nginx-test -d -p 80:80 nginx
+$ open http://$(boot2docker ip 2>/dev/null)/
+$ docker stop nginx-test
+$ docker rm nginx-test
 ```
 
-The `$(boot2docker shellinit)` sets the `DOCKER_HOST` environment variable for this
-shell, then the `docker run` starts the webserver as a daemon, and `open` will then
-show the default page in your default web browser (using `boot2eocker ip`).
+The `$(boot2docker shellinit)` sets the `DOCKER_HOST` environment variable for
+this shell, then the `docker run` starts the webserver as a daemon, and `open`
+will then show the default page in your default web browser (using `boot2eocker
+ip`).
 
 If you want to share container ports with other computers on your LAN, you will
-need to set up [NAT adaptor based port forwarding](
-https://github.com/boot2docker/boot2docker/blob/master/doc/WORKAROUNDS.md)
+need to set up [NAT adaptor based port forwarding](doc/WORKAROUNDS.md).
 
 #### Folder sharing
 
 Boot2Docker is essentially a remote Docker engine with a read only filesystem
-(other than Docker images, containers and volumes). The most scalable and portable
-way to share disk space between your local desktop and a Docker container is by
-creating a volume container and then sharing that to where it's needed.
+(other than Docker images, containers and volumes). The most scalable and
+portable way to share disk space between your local desktop and a Docker
+container is by creating a volume container and then sharing that to where it's
+needed.
 
-One well tested approach is to use a file sharing container like `svendowideit/samba`
+One well tested approach is to use a file sharing container like
+`svendowideit/samba`:
 
-e.g:
-
+```console
+$ # Make a volume container (only need to do this once)
+$ docker run -v /data --name my-data busybox true
+$ # Share it using Samba (Windows file sharing)
+$ docker run --rm -v /usr/local/bin/docker:/docker -v /var/run/docker.sock:/docker.sock svendowideit/samba my-data
+$ # then find out the IP address of your Boot2Docker host
+$ boot2docker ip
+192.168.59.103
 ```
-    # Make a volume container (only need to do this once)
-    $ docker run -v /data --name my-data busybox true
-	# Share it using Samba (Windows file sharing)
-	$ docker run --rm -v /usr/local/bin/docker:/docker -v /var/run/docker.sock:/docker.sock svendowideit/samba my-data
-	# then find out the IP address of your Boot2Docker host
-	$ boot2docker ip
-	192.168.59.103
-```
+
 Connect to the shared folder using Finder (OS X):
 
-	 Connect to cifs://192.168.59.103/data
-	 Once mounted, will appear as /Volumes/data
-
+	Connect to cifs://192.168.59.103/data
+	Once mounted, will appear as /Volumes/data
 
 Or on Windows, use Explorer to Connect to:
 
 	\\192.168.59.103\data
 
-
 You can then use your data container from any container you like:
 
-```
-	docker run -it --volumes-from my-data ubuntu
+```console
+$ docker run -it --volumes-from my-data ubuntu
 ```
 
-You will find the "data" volume mounted as "/data" in that container. Note that "my-data" is the name of volume container, this is shared via the "network" by the "samba" container that refers to it by name. So, in this example, if you were on OS-X you now have /Volumes/data and /data in container being shared. You can change the paths as needed.
+You will find the "data" volume mounted as "/data" in that container. Note that
+"my-data" is the name of volume container, this is shared via the "network" by
+the "samba" container that refers to it by name. So, in this example, if you
+were on OS-X you now have /Volumes/data and /data in container being shared. You
+can change the paths as needed.
 
 #### Customize
-The `boot2docker` management tool allows you to customise many options from both the
-commandline, or by setting them in its configuration file.
 
-see `boot2docker config` for more (including the format of the configuration file).
+The `boot2docker` management tool allows you to customise many options from both
+the command line, or by setting them in its configuration file.
 
+See `boot2docker config` for more (including the format of the configuration
+file).
 
 #### SSH into VM
-```
+
+```console
 $ boot2docker ssh
 ```
-Boot2Docker auto logs in using the generated SSH key, but if you want to SSH into
-the machine manually (or you're not using a `boot2docker` managed VM), the credentials are:
+
+`boot2docker` auto logs in using the generated SSH key, but if you want to SSH
+into the machine manually (or you're not using a `boot2docker` managed VM), the
+credentials are:
+
 ```
 user: docker
 pass: tcuser
 ```
 
-
 #### Persist data
-When you run `boot2docker init`, the `boot2docker` tool auto-creates
-a disk that will be automounted and used to persist your docker data in
-`/var/lib/docker` and `/var/lib/boot2docker`.
-This virtual disk will be removed when you run `boot2docker delete`.
-It will also persist the SSH keys of the machine.
 
-If you are not using the `boot2docker` VirtualBox manage tool, you can create
-an `ext4` or `btrfs` formatted partition with the label `boot2docker-data`
-(`mkfs.ext4 -L boot2docker-data /dev/sdX5`) to your VM or host, and
-boot2docker will automount it on `/mnt/sdX` and then softlink
-`/mnt/sdX/var/lib/docker` to `/var/lib/docker`.
+When you run `boot2docker init`, the `boot2docker` tool auto-creates a disk that
+will be automounted and used to persist your docker data in `/var/lib/docker`
+and `/var/lib/boot2docker`.  This virtual disk will be removed when you run
+`boot2docker delete`.  It will also persist the SSH keys of the machine.
 
+If you are not using the `boot2docker` management tool, you can create an `ext4`
+or `btrfs` formatted partition with the label `boot2docker-data` (`mkfs.ext4 -L
+boot2docker-data /dev/sdX5`) to your VM or host, and Boot2Docker will automount
+it on `/mnt/sdX` and then softlink `/mnt/sdX/var/lib/docker` to
+`/var/lib/docker`.
 
 #### Install on any device
+
 To 'install' the ISO onto an SD card, USB-Stick or even empty hard disk, you can
-use `dd if=boot2docker.iso of=/dev/sdX`.
-This will create the small boot partition, and install an MBR.
+use `dd if=boot2docker.iso of=/dev/sdX`.  This will create the small boot
+partition, and install an MBR.
 
+#### Build your own Boot2Docker ISO
 
-#### Build your own boot2docker.iso
-Goto [How to build](doc/BUILD.md) for Documentation on how to build your own boot2docker ISOs.
+Goto [How to build](doc/BUILD.md) for Documentation on how to build your own
+Boot2Docker ISOs.
 
 ## Troubleshooting
 
 #### `boot2docker up` doesn't work (OSX)
 
-Sometimes OSX will install updates that break VirtualBox and require a restart 
-of the kernel extensions that boot2docker needs in order to run.  If you go to 
-boot boot2docker after some updates or a system restart and you get an output 
+Sometimes OSX will install updates that break VirtualBox and require a restart
+of the kernel extensions that boot2docker needs in order to run.  If you go to
+boot boot2docker after some updates or a system restart and you get an output
 such as the following:
 
-```
+```console
 $ boot2docker up
 error in run: Failed to start machine "boot2docker-vm" (run again with -v for details)
 ```
@@ -205,7 +221,7 @@ functioning again.
 
 In this case, try running the following script (supplied with Virtual Box):
 
-```
+```console
 $ sudo /Library/Application\ Support/VirtualBox/LaunchDaemons/VirtualBoxStartup.sh restart
 ```
 
