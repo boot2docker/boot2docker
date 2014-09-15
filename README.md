@@ -107,7 +107,7 @@ $ docker rm nginx-test
 
 The `$(boot2docker shellinit)` sets the `DOCKER_HOST` environment variable for
 this shell, then the `docker run` starts the webserver as a daemon, and `open`
-will then show the default page in your default web browser (using `boot2eocker
+will then show the default page in your default web browser (using `boot2docker
 ip`).
 
 If you want to share container ports with other computers on your LAN, you will
