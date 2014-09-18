@@ -165,6 +165,8 @@ RUN cd /git && \
     DATE=$(date) && \
     echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
 
+# Install Tiny Core Linux rootfs
+RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
 # Copy our custom rootfs
 COPY rootfs/rootfs $ROOTFS
@@ -174,9 +176,6 @@ COPY rootfs/rootfs $ROOTFS
 
 # Make sure init scripts are executable
 RUN find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';'
-
-# Download Tiny Core Linux rootfs
-RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
 # Change MOTD
 RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
