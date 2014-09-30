@@ -11,7 +11,7 @@ if [ -n "$NTP_SERVER" ]; then
     /usr/local/bin/ntpclient -s -g 1000000 -h $NTP_SERVER >> /var/lib/boot2docker/log/ntpclient.log 2>&1
     # Then lock it
     echo "running ntpclient -l -h $NTP_SERVER in the background" >> /var/lib/boot2docker/log/ntpclient.log 2>&1
-    /usr/local/bin/ntpclient -l -h $NTP_SERVER & >> /var/lib/boot2docker/log/ntpclient.log 2>&1
+    /usr/local/bin/ntpclient -l -h $NTP_SERVER >> /var/lib/boot2docker/log/ntpclient.log 2>&1 &
 else
     echo "Skipping ntpclient" > /var/lib/boot2docker/log/ntpclient.log 2>&1
 fi
