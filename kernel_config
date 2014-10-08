@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 3.16.1 Kernel Configuration
+# Linux/x86 3.16.4 Kernel Configuration
 #
 CONFIG_64BIT=y
 CONFIG_X86_64=y
@@ -482,7 +482,8 @@ CONFIG_KEXEC=y
 # CONFIG_CRASH_DUMP is not set
 # CONFIG_KEXEC_JUMP is not set
 CONFIG_PHYSICAL_START=0x100000
-# CONFIG_RELOCATABLE is not set
+CONFIG_RELOCATABLE=y
+# CONFIG_RANDOMIZE_BASE is not set
 CONFIG_PHYSICAL_ALIGN=0x1000000
 CONFIG_HOTPLUG_CPU=y
 # CONFIG_BOOTPARAM_HOTPLUG_CPU0 is not set
