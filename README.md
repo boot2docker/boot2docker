@@ -10,7 +10,7 @@ small ~24MB download and boots in ~5s (YMMV).
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
-> **Note:** Boot2Docker uses port **2375**, the [registered IANA Docker
+> **Note:** Boot2Docker uses port **2376**, the [registered IANA Docker SSL
 > port](http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?search=docker)
 
 ## Installation
@@ -112,6 +112,16 @@ ip`).
 
 If you want to share container ports with other computers on your LAN, you will
 need to set up [NAT adaptor based port forwarding](doc/WORKAROUNDS.md).
+
+#### TLS support
+
+By default, `boot2docker` runs `docker` with TLS enabled. It auto-generates
+certificates and stores them in `/home/docker/.docker` inside the VM. The
+`boot2docker up` command will copy them to `~/.boot2docker/certs` on the
+host machine once the VM has started, and output the correct values for
+the `DOCKER_CERT_PATH` and `DOCKER_TLS_VERIFY` environment variables.
+
+`$(boot2docker shellinit)` will also set them correctly.
 
 #### Folder sharing
 
