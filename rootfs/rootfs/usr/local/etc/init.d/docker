@@ -6,7 +6,7 @@
 test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 
 : ${DOCKER_HOST:='-H tcp://0.0.0.0:2375'}
-: ${DOCKER_TLS:=''}
+: ${DOCKER_TLS:=auto}
 : ${DOCKER_STORAGE:=auto}
 : ${DOCKER_DIR:=/var/lib/docker}
 : ${DOCKER_ULIMITS:=1048576}
