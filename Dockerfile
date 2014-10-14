@@ -126,7 +126,7 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
 # Build VBox guest additions
 # For future reference, we have to use x86 versions of several of these bits because TCL doesn't support ELFCLASS64
 # (... and we can't use VBoxControl or VBoxService at all because of this)
-ENV VBOX_VERSION 4.3.16
+ENV VBOX_VERSION 4.3.18
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
     \
