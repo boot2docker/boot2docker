@@ -6,15 +6,15 @@ The boot2docker.iso is built with Docker, via a Dockerfile.
 During `docker build` we
 * fetch, patch with AUFS support and build the 3.15.3 Linux Kernel with Tiny Core base configuration
 * build the base rootfs for boot2docker (not complete)
-* build the rootfs, download the latest Docker release and create the `.iso` file on `/` of the container.
-
-Running the resultant image will cat the iso file to STDOUT.
+* build the rootfs, download the latest Docker release
+* create the `.iso` file on `/iso` of the container. Mount your local directory to container /iso to catch the output image
 
 So the full build process goes like this:
 
 ```
 # you will need more than 2GB memory
-$ docker build -t boot2docker . && docker run --rm boot2docker > boot2docker.iso
+$ docker build -t boot2docker .
+$ docker run -v <local dir>:/iso --rm boot2docker
 ```
 
 Now you can install the iso to a USB drive, SD card, CD-Rom or hard-disk. The image contains

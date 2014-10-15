@@ -48,4 +48,4 @@ xorriso  \
     -no-emul-boot -boot-load-size 4 -boot-info-table \
     -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat \
     -isohybrid-mbr /usr/lib/syslinux/isohdpfx.bin \
-    -o /boot2docker.iso /tmp/iso
+    -o /iso/boot2docker.iso /tmp/iso

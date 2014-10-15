@@ -203,6 +203,4 @@ COPY  rootfs/isolinux /tmp/iso/boot/isolinux
 
 COPY rootfs/make_iso.sh /
 
-RUN /make_iso.sh
-
-CMD ["cat", "boot2docker.iso"]
+CMD ["/make_iso.sh"]
