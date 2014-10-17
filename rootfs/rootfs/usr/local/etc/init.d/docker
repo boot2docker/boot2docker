@@ -22,7 +22,7 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 
 start() {
     # Not enabling Docker daemon TLS by default.
-    if [ "$DOCKER_TLS" != "" ]; then
+    if [ "$DOCKER_TLS" != "no" ]; then
         CERTHOSTNAMES="$(hostname -s),$(hostname -i)"
         ETH0=$(ip addr show eth0 |sed -nEe 's/^[ \t]*inet[ \t]*([0-9.]+)\/.*$/\1/p')
         ETH1=$(ip addr show eth1 |sed -nEe 's/^[ \t]*inet[ \t]*([0-9.]+)\/.*$/\1/p')
@@ -59,7 +59,7 @@ start() {
         if [ "$DOCKER_TLS" == "auto" ]; then
             DOCKER_HOST='-H tcp://0.0.0.0:2376'
             EXTRA_ARGS="$EXTRA_ARGS --tlsverify --tlscacert=$CACERT --tlscert=$SERVERCERT --tlskey=$SERVERKEY"
-        else
+        elif [ "$DOCKER_TLS" != "no" ]; then
             EXTRA_ARGS="$EXTRA_ARGS $DOCKER_TLS --tlscacert=$CACERT --tlscert=$SERVERCERT --tlskey=$SERVERKEY"
         fi
 
