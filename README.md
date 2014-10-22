@@ -123,6 +123,12 @@ the `DOCKER_CERT_PATH` and `DOCKER_TLS_VERIFY` environment variables.
 
 `$(boot2docker shellinit)` will also set them correctly.
 
+We strongly against running Boot2Docker with an unencrypted Docker socket for
+security reasons, but if you have tools that cannot be easily switched, you
+can disable it by adding `DOCKER_TLS=no` to your `/var/lib/boot2docker/profile`
+file on the persistent partition inside the Boot2Docker virtual machine (use
+`boot2docker ssh sudo vi /var/lib/boot2docker/profile`).
+
 #### Folder sharing
 
 Boot2Docker is essentially a remote Docker engine with a read only filesystem
