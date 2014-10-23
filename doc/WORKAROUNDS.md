@@ -1,7 +1,7 @@
 Workarounds
 ===========
 
-*Note: The following steps are meant as a temporary solution and won't be needed anymore in the future.*
+*Note: The following steps are meant as a temporary solution. Check the changelog of the project to know if these are still necessary.
 
 ## Port forwarding
 
@@ -9,7 +9,7 @@ Let's say your Docker container exposes the port 8000 and you want access it fro
 your other computers on your LAN. Run following command (and keep it open):
 
 ```sh
-$ boot2docker ssh -L 8000:localhost:8000
+$ boot2docker ssh -L 8000:localhost:8001
 ```
 
 Now you can access your container from your host machine under `localhost:8000`.
