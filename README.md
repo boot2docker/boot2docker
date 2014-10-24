@@ -83,7 +83,7 @@ See [Frequently asked questions](doc/FAQ.md) for more details.
 
 #### Boot script log
 
-The bootup script output is logged to `/boot.log`, so you can see (and
+The bootup script output is logged to `/var/log/boot2docker.log`, so you can see (and
 potentially debug) what happens. Note that this is not persistent between boots
 because we're logging from before the persistence partition is mounted (and it
 may not exist at all).
