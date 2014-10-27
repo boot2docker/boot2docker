@@ -74,4 +74,6 @@ fi
 #/etc/rc.d/automated_script.sh
 
 # Run Hyper-V KVP Daemon
-/usr/sbin/hv_kvp_daemon
+if modprobe hv_utils &> /dev/null; then
+    /usr/sbin/hv_kvp_daemon
+fi
