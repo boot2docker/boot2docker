@@ -11,6 +11,7 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${DOCKER_DIR:=/var/lib/docker}
 : ${DOCKER_ULIMITS:=1048576}
 : ${DOCKER_LOGFILE:=/var/lib/boot2docker/docker.log}
+: ${DOCKER_REG_MIRROR:=no}
 
 : ${CERTDIR:=/var/lib/boot2docker/tls/}
 : ${CACERT:="${CERTDIR}ca.pem"}
@@ -87,6 +88,10 @@ start() {
     if [ "$DOCKER_STORAGE" != 'auto' ]; then
         # in the general case, let's trust Docker to "do the right thing"
         EXTRA_ARGS="$EXTRA_ARGS -s $DOCKER_STORAGE"
+    fi
+
+    if [ "$DOCKER_REG_MIRROR" != 'no' ]; then
+        EXTRA_ARGS="$EXTRA_ARGS --registry-mirror=$DOCKER_REG_MIRROR"
     fi
 
     # Increasing the number of open files and processes by docker
