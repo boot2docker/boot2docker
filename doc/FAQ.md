@@ -72,12 +72,14 @@ following to ``/var/lib/boot2docker/profile``:
 EXTRA_ARGS="--dns 192.168.1.2"
 ```
 
-Another example: if you want to configure the Docker daemon to make profit of a registry mirror (docker >= 1.3.0), add the following to ``/var/lib/boot2docker/profile``:
+Another example: if you want to configure the Docker daemon to make profit of registry mirrors (docker >= 1.3.0), add the following to ``/var/lib/boot2docker/profile``:
 
 ```
 DOCKER_REG_MIRROR=http://<private_registry_host>:<private_registry_port>
 # ex: http://localhost:5000
 # http or https depending on your registry setup
+# several mirrors can be defined, separate them by a comma :
+DOCKER_REG_MIRROR=mir1,mir2
 ```
 Please visit [Run a registry mirror](https://github.com/docker/docker/blob/master/docs/sources/articles/registry_mirror.md) for more information on how-to setup to activate this feature.
 
