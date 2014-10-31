@@ -17,7 +17,7 @@ mkdir -p /var/lib/boot2docker/log
 
 #import settings from profile (or unset them)
 export NTP_SERVER=pool.ntp.org
-test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
+test -f "/opt/profile" && . "/opt/profile"
 
 # set the hostname
 /etc/rc.d/hostname
@@ -65,8 +65,8 @@ if [ -e /var/lib/boot2docker/bootsync.sh ]; then
 fi
 
 # Allow local HD customisation
-if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
-    /var/lib/boot2docker/bootlocal.sh > /var/log/bootlocal.log 2>&1 &
+if [ -e /opt/bootlocal.sh ]; then
+    /opt/bootlocal.sh > /var/log/bootlocal.log 2>&1 &
 fi
 
 # Execute automated_script

@@ -40,10 +40,10 @@ that doesn't exist, it will pick the first ``ext4`` partition listed by ``blkid`
 **Local Customisation (with persistent partition)**
 
 If you have a persistence partition, you can make customisations that are run at
-the end of the boot initialisation in the ``/var/lib/boot2docker/bootlocal.sh`` file.
+the end of the boot initialisation in the ``/opt/bootlocal.sh`` file.
 
 You can also set variables that will be used during the boot initialisation (after
-the automount) by setting them in `/var/lib/boot2docker/profile`
+the automount) by setting them in `/opt/profile`
 
 For example, to download ``pipework``, install its pre-requisites (which you can
 download using ``tce-load -w package.tcz``), and then start a container:
