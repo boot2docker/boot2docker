@@ -123,28 +123,6 @@ RUN for dep in $TCZ_DEPS; do \
 RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.1/generate_cert-0.1-linux-386/ && \
     chmod +x $ROOTFS/usr/local/bin/generate_cert
 
-# Build VBox guest additions
-# For future reference, we have to use x86 versions of several of these bits because TCL doesn't support ELFCLASS64
-# (... and we can't use VBoxControl or VBoxService at all because of this)
-ENV VBOX_VERSION 4.3.18
-RUN mkdir -p /vboxguest && \
-    cd /vboxguest && \
-    \
-    curl -L -o vboxguest.iso http://download.virtualbox.org/virtualbox/${VBOX_VERSION}/VBoxGuestAdditions_${VBOX_VERSION}.iso && \
-    7z x vboxguest.iso -ir'!VBoxLinuxAdditions.run' && \
-    rm vboxguest.iso && \
-    \
-    sh VBoxLinuxAdditions.run --noexec --target . && \
-    mkdir amd64 && tar -C amd64 -xjf VBoxGuestAdditions-amd64.tar.bz2 && \
-    mkdir x86 && tar -C x86 -xjf VBoxGuestAdditions-x86.tar.bz2 && \
-    rm VBoxGuestAdditions*.tar.bz2 && \
-    \
-    KERN_DIR=/linux-kernel/ make -C amd64/src/vboxguest-${VBOX_VERSION} && \
-    cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-tinycore64/ && \
-    \
-    mkdir -p $ROOTFS/sbin && \
-    cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
-
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
 RUN depmod -a -b $ROOTFS $KERNEL_VERSION-tinycore64
 
@@ -169,7 +147,7 @@ RUN cd /git && \
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
 # Copy our custom rootfs
-COPY rootfs/rootfs $ROOTFS
+COPY rootfs $ROOTFS
 
 # These steps can only be run once, so can't be in make_iso.sh (which can be run in chained Dockerfiles)
 # see https://github.com/boot2docker/boot2docker/blob/master/doc/BUILD.md
@@ -199,10 +177,8 @@ RUN echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
 RUN echo root > $ROOTFS/etc/sysconfig/superuser
 
 # Copy boot params
-COPY  rootfs/isolinux /tmp/iso/boot/isolinux
+COPY  isolinux /tmp/iso/boot/isolinux
 
-COPY rootfs/make_iso.sh /
+COPY make_iso.sh /
 
-RUN /make_iso.sh
-
-CMD ["cat", "boot2docker.iso"]
+CMD ["/make_iso.sh"]
