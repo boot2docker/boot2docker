@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+
+# TODO add more magic like sshfs share setup here <3

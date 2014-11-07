@@ -11,4 +11,4 @@ RUN echo "  WARNING: this is a test.docker.io build, not a release." >> $ROOTFS/
 RUN echo "" >> $ROOTFS/etc/motd
 
 RUN /make_iso.sh
-CMD ["cat", "boot2docker.iso"]
+CMD ["cat", "/iso/boot2docker.iso"]
