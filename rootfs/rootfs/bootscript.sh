@@ -72,3 +72,8 @@ fi
 # Execute automated_script
 # disabled - this script was written assuming bash, which we no longer have.
 #/etc/rc.d/automated_script.sh
+
+# Run Hyper-V KVP Daemon
+if modprobe hv_utils &> /dev/null; then
+    /usr/sbin/hv_kvp_daemon
+fi
