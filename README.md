@@ -183,8 +183,7 @@ $ rm -f ~/.ssh/id_boot2docker* # remove old keys
 $ boot2docker init #generates new keys, cert
 $ boot2docker up
 $ boot2docker ssh
-$ sudo vi /var/lib/boot2docker/profile
-$ # add EXTRA_ARGS="--insecure-registry <YOUR INSECURE HOST>" 
+$ echo 'EXTRA_ARGS="--insecure-registry <YOUR INSECURE HOST>"' | sudo tee -a /var/lib/boot2docker/profile
 $ sudo /etc/init.d/docker restart
 ```
 
