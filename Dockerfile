@@ -169,12 +169,12 @@ RUN cd /git && \
 # Install Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
-# Copy our custom rootfs
-COPY rootfs/rootfs $ROOTFS
-
 # Copy libnet and open-vm-tools
 RUN curl -L https://github.com/vmware/tcl-container/releases/download/v9.4.6/libdnet.tgz | tar -C $ROOTFS/ -xz
 RUN curl -L https://github.com/vmware/tcl-container/releases/download/v9.4.6/open-vm-tools.tgz | tar -C $ROOTFS/ -xz
+
+# Copy our custom rootfs
+COPY rootfs/rootfs $ROOTFS
 
 # Build the Hyper-V KVP Daemon
 RUN cd /linux-kernel && \
