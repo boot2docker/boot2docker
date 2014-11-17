@@ -55,6 +55,7 @@ ENV TCZ_DEPS        iptables \
                     gcc_libs \
                     acpid \
                     xz liblzma \
+                    libpcap \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
                     nfs-utils tcp_wrappers portmap rpcbind libtirpc \
                     curl ntpclient
@@ -68,31 +69,6 @@ RUN mkdir -p /tmp/iso/boot
 # Install the kernel modules in $ROOTFS
 RUN cd /linux-kernel && \
     make INSTALL_MOD_PATH=$ROOTFS modules_install firmware_install
-
-# Remove useless kernel modules, based on unclejack/debian2docker
-RUN cd $ROOTFS/lib/modules && \
-    rm -rf ./*/kernel/sound/* && \
-    rm -rf ./*/kernel/drivers/gpu/* && \
-    rm -rf ./*/kernel/drivers/infiniband/* && \
-    rm -rf ./*/kernel/drivers/isdn/* && \
-    rm -rf ./*/kernel/drivers/media/* && \
-    rm -rf ./*/kernel/drivers/staging/lustre/* && \
-    rm -rf ./*/kernel/drivers/staging/comedi/* && \
-    rm -rf ./*/kernel/fs/ocfs2/* && \
-    rm -rf ./*/kernel/net/bluetooth/* && \
-    rm -rf ./*/kernel/net/mac80211/* && \
-    rm -rf ./*/kernel/net/wireless/*
-
-# Install libcap
-RUN curl -L http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
-    cd /libcap-2.22 && \
-    sed -i 's/LIBATTR := yes/LIBATTR := no/' Make.Rules && \
-    sed -i 's/\(^CFLAGS := .*\)/\1 -m32/' Make.Rules && \
-    make && \
-    mkdir -p output && \
-    make prefix=`pwd`/output install && \
-    mkdir -p $ROOTFS/usr/local/lib && \
-    cp -av `pwd`/output/lib64/* $ROOTFS/usr/local/lib
 
 # Make sure the kernel headers are installed for aufs-util, and then build it
 RUN cd /linux-kernel && \
