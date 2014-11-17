@@ -172,6 +172,21 @@ the "samba" container that refers to it by name. So, in this example, if you
 were on OS-X you now have /Volumes/data and /data in container being shared. You
 can change the paths as needed.
 
+##### Insecure Registry
+
+As of Docker version 1.3.1, if your registry doesn't support HTTPS, you must add it as an
+insecure registry.
+
+```console
+$ boot2docker init
+$ boot2docker up
+$ boot2docker ssh
+$ echo 'EXTRA_ARGS="--insecure-registry <YOUR INSECURE HOST>"' | sudo tee -a /var/lib/boot2docker/profile
+$ sudo /etc/init.d/docker restart
+```
+
+then you should be able to do a docker push/pull.
+
 ##### VirtualBox Guest Additions
 
 Alternatively, Boot2Docker includes the VirtualBox Guest Additions built in for
