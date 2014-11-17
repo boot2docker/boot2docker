@@ -178,9 +178,7 @@ As of Docker version 1.3.1, if your registry doesn't support HTTPS, you must add
 insecure registry.
 
 ```console
-$ boot2docker delete #removes old image
-$ rm -f ~/.ssh/id_boot2docker* # remove old keys
-$ boot2docker init #generates new keys, cert
+$ boot2docker init
 $ boot2docker up
 $ boot2docker ssh
 $ echo 'EXTRA_ARGS="--insecure-registry <YOUR INSECURE HOST>"' | sudo tee -a /var/lib/boot2docker/profile
