@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
 		bash-completion \
 		ca-certificates \
 		dbus \
+		ifupdown \
 		iptables \
 		isc-dhcp-client \
 		isolinux \
@@ -21,7 +22,6 @@ RUN apt-get update && apt-get install -y \
 		--no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& rm -rf /etc/ssh/ssh_host_*
-# TODO delete a bunch of stuff inspired by debian2docker (/lib/modules is ripe for some ritual cleansing)
 
 #		firmware-linux-free \
 
@@ -74,14 +74,11 @@ RUN rm -v /etc/rc*/*docker*
 #	&& sed -i 's!/usr/bin/!/usr/local/bin/!g' /lib/systemd/system/docker.service \
 #	&& systemctl enable docker.service
 
-# http://l3net.wordpress.com/2013/09/21/how-to-build-a-debian-livecd/
-
 WORKDIR /tmp/iso
 
 RUN mkdir -p live
 RUN cp -L /vmlinuz /initrd.img live/
-#RUN mksquashfs / live/filesystem.squashfs -comp xz -e /.docker* boot dev initrd.img proc run sys tmp usr/share/doc usr/share/man usr/share/mime var/cache var/lock var/log vmlinuz etc/hostname
-#RUN mksquashfs / live/filesystem.squashfs -comp xz -e /.docker* dev proc sys tmp etc/hostname
+
 RUN echo 'docker' > /etc/hostname \
 	&& { \
 		echo '127.0.0.1   localhost docker'; \
