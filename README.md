@@ -13,6 +13,11 @@ small ~24MB download and boots in ~5s (YMMV).
 > **Note:** Boot2Docker uses port **2376**, the [registered IANA Docker SSL
 > port](http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?search=docker)
 
+## Caveat Emptor
+
+Boot2Docker is currently designed and tuned for development.  Using it for
+any kind of production workloads at this time is highly discouraged.
+
 ## Installation
 
 Installation instructions for [OS X](https://docs.docker.com/installation/mac/)
