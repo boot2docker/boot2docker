@@ -35,6 +35,7 @@ if grep -q '^docker:' /etc/passwd; then
     #preload data from boot2docker-cli
     if [ -e "/var/lib/boot2docker/userdata.tar" ]; then
         tar xf /var/lib/boot2docker/userdata.tar -C /home/docker/ > /var/log/userdata.log 2>&1
+        rm -f 'boot2docker, please format-me'
         chown -R docker:staff /home/docker
     fi
 fi
