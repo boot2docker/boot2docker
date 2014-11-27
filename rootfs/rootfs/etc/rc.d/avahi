@@ -1,0 +1,2 @@
+# Launch Avahi
+/usr/local/etc/init.d/avahi start

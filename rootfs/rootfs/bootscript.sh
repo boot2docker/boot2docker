@@ -48,6 +48,9 @@ fi
 # Launch ACPId
 /etc/rc.d/acpid
 
+# Launch Avahi
+/etc/rc.d/avahi
+
 echo "-------------------"
 date
 #maybe the links will be up by now - trouble is, on some setups, they may never happen, so we can't just wait until they are
