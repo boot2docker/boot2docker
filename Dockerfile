@@ -1,35 +1,70 @@
 FROM debian:jessie
 
-RUN apt-get update && apt-get install -y \
+RUN mkdir -p /tmp/iso/live /tmp/iso/isolinux
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends \
 		aufs-tools \
 		bash-completion \
+		btrfs-tools \
+		busybox \
 		ca-certificates \
 		dbus \
 		ifupdown \
 		iptables \
 		isc-dhcp-client \
-		isolinux \
-		linux-image-amd64 \
+		linux-image-3.16.0-4-amd64 \
 		live-boot \
-		makedev \
 		openssh-server \
 		rsync \
-		squashfs-tools \
 		sudo \
-		syslinux-common \
-		wget \
+		\
+		squashfs-tools \
 		xorriso \
-		--no-install-recommends \
+		\
+		isolinux \
+		syslinux-common \
 	&& rm -rf /var/lib/apt/lists/* \
-	&& rm -rf /etc/ssh/ssh_host_*
+	&& rm -rf /etc/ssh/ssh_host_* \
+	&& ln -L /usr/lib/ISOLINUX/isolinux.bin /usr/lib/syslinux/modules/bios/* /tmp/iso/isolinux/ \
+	&& ln -L /usr/lib/ISOLINUX/isohdpfx.bin /tmp/ \
+	&& apt-get purge -y --auto-remove \
+		isolinux \
+		syslinux-common \
+	&& ln -L /vmlinuz /initrd.img /tmp/iso/live/
 
+#		curl \
+#		wget \
 #		firmware-linux-free \
 
-# undo some of the Docker-specific hack from the base image :)
-RUN rm /usr/sbin/policy-rc.d
+# BUSYBOX ALL UP IN HERE
+RUN set -e \
+	&& busybox="$(which busybox)" \
+	&& for m in $("$busybox" --list); do \
+		if ! command -v "$m" > /dev/null; then \
+			ln -vL "$busybox" /usr/local/bin/"$m"; \
+		fi; \
+	done
 
-# live-boot's scripts expect this to exist (and live-boot is what fixes up our initrd to work, and adds some scripts that help with early-boot)
+# live-boot's early-init scripts expect this to exist (and live-boot is what fixes up our initrd to work by adding some scripts that help with early-boot)
 RUN mkdir -p /etc/fstab.d
+
+# if /etc/machine-id is empty, systemd will generate a suitable ID on boot
+RUN echo -n > /etc/machine-id
+
+# setup networking (hack hack hack)
+# TODO find a better way to do this natively via some eth@.service magic (like the getty magic) and remove ifupdown completely
+RUN for iface in eth0 eth1 eth2 eth3; do \
+		{ \
+			echo "auto $iface"; \
+			echo "allow-hotplug $iface"; \
+			echo "iface $iface inet dhcp"; \
+		} > /etc/network/interfaces.d/$iface; \
+	done
+
+# COLOR PROMPT BABY
+RUN sed -ri 's/^#(force_color_prompt=)/\1/' /etc/skel/.bashrc \
+	&& cp /etc/skel/.bashrc /root/
 
 # setup our non-root user, set passwords for both users, and setup sudo
 RUN useradd --create-home --shell /bin/bash docker \
@@ -45,40 +80,25 @@ RUN mkdir -p /etc/systemd/system/getty@tty1.service.d && { \
 		echo '[Service]'; \
 		echo 'ExecStart='; \
 		echo 'ExecStart=-/sbin/agetty --autologin docker --noclear %I $TERM'; \
-	} > /etc/systemd/system/getty@tty1.service.d/autologin.conf \
-	&& mkdir -p /etc/systemd/system/serial-getty@ttyS0.service.d && { \
+	} > /etc/systemd/system/getty@tty1.service.d/autologin.conf
+RUN mkdir -p /etc/systemd/system/serial-getty@ttyS0.service.d && { \
 		echo '[Service]'; \
 		echo 'ExecStart='; \
 		echo 'ExecStart=-/sbin/agetty --autologin docker --keep-baud 115200,38400,9600 %I $TERM'; \
 	} > /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf
 
-RUN echo 'deb http://get.docker.com/ubuntu docker main' > /etc/apt/sources.list.d/docker.list \
-	&& apt-key adv --keyserver pgp.mit.edu --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+# DOCKER DOCKER DOCKER
+ENV DOCKER_VERSION 1.3.2
+COPY docker-${DOCKER_VERSION} /usr/local/bin/docker
+# TODO figure out why Docker panics the kernel
+#COPY docker.service /etc/systemd/system/
 
-ENV DOCKER_VERSION 1.3.1
+# PURE VANITY
+RUN { echo; echo 'Docker (\\s \\m \\r) [\\l]'; echo; } > /etc/issue \
+	&& { echo; docker -v; echo; } > /etc/motd
 
-RUN apt-get update && apt-get install -y lxc-docker-$DOCKER_VERSION --no-install-recommends && rm -rf /var/lib/apt/lists/*
-RUN rm -v /etc/rc*/*docker*
-
-#RUN wget "https://get.docker.com/builds/$(uname -s)/$(uname -m)/docker-${DOCKER_VERSION}" -O /usr/local/bin/docker \
-#	&& chmod +x /usr/local/bin/docker
-
-#RUN wget "https://raw.githubusercontent.com/docker/docker/v${DOCKER_VERSION}/contrib/init/sysvinit-debian/docker" -O /etc/init.d/docker \
-#	&& sed -i 's!/usr/bin/!/usr/local/bin/!g' /etc/init.d/docker \
-#	&& chmod +x /etc/init.d/docker \
-#	&& wget "https://raw.githubusercontent.com/docker/docker/v${DOCKER_VERSION}/contrib/init/sysvinit-debian/docker.default" -O /etc/default/docker \
-#	&& update-rc.d docker defaults
-#RUN for f in docker.service docker.socket; do \
-#		wget "https://raw.githubusercontent.com/docker/docker/v${DOCKER_VERSION}/contrib/init/systemd/$f" -O /lib/systemd/system/"$f"; \
-#	done \
-#	&& sed -i 's!/usr/bin/!/usr/local/bin/!g' /lib/systemd/system/docker.service \
-#	&& systemctl enable docker.service
-
-WORKDIR /tmp/iso
-
-RUN mkdir -p live
-RUN cp -L /vmlinuz /initrd.img live/
-
+# /etc/hostname, /etc/hosts, and /etc/resolv.conf are all bind-mounts in Docker, so we have to set them up in the same run step as mksquashfs or the changes won't stick
+COPY excludes /tmp/
 RUN echo 'docker' > /etc/hostname \
 	&& { \
 		echo '127.0.0.1   localhost docker'; \
@@ -92,17 +112,15 @@ RUN echo 'docker' > /etc/hostname \
 		echo 'nameserver 8.8.8.8'; \
 		echo 'nameserver 8.8.4.4'; \
 	} > /etc/resolv.conf \
-	&& mksquashfs / live/filesystem.squashfs -comp xz -wildcards -e '.docker*' boot initrd.img proc sys tmp vmlinuz
+	&& mksquashfs / /tmp/iso/live/filesystem.squashfs \
+		-comp xz -b 1M -Xdict-size '100%' \
+		-wildcards -ef /tmp/excludes
 
-# add back some of the stuff we purged so it boots properly
+# add back some of the dirs we purged so the system boots properly
 RUN mkdir -p /tmp/fsappend \
 	&& cd /tmp/fsappend \
 	&& mkdir -p proc sys tmp
-RUN mksquashfs /tmp/fsappend live/filesystem.squashfs
-
-RUN mkdir -p isolinux
-RUN cp /usr/lib/ISOLINUX/isolinux.bin isolinux/
-RUN rsync -av /usr/lib/syslinux/modules/bios/ isolinux/
+RUN mksquashfs /tmp/fsappend /tmp/iso/live/filesystem.squashfs
 
 COPY isolinux.cfg /tmp/iso/isolinux/
 
@@ -111,7 +129,7 @@ RUN xorriso \
 		-A 'Docker' \
 		-V "Docker v$DOCKER_VERSION" \
 		-l -J -rock -joliet-long \
-		-isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin \
+		-isohybrid-mbr /tmp/isohdpfx.bin \
 		-partition_offset 16 \
 		-b isolinux/isolinux.bin \
 		-c isolinux/boot.cat \
@@ -119,4 +137,4 @@ RUN xorriso \
 		-boot-load-size 4 \
 		-boot-info-table \
 		-o /tmp/docker.iso \
-		.
+		/tmp/iso
