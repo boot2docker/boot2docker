@@ -6,10 +6,18 @@ Workarounds
 ## Port forwarding
 
 Let's say your Docker container exposes the port 8000 and you want access it from
-your other computers on your LAN. Run following command (and keep it open):
+your other computers on your LAN. You can do it temporarily, using `ssh`:
+
+Run following command (and keep it open):
 
 ```sh
 $ boot2docker ssh -L 8000:localhost:8000
+```
+
+or you can set up a permanent VirtualBox NAT Port forwarding:
+
+```sh
+$ VBoxManage modifyvm "boot2docker-vm" --natpf1 "tcp-port8000,tcp,,8000,,8000";
 ```
 
 Now you can access your container from your host machine under `localhost:8000`.
