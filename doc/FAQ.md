@@ -5,7 +5,7 @@ FAQ
 
 * CPU Cores: same as host (physical, not logical)
 * 40gb HDD (auto-initialized at first boot)
-* 1gb memory
+* 2GB memory
 * Autoboots to Boot2Docker
 * `virtio` high performance networking
 * NAT networked (Docker `2375->2375` and SSH `22->2022` are forwarded to the host)
