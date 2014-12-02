@@ -33,6 +33,9 @@ RUN apt-get update \
 		syslinux-common \
 	&& ln -L /vmlinuz /initrd.img /tmp/iso/live/
 
+#		apparmor \
+# see https://wiki.debian.org/AppArmor/HowTo and isolinux.cfg
+
 #		curl \
 #		wget \
 #		firmware-linux-free \
