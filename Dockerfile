@@ -20,14 +20,17 @@ RUN apt-get update && apt-get -y install  unzip \
 
 ENV KERNEL_VERSION  3.16.7
 ENV AUFS_BRANCH     aufs3.16
+ENV AUFS_COMMIT     b3883c3cb86937801fdd2e188032063de617ef73
+# we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
     mv /linux-$KERNEL_VERSION /linux-kernel
 
 # Download AUFS and apply patches and files, then remove it
-RUN git clone -b $AUFS_BRANCH --depth 1 http://git.code.sf.net/p/aufs/aufs3-standalone && \
+RUN git clone -b $AUFS_BRANCH http://git.code.sf.net/p/aufs/aufs3-standalone && \
     cd aufs3-standalone && \
+    git checkout $AUFS_COMMIT && \
     cd /linux-kernel && \
     cp -r /aufs3-standalone/Documentation /linux-kernel && \
     cp -r /aufs3-standalone/fs /linux-kernel && \
