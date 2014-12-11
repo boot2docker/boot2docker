@@ -209,8 +209,11 @@ RUN echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
 # fix "su -"
 RUN echo root > $ROOTFS/etc/sysconfig/superuser
 
+# crontab
+COPY rootfs/crontab $ROOTFS/var/spool/cron/crontabs/root
+
 # Copy boot params
-COPY  rootfs/isolinux /tmp/iso/boot/isolinux
+COPY rootfs/isolinux /tmp/iso/boot/isolinux
 
 COPY rootfs/make_iso.sh /
 
