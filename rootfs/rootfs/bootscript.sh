@@ -73,8 +73,7 @@ if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
 fi
 
 # Execute automated_script
-# disabled - this script was written assuming bash, which we no longer have.
-#/etc/rc.d/automated_script.sh
+/etc/rc.d/automated_script.sh
 
 # Run Hyper-V KVP Daemon
 if modprobe hv_utils &> /dev/null; then
