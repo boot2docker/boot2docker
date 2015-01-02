@@ -13,6 +13,7 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${DOCKER_LOGFILE:=/var/lib/boot2docker/docker.log}
 
 : ${CERTDIR:=/var/lib/boot2docker/tls/}
+: ${CERT_INTERFACES:='eth0 eth1'}
 : ${CACERT:="${CERTDIR}ca.pem"}
 : ${CAKEY:="${CERTDIR}cakey.pem"}
 : ${SERVERCERT:="${CERTDIR}server.pem"}
@@ -24,14 +25,12 @@ start() {
     # Not enabling Docker daemon TLS by default.
     if [ "$DOCKER_TLS" != "no" ]; then
         CERTHOSTNAMES="$(hostname -s),$(hostname -i)"
-        ETH0=$(ip addr show eth0 |sed -nEe 's/^[ \t]*inet[ \t]*([0-9.]+)\/.*$/\1/p')
-        ETH1=$(ip addr show eth1 |sed -nEe 's/^[ \t]*inet[ \t]*([0-9.]+)\/.*$/\1/p')
-        if [ "$ETH0" != "" ]; then
-            CERTHOSTNAMES="$CERTHOSTNAMES,$ETH0"
-        fi
-        if [ "$ETH1" != "" ]; then
-            CERTHOSTNAMES="$CERTHOSTNAMES,$ETH1"
-        fi
+        for interface in ${CERT_INTERFACES}; do
+          IP=$(ip addr show ${interface} |sed -nEe 's/^[ \t]*inet[ \t]*([0-9.]+)\/.*$/\1/p')
+          if [ "$IP" != "" ]; then
+            CERTHOSTNAMES="$CERTHOSTNAMES,$IP"
+          fi
+        done
         echo "Need TLS certs for $CERTHOSTNAMES"
         echo "-------------------"
 
@@ -46,8 +45,8 @@ start() {
         CERTSEXISTFOR=$(cat "$CERTDIR/hostnames" 2>/dev/null)
         if [ "$CERTHOSTNAMES" != "$CERTSEXISTFOR" ]; then
             echo "Generate server cert"
-            echo /usr/local/bin/generate_cert --host="$CERTHOSTNAMES" --ca="$CACERT" --ca-key="$CAKEY" --cert="$SERVERCERT" --key="$SERVERKEY" 
-            /usr/local/bin/generate_cert --host="$CERTHOSTNAMES" --ca="$CACERT" --ca-key="$CAKEY" --cert="$SERVERCERT" --key="$SERVERKEY" 
+            echo /usr/local/bin/generate_cert --host="$CERTHOSTNAMES" --ca="$CACERT" --ca-key="$CAKEY" --cert="$SERVERCERT" --key="$SERVERKEY"
+            /usr/local/bin/generate_cert --host="$CERTHOSTNAMES" --ca="$CACERT" --ca-key="$CAKEY" --cert="$SERVERCERT" --key="$SERVERKEY"
             echo "$CERTHOSTNAMES" > "$CERTDIR/hostnames"
         fi
 
