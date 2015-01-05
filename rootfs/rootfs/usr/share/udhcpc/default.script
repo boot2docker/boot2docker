@@ -29,16 +29,19 @@ case "$1" in
 				echo "$(date) route add default gw $i dev $interface metric $((metric++))" >> /var/log/udhcp.log
 				route add default gw $i dev $interface metric $((metric++))
 			done
+
+			# avoid resetting the resolv.conf for any additional netdevs,
+			#  as the first is the one the Docker daemon will use to pull images
+			if [ -n "$dns" ] ; then
+				echo "$(date) reset $RESOLV_CONF" >> /var/log/udhcp.log
+				echo -n > $RESOLV_CONF
+			fi
+			if [ -n "$domain" ] ; then
+				echo "$(date) search $domain" >> /var/log/udhcp.log
+				echo search $domain >> $RESOLV_CONF
+			fi
 		fi
 
-		if [ -n "$dns" ] ; then
-			echo "$(date) reset $RESOLV_CONF" >> /var/log/udhcp.log
-			echo -n > $RESOLV_CONF
-		fi
-		if [ -n "$domain" ] ; then
-			echo "$(date) search $domain" >> /var/log/udhcp.log
-			echo search $domain >> $RESOLV_CONF
-		fi
 		for i in $dns ; do
 			echo "$(date) adding dns $i" >> /var/log/udhcp.log
 			echo adding dns $i
