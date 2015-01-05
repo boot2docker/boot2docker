@@ -18,9 +18,9 @@ RUN apt-get update && apt-get -y install  unzip \
                         pkg-config \
                         p7zip-full
 
-ENV KERNEL_VERSION  3.16.7
-ENV AUFS_BRANCH     aufs3.16
-ENV AUFS_COMMIT     b3883c3cb86937801fdd2e188032063de617ef73
+ENV KERNEL_VERSION  3.18.4
+ENV AUFS_BRANCH     aufs3.18
+ENV AUFS_COMMIT     85f9860aa3d56b4d54fb77893ec4c4f17f04e456
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Fetch the kernel sources
