@@ -6,7 +6,7 @@ set -e
 # VirtualBox Guest Additions
 # - this will bail quickly and gracefully if we're not in VBox
 if modprobe vboxguest &> /dev/null && modprobe vboxsf &> /dev/null; then
-	mountOptions='defaults'
+	mountOptions='iocharset=utf8'
 	if grep -q '^docker:' /etc/passwd; then
 		mountOptions="${mountOptions},uid=$(id -u docker),gid=$(id -g docker)"
 	fi
@@ -18,7 +18,7 @@ if modprobe vboxguest &> /dev/null && modprobe vboxsf &> /dev/null; then
 		name="${2:-$dir}"
 		
 		mkdir -p "$dir" 2>/dev/null
-		if ! mount -t vboxsf -o "$mountOptions" "$name" "$dir" 2>/dev/null; then
+		if ! mount.vboxsf -t vboxsf -o "$mountOptions" "$name" "$dir" 2>/dev/null; then
 			rmdir "$dir" 2>/dev/null || true
 			while [ "$(dirname "$dir")" != "$dir" ]; do
 				dir="$(dirname "$dir")"
