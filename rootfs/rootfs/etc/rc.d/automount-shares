@@ -18,7 +18,7 @@ if modprobe vboxguest &> /dev/null && modprobe vboxsf &> /dev/null; then
 		name="${2:-$dir}"
 		
 		mkdir -p "$dir" 2>/dev/null
-		if ! mount.vboxsf -t vboxsf -o "$mountOptions" "$name" "$dir" 2>/dev/null; then
+		if ! mount.vboxsf -o "$mountOptions" "$name" "$dir" 2>/dev/null; then
 			rmdir "$dir" 2>/dev/null || true
 			while [ "$(dirname "$dir")" != "$dir" ]; do
 				dir="$(dirname "$dir")"
