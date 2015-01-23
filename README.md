@@ -185,9 +185,7 @@ insecure registry.
 ```console
 $ boot2docker init
 $ boot2docker up
-$ boot2docker ssh
-$ echo 'EXTRA_ARGS="--insecure-registry <YOUR INSECURE HOST>"' | sudo tee -a /var/lib/boot2docker/profile
-$ sudo /etc/init.d/docker restart
+$ boot2docker ssh "echo $'EXTRA_ARGS=\"--insecure-registry <YOUR INSECURE HOST>\"' | sudo tee -a /var/lib/boot2docker/profile && sudo /etc/init.d/docker restart"
 ```
 
 then you should be able to do a docker push/pull.
