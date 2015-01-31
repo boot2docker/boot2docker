@@ -24,7 +24,7 @@ ENV KERNEL_VERSION  3.18.7
 # http://sourceforge.net/p/aufs/aufs3-standalone/ref/master/branches/
 ENV AUFS_BRANCH     aufs3.18.1+
 ENV AUFS_COMMIT     f9f16b996df1651c5ab19bd6e6101310e3659c76
- we use AUFS_COMMIT to get stronger repeatability guarantees
+# we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
