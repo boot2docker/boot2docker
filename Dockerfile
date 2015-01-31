@@ -18,9 +18,11 @@ RUN apt-get update && apt-get -y install  unzip \
                         pkg-config \
                         p7zip-full
 
-ENV KERNEL_VERSION  3.18.4
-ENV AUFS_BRANCH     aufs3.18
-ENV AUFS_COMMIT     85f9860aa3d56b4d54fb77893ec4c4f17f04e456
+# https://www.kernel.org/
+ENV KERNEL_VERSION  3.18.5
+# http://sourceforge.net/p/aufs/aufs3-standalone/ref/master/branches/
+ENV AUFS_BRANCH     aufs3.18.1+
+ENV AUFS_COMMIT     f9f16b996df1651c5ab19bd6e6101310e3659c76
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Fetch the kernel sources
