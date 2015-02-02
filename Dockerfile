@@ -1,5 +1,6 @@
 FROM debian:jessie
 
+#Change libc6-i386 by libc6. Future test might involve libc6-amd64
 RUN apt-get update && apt-get -y install  unzip \
                         xz-utils \
                         curl \
@@ -7,7 +8,7 @@ RUN apt-get update && apt-get -y install  unzip \
                         git \
                         build-essential \
                         cpio \
-                        gcc-multilib libc6-i386 libc6-dev-i386 \
+                        gcc-multilib libc6 libc6-dev \
                         kmod \
                         squashfs-tools \
                         genisoimage \
@@ -60,7 +61,7 @@ RUN jobs=$(nproc); \
 # The post kernel build process
 
 ENV ROOTFS          /rootfs
-ENV TCL_REPO_BASE   http://tinycorelinux.net/5.x/x86
+ENV TCL_REPO_BASE   http://tinycorelinux.net/6.x/x86_64
 ENV TCZ_DEPS        iptables \
                     iproute2 \
                     openssh openssl-1.0.0 \
@@ -123,7 +124,7 @@ RUN cd /linux-kernel && \
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
 # Download the rootfs, don't unpack it though:
-RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.gz
+RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs64.gz
 
 # Install the TCZ dependencies
 RUN for dep in $TCZ_DEPS; do \
@@ -140,6 +141,10 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
 # Build VBox guest additions
 # For future reference, we have to use x86 versions of several of these bits because TCL doesn't support ELFCLASS64
 # (... and we can't use VBoxControl or VBoxService at all because of this)
+#TEST removing the 32 bits version
+# REMINDER
+# mkdir x86 && tar -C x86 -xjf VBoxGuestAdditions-x86.tar.bz2 && \
+# cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
 ENV VBOX_VERSION 4.3.26
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
@@ -150,14 +155,13 @@ RUN mkdir -p /vboxguest && \
     \
     sh VBoxLinuxAdditions.run --noexec --target . && \
     mkdir amd64 && tar -C amd64 -xjf VBoxGuestAdditions-amd64.tar.bz2 && \
-    mkdir x86 && tar -C x86 -xjf VBoxGuestAdditions-x86.tar.bz2 && \
     rm VBoxGuestAdditions*.tar.bz2 && \
     \
     KERN_DIR=/linux-kernel/ make -C amd64/src/vboxguest-${VBOX_VERSION} && \
     cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/ && \
     \
     mkdir -p $ROOTFS/sbin && \
-    cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
+    cp amd64/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
 
 # Build VMware Tools
 ENV OVT_VERSION 9.4.6-1770165
@@ -214,10 +218,12 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
-RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
-    chmod +x $ROOTFS/usr/local/bin/docker && \
-    { $ROOTFS/usr/local/bin/docker version || true; }
-
+# TEST Try to retrieve the proper docker binary
+# RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
+#    chmod +x $ROOTFS/usr/local/bin/docker && \
+#    { $ROOTFS/usr/local/bin/docker version || true; }
+RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-1.4.1 && \
+    chmod +x $ROOTFS/usr/local/bin/docker
 # Get the git versioning info
 COPY .git /git/.git
 RUN cd /git && \
@@ -225,6 +231,9 @@ RUN cd /git && \
     GITSHA1=$(git rev-parse --short HEAD) && \
     DATE=$(date) && \
     echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
+
+# Dirty hack: copy /usr/local/etc/ssh/ssh_config_example into /usr/local/etc/ssh/ssh_config.example
+RUN cp $ROOTFS/usr/local/etc/ssh/ssh_config_example $ROOTFS/usr/local/etc/ssh/ssh_config.example
 
 # Install Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
