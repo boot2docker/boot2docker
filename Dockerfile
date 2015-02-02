@@ -132,6 +132,10 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
 # Build VBox guest additions
 # For future reference, we have to use x86 versions of several of these bits because TCL doesn't support ELFCLASS64
 # (... and we can't use VBoxControl or VBoxService at all because of this)
+#TEST removing the 32 bits version
+# REMINDER
+# mkdir x86 && tar -C x86 -xjf VBoxGuestAdditions-x86.tar.bz2 && \
+# cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
 ENV VBOX_VERSION 4.3.26
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
@@ -158,10 +162,12 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
-RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
-    chmod +x $ROOTFS/usr/local/bin/docker && \
-    { $ROOTFS/usr/local/bin/docker version || true; }
-
+# TEST Try to retrieve the proper docker binary
+# RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
+#    chmod +x $ROOTFS/usr/local/bin/docker && \
+#    { $ROOTFS/usr/local/bin/docker version || true; }
+RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-1.4.1 && \
+    chmod +x $ROOTFS/usr/local/bin/docker
 # Get the git versioning info
 COPY .git /git/.git
 RUN cd /git && \
