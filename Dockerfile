@@ -62,7 +62,8 @@ ENV TCZ_DEPS        iptables \
                     xz liblzma \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
                     nfs-utils tcp_wrappers portmap rpcbind libtirpc \
-                    curl ntpclient
+                    curl ntpclient \
+                    procps glib2 libtirpc libffi
 
 # Make the ROOTFS
 RUN mkdir -p $ROOTFS
@@ -172,6 +173,10 @@ RUN cd /git && \
 
 # Install Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
+
+# Copy libnet and open-vm-tools
+RUN curl -L https://github.com/vmware/tcl-container/releases/download/v9.4.6/libdnet.tgz | tar -C $ROOTFS/ -xz
+RUN curl -L https://github.com/vmware/tcl-container/releases/download/v9.4.6/open-vm-tools.tgz | tar -C $ROOTFS/ -xz
 
 # Copy our custom rootfs
 COPY rootfs/rootfs $ROOTFS
