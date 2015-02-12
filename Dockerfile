@@ -223,7 +223,8 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 #    chmod +x $ROOTFS/usr/local/bin/docker && \
 #    { $ROOTFS/usr/local/bin/docker version || true; }
 RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-1.4.1 && \
-    chmod +x $ROOTFS/usr/local/bin/docker
+    chmod +x $ROOTFS/usr/local/bin/docker && \
+    { $ROOTFS/usr/local/bin/docker version || true; }
 # Get the git versioning info
 COPY .git /git/.git
 RUN cd /git && \
@@ -234,6 +235,10 @@ RUN cd /git && \
 
 # Dirty hack: copy /usr/local/etc/ssh/ssh_config_example into /usr/local/etc/ssh/ssh_config.example
 RUN cp $ROOTFS/usr/local/etc/ssh/ssh_config_example $ROOTFS/usr/local/etc/ssh/ssh_config.example
+# Dirty hack to allow SSH to use specific environment variables
+RUN echo "PermitUserEnvironment yes" >> $ROOTFS/usr/local/etc/ssh/sshd_config_example
+RUN cp $ROOTFS/usr/local/etc/ssh/sshd_config_example $ROOTFS/usr/local/etc/ssh/sshd_config.example
+
 
 # Install Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
@@ -257,6 +262,11 @@ RUN find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';'
 
 # Change MOTD
 RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
+
+# Dirty hack to make the bootscript add an environment file to the .ssh/ directory
+RUN echo "touch /home/docker/.ssh/environment" >> $ROOTFS/bootscript.sh
+RUN echo "echo \"PATH=/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin\" >> /home/docker/.ssh/environment" >> $ROOTFS/bootscript.sh
+RUN echo "touch ./executed.log" >> $ROOTFS/bootscript.sh
 
 # Make sure we have the correct bootsync
 RUN mv $ROOTFS/boot*.sh $ROOTFS/opt/ && \
