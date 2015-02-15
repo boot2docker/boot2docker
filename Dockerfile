@@ -18,9 +18,11 @@ RUN apt-get update && apt-get -y install  unzip \
                         pkg-config \
                         p7zip-full
 
-ENV KERNEL_VERSION  3.16.7
-ENV AUFS_BRANCH     aufs3.16
-ENV AUFS_COMMIT     b3883c3cb86937801fdd2e188032063de617ef73
+# https://www.kernel.org/
+ENV KERNEL_VERSION  3.18.5
+# http://sourceforge.net/p/aufs/aufs3-standalone/ref/master/branches/
+ENV AUFS_BRANCH     aufs3.18.1+
+ENV AUFS_COMMIT     f9f16b996df1651c5ab19bd6e6101310e3659c76
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Fetch the kernel sources
@@ -129,7 +131,7 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
 # Build VBox guest additions
 # For future reference, we have to use x86 versions of several of these bits because TCL doesn't support ELFCLASS64
 # (... and we can't use VBoxControl or VBoxService at all because of this)
-ENV VBOX_VERSION 4.3.18
+ENV VBOX_VERSION 4.3.20
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
     \
@@ -204,7 +206,7 @@ RUN echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
 	echo "/bin/login -f docker" >> $ROOTFS/usr/local/bin/autologin && \
 	chmod 755 $ROOTFS/usr/local/bin/autologin && \
 	echo 'ttyS0:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab && \
-	echo 'ttyS1:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab
+	echo 'ttyS1:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS1 vt100' >> $ROOTFS/etc/inittab
 
 # fix "su -"
 RUN echo root > $ROOTFS/etc/sysconfig/superuser
