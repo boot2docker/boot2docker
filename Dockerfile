@@ -19,7 +19,7 @@ RUN apt-get update && apt-get -y install  unzip \
                         p7zip-full
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  3.18.5
+ENV KERNEL_VERSION  3.18.7
 # http://sourceforge.net/p/aufs/aufs3-standalone/ref/master/branches/
 ENV AUFS_BRANCH     aufs3.18.1+
 ENV AUFS_COMMIT     f9f16b996df1651c5ab19bd6e6101310e3659c76
