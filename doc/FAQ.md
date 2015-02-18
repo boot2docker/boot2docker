@@ -34,13 +34,21 @@ distributed systems. I just wanted the fastest way to boot to Docker.
 
 **Persistent partition choice**
 
-Boot2Docker will first try to mount a partition labeled ``boot2docker-data``, if
+Boot2Docker will first try to mount a partition named ``boot2docker-data``, if
 that doesn't exist, it will pick the first ``ext4`` partition listed by ``blkid``.
+
+By default, the ISO image creates the ``boot2docker-vm`` partition, therefore no additional one is likely to be needed but you can still add some if you want to.
+
+Keep in mind that if you have 2 partitions with the same names but different labels,
+boot2docker will only see one of them. So, if you add a ``boot2docker-data`` partition, boot2docker will mount that one and forget ``boot2docker-vm``.
+However, if you name them differently, boot2docker will see all of them.
+E.g.: ``boot2docker-vm`` and ``partition2`` will both be mounted.
 
 **Local Customisation (with persistent partition)**
 
 If you have a persistence partition, you can make customisations that are run at
 the end of the boot initialisation in the ``/var/lib/boot2docker/bootlocal.sh`` file.
+That script must be in ``#!/bin/sh`` because neither bash or csh are installed in the boot2docker vm.
 
 You can also set variables that will be used during the boot initialisation (after
 the automount) by setting them in `/var/lib/boot2docker/profile`
@@ -65,7 +73,7 @@ su - docker -c "tce-load -i /var/lib/boot2docker/*.tcz"
 docker run -d -v /var/run/docker.sock:/var/run/docker.sock $(which docker):$(which docker)  -name dom0 svens-dom0
 ```
 
-Or, if you need to tell the Docker daemon to use a specific DNS server, add the 
+Or, if you need to tell the Docker daemon to use a specific DNS server, add the
 following to ``/var/lib/boot2docker/profile``:
 
 ```
