@@ -34,6 +34,37 @@ if [ ! -n "$BOOT2DOCKER_DATA" ]; then
             mkfs.ext4 -L $LABEL $BOOT2DOCKER_DATA
             swapon "${UNPARTITIONED_HD}2"
         fi
+
+        DISK_VENDOR=`cat /sys/class/block/$(basename $UNPARTITIONED_HD /dev/)/device/vendor /sys/class/block/$(basename $UNPARTITIONED_HD /dev/)/device/model | tr -d "\n"`
+        # Test if disk is "VMware, VMware Virtual S" and empty.
+        if [ "$DISK_VENDOR" = "VMware, VMware Virtual S" ]; then
+            # Check whether the disk has any known partitions on it
+            blkid -o device $UNPARTITIONED_HD
+            if [ $? == 2 ]; then
+                # As there are no partitions, let's make sure the disk is empty for real
+                dd if=$UNPARTITIONED_HD of=device_test_file bs=1k count=256 > /dev/null 2>&1
+                NON_NUL=$(<device_test_file tr -d '\0\n' | wc -c)
+                if [ $NON_NUL == 0 ]; then                    
+                    # Create the partition, format it and then mount it
+                    echo "NEW VMware boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use"
+                    echo "NEW VMware boot2docker managed disk image ($UNPARTITIONED_HD): formatting it for use" > /home/docker/log.log
+
+                    # Add a swap partition (so Docker doesn't complain about it missing)
+                    (echo n; echo p; echo 2; echo ; echo +1000M ; echo w) | fdisk $UNPARTITIONED_HD
+                    (echo t; echo 82) | fdisk $UNPARTITIONED_HD
+                    mkswap "${UNPARTITIONED_HD}2"
+                    # Add the data partition
+                    (echo n; echo p; echo 1; echo ; echo ; echo w) | fdisk $UNPARTITIONED_HD
+                    BOOT2DOCKER_DATA=`echo "${UNPARTITIONED_HD}1"`
+                    mkfs.ext4 -L $LABEL $BOOT2DOCKER_DATA
+                    swapon "${UNPARTITIONED_HD}2"
+                else
+                    echo "Disk unpartitioned but something is there... not doing anything"
+                fi
+            else
+                echo "Partition table found on disk, not doing anything"
+            fi
+        fi
     else
         # Pick the first ext4 as a fallback
         # TODO: mount all Linux partitions and look for a /var/lib/docker...
