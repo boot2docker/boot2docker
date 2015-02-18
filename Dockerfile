@@ -89,6 +89,7 @@ RUN mkdir -p /etc/systemd/system/serial-getty@ttyS0.service.d && { \
 ENV DOCKER_VERSION 1.5.0
 COPY docker-${DOCKER_VERSION} /usr/local/bin/docker
 COPY docker.service /etc/systemd/system/
+RUN systemctl enable docker.service
 
 # PURE VANITY
 RUN { echo; echo 'Docker (\\s \\m \\r) [\\l]'; echo; } > /etc/issue \
