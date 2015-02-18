@@ -95,8 +95,6 @@ RUN systemctl enable docker.service
 RUN { echo; echo 'Docker (\\s \\m \\r) [\\l]'; echo; } > /etc/issue \
 	&& { echo; docker -v; echo; } > /etc/motd
 
-COPY isolinux.cfg /tmp/iso/isolinux/
-
 COPY initramfs-live-hook.sh /usr/share/initramfs-tools/hooks/live
 COPY initramfs-live-script.sh /usr/share/initramfs-tools/scripts/live
 

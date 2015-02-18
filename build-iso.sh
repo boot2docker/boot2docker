@@ -19,6 +19,52 @@ echo 'docker' > /etc/hostname
 	echo 'nameserver 8.8.4.4'
 } > /etc/resolv.conf
 
+docker -v > /tmp/iso/version
+
+mkdir -p /tmp/iso/isolinux
+
+cat > /tmp/iso/isolinux/isolinux.cfg <<EOH
+serial 0
+
+ui menu.c32
+prompt 1
+menu title $(head -1 /tmp/iso/version)
+timeout 10
+EOH
+
+commonAppend='console=ttyS0 console=tty0 boot=live'
+extraAppend='cgroup_enable=memory swapaccount=1'
+
+declare -A inits=(
+	[sysvinit]='/lib/sysvinit/init'
+	[systemd]='/lib/systemd/systemd'
+)
+for init in '' sysvinit systemd; do
+	cat >> /tmp/iso/isolinux/isolinux.cfg <<EOE
+
+label docker${init:+-$init}
+	menu label Docker${init:+ ($init)}
+	linux /live/vmlinuz
+	initrd /live/initrd.img
+	append${init:+ init=${inits[$init]}} $commonAppend $extraAppend loglevel=3
+EOE
+done
+
+cat >> /tmp/iso/isolinux/isolinux.cfg <<EOE
+
+label docker-safe
+	menu label Docker (recovery mode)
+	linux /live/vmlinuz
+	initrd /live/initrd.img
+	append $commonAppend single
+
+label docker-bootdebug
+	menu label Docker (boot debug)
+	linux /live/vmlinuz
+	initrd /live/initrd.img
+	append $commonAppend $extraAppend systemd.log_level=debug systemd.log_target=console debug=vc
+EOE
+
 mkdir -p /tmp/iso/live
 
 echo >&2 'Building the rootfs tarball ...'
@@ -27,8 +73,6 @@ tar --exclude-from /tmp/excludes -cJf /tmp/rootfs.tar.xz /
 echo >&2 'Updating initrd.img ...'
 update-initramfs -k all -u
 ln -L /vmlinuz /initrd.img /tmp/iso/live/
-
-docker -v > /tmp/iso/version
 
 # volume IDs must be 32 characters or less
 volid="$(head -1 /tmp/iso/version | sed 's/ version / v/')"
