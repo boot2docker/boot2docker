@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/usr/local/bin/vmtoolsd --background /var/run/vmtoolsd.pid

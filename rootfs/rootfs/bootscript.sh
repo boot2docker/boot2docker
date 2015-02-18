@@ -80,3 +80,6 @@ fi
 if modprobe hv_utils &> /dev/null; then
     /usr/sbin/hv_kvp_daemon
 fi
+
+# Launch vmware-tools
+/etc/rc.d/vmtoolsd
