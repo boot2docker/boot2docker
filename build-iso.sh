@@ -28,8 +28,10 @@ echo >&2 'Updating initrd.img ...'
 update-initramfs -k all -u
 ln -L /vmlinuz /initrd.img /tmp/iso/live/
 
+docker -v > /tmp/iso/version
+
 # volume IDs must be 32 characters or less
-volid="$(docker -v | sed 's/ version / v/')"
+volid="$(head -1 /tmp/iso/version | sed 's/ version / v/')"
 if [ ${#volid} -gt 32 ]; then
 	volid="$(printf '%-32.32s' "$volid")"
 fi

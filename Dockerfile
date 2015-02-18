@@ -1,7 +1,5 @@
 FROM debian:jessie
 
-RUN mkdir -p /tmp/iso/isolinux
-
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 		aufs-tools \
@@ -27,6 +25,7 @@ RUN apt-get update \
 		syslinux-common \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& rm -rf /etc/ssh/ssh_host_* \
+	&& mkdir -p /tmp/iso/isolinux \
 	&& ln -L /usr/lib/ISOLINUX/isolinux.bin /usr/lib/syslinux/modules/bios/* /tmp/iso/isolinux/ \
 	&& ln -L /usr/lib/ISOLINUX/isohdpfx.bin /tmp/ \
 	&& apt-get purge -y --auto-remove \
@@ -73,18 +72,18 @@ RUN useradd --create-home --shell /bin/bash docker \
 	} | chpasswd \
 	&& echo 'docker ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/docker
 
-# autologin for both tty1 and ttyS0
+# autologin for all tty
 # see also: grep ^ExecStart /lib/systemd/system/*getty@.service
-RUN mkdir -p /etc/systemd/system/getty@tty1.service.d && { \
+RUN mkdir -p /etc/systemd/system/getty@.service.d && { \
 		echo '[Service]'; \
 		echo 'ExecStart='; \
 		echo 'ExecStart=-/sbin/agetty --autologin docker --noclear %I $TERM'; \
-	} > /etc/systemd/system/getty@tty1.service.d/autologin.conf
-RUN mkdir -p /etc/systemd/system/serial-getty@ttyS0.service.d && { \
+	} > /etc/systemd/system/getty@.service.d/autologin.conf
+RUN mkdir -p /etc/systemd/system/serial-getty@.service.d && { \
 		echo '[Service]'; \
 		echo 'ExecStart='; \
 		echo 'ExecStart=-/sbin/agetty --autologin docker --keep-baud 115200,38400,9600 %I $TERM'; \
-	} > /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf
+	} > /etc/systemd/system/serial-getty@.service.d/autologin.conf
 
 # DOCKER DOCKER DOCKER
 ENV DOCKER_VERSION 1.5.0
