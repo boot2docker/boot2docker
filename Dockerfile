@@ -17,6 +17,7 @@ RUN apt-get update \
 		openssh-server \
 		rsync \
 		sudo \
+		sysvinit \
 		\
 		squashfs-tools \
 		xorriso \
