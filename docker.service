@@ -1,13 +1,14 @@
 [Unit]
 Description=Docker Application Container Engine
 Documentation=http://docs.docker.com
-After=network.target docker.socket
-Requires=docker.socket
+After=network.target
 
 [Service]
 ExecStart=/usr/local/bin/docker -d
+MountFlags=slave
 LimitNOFILE=1048576
 LimitNPROC=1048576
+LimitCORE=infinity
 
 [Install]
 WantedBy=multi-user.target

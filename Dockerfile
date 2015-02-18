@@ -1,6 +1,6 @@
 FROM debian:jessie
 
-RUN mkdir -p /tmp/iso/live /tmp/iso/isolinux
+RUN mkdir -p /tmp/iso/isolinux
 
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
@@ -14,13 +14,13 @@ RUN apt-get update \
 		iptables \
 		isc-dhcp-client \
 		linux-image-3.16.0-4-amd64 \
-		live-boot \
 		openssh-server \
 		rsync \
 		sudo \
 		\
 		squashfs-tools \
 		xorriso \
+		xz-utils \
 		\
 		isolinux \
 		syslinux-common \
@@ -30,15 +30,13 @@ RUN apt-get update \
 	&& ln -L /usr/lib/ISOLINUX/isohdpfx.bin /tmp/ \
 	&& apt-get purge -y --auto-remove \
 		isolinux \
-		syslinux-common \
-	&& ln -L /vmlinuz /initrd.img /tmp/iso/live/
+		syslinux-common
 
 #		apparmor \
 # see https://wiki.debian.org/AppArmor/HowTo and isolinux.cfg
 
 #		curl \
 #		wget \
-#		firmware-linux-free \
 
 # BUSYBOX ALL UP IN HERE
 RUN set -e \
@@ -48,9 +46,6 @@ RUN set -e \
 			ln -vL "$busybox" /usr/local/bin/"$m"; \
 		fi; \
 	done
-
-# live-boot's early-init scripts expect this to exist (and live-boot is what fixes up our initrd to work by adding some scripts that help with early-boot)
-RUN mkdir -p /etc/fstab.d
 
 # if /etc/machine-id is empty, systemd will generate a suitable ID on boot
 RUN echo -n > /etc/machine-id
@@ -91,53 +86,20 @@ RUN mkdir -p /etc/systemd/system/serial-getty@ttyS0.service.d && { \
 	} > /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf
 
 # DOCKER DOCKER DOCKER
-ENV DOCKER_VERSION 1.3.2
+ENV DOCKER_VERSION 1.5.0
 COPY docker-${DOCKER_VERSION} /usr/local/bin/docker
-# TODO figure out why Docker panics the kernel
-#COPY docker.service /etc/systemd/system/
+COPY docker.service /etc/systemd/system/
 
 # PURE VANITY
 RUN { echo; echo 'Docker (\\s \\m \\r) [\\l]'; echo; } > /etc/issue \
 	&& { echo; docker -v; echo; } > /etc/motd
 
-# /etc/hostname, /etc/hosts, and /etc/resolv.conf are all bind-mounts in Docker, so we have to set them up in the same run step as mksquashfs or the changes won't stick
-COPY excludes /tmp/
-RUN echo 'docker' > /etc/hostname \
-	&& { \
-		echo '127.0.0.1   localhost docker'; \
-		echo '::1         localhost ip6-localhost ip6-loopback'; \
-		echo 'fe00::0     ip6-localnet'; \
-		echo 'ff00::0     ip6-mcastprefix'; \
-		echo 'ff02::1     ip6-allnodes'; \
-		echo 'ff02::2     ip6-allrouters'; \
-	} > /etc/hosts \
-	&& { \
-		echo 'nameserver 8.8.8.8'; \
-		echo 'nameserver 8.8.4.4'; \
-	} > /etc/resolv.conf \
-	&& mksquashfs / /tmp/iso/live/filesystem.squashfs \
-		-comp xz -b 1M -Xdict-size '100%' \
-		-wildcards -ef /tmp/excludes
-
-# add back some of the dirs we purged so the system boots properly
-RUN mkdir -p /tmp/fsappend \
-	&& cd /tmp/fsappend \
-	&& mkdir -p proc sys tmp
-RUN mksquashfs /tmp/fsappend /tmp/iso/live/filesystem.squashfs
-
 COPY isolinux.cfg /tmp/iso/isolinux/
 
-RUN xorriso \
-		-as mkisofs \
-		-A 'Docker' \
-		-V "Docker v$DOCKER_VERSION" \
-		-l -J -rock -joliet-long \
-		-isohybrid-mbr /tmp/isohdpfx.bin \
-		-partition_offset 16 \
-		-b isolinux/isolinux.bin \
-		-c isolinux/boot.cat \
-		-no-emul-boot \
-		-boot-load-size 4 \
-		-boot-info-table \
-		-o /tmp/docker.iso \
-		/tmp/iso
+COPY initramfs-live-hook.sh /usr/share/initramfs-tools/hooks/live
+COPY initramfs-live-script.sh /usr/share/initramfs-tools/scripts/live
+
+COPY excludes /tmp/
+COPY build-iso.sh /usr/local/bin/
+
+RUN build-iso.sh # creates /tmp/docker.iso
