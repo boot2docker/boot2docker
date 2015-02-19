@@ -1,5 +1,14 @@
 #!/bin/sh
 
-# vmtoolsd will start only if it can connect to the vmx backdoor, will
-# quit immediately if not running on a VMware-based system.
+# Creates mountpoint for Shared Folders
+if [ ! -d /mnt/hgfs ]; then
+	mkdir -p /mnt/hgfs
+	# load shared folders kernel module
+	modprobe vmhgfs
+	# try to mount the root shared folder, this command can fail
+	# if shared folders are disabled on the host, vmtoolsd will take care of the mount
+	# if they are enabled while the machine is running.
+	mount -t vmhgfs .host:/ /mnt/hgfs
+fi
+
 /usr/local/bin/vmtoolsd --background /var/run/vmtoolsd.pid
