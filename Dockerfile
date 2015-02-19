@@ -72,7 +72,7 @@ ENV TCZ_DEPS        iptables \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
                     nfs-utils tcp_wrappers portmap rpcbind libtirpc \
                     curl ntpclient \
-                    procps glib2 libtirpc libffi fuse
+                    procps glib2 libtirpc libffi fuse pcre
 
 # Make the ROOTFS
 RUN mkdir -p $ROOTFS
@@ -102,7 +102,6 @@ RUN cd $ROOTFS/lib/modules && \
 RUN curl -L http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
     cd /libcap-2.22 && \
     sed -i 's/LIBATTR := yes/LIBATTR := no/' Make.Rules && \
-    sed -i 's/\(^CFLAGS := .*\)/\1 -m64/' Make.Rules && \
     make && \
     mkdir -p output && \
     make prefix=`pwd`/output install && \
@@ -116,7 +115,7 @@ RUN cd /linux-kernel && \
     git clone http://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
     git checkout aufs4.0 && \
-    CPPFLAGS="-m64 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
+    CPPFLAGS="-I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
     rm -rf /tmp/kheaders
 
@@ -172,37 +171,44 @@ RUN cd /vmtoolsd && \
     curl -L -o open-vm-tools-3.x.x-patches.patch https://gist.github.com/frapposelli/5506651fa6f3d25d5760/raw/475f8fb2193549c10a477d506de40639b04fa2a7/open-vm-tools-3.x.x-patches.patch &&\
     patch -p1 < open-vm-tools-3.x.x-patches.patch && rm open-vm-tools-3.x.x-patches.patch
 
-RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y libfuse2 libtool autoconf \
-                                                                         libglib2.0-dev libdumbnet-dev:i386 \
-                                                                         libdumbnet1:i386 libfuse2:i386 libfuse-dev \
-                                                                         libglib2.0-0:i386 libtirpc-dev libtirpc1:i386
+RUN apt-get install -y libfuse2 libtool autoconf libglib2.0-dev libdumbnet-dev libdumbnet1 libfuse2 libfuse-dev libglib2.0-0 libtirpc-dev libtirpc1
 
-# Horrible Hack
-RUN ln -s /lib/i386-linux-gnu/libglib-2.0.so.0 /lib/i386-linux-gnu/libglib-2.0.so &&\
-    ln -s /lib/i386-linux-gnu/libtirpc.so.1 /lib/i386-linux-gnu/libtirpc.so &&\
-    ln -s /usr/lib/i386-linux-gnu/libgthread-2.0.so.0 /usr/lib/i386-linux-gnu/libgthread-2.0.so &&\
-    ln -s /usr/lib/i386-linux-gnu/libgmodule-2.0.so.0 /usr/lib/i386-linux-gnu/libgmodule-2.0.so &&\
-    ln -s /usr/lib/i386-linux-gnu/libgobject-2.0.so.0 /usr/lib/i386-linux-gnu/libgobject-2.0.so &&\
-    ln -s /lib/i386-linux-gnu/libfuse.so.2 /lib/i386-linux-gnu/libfuse.so
+# Compile
+RUN cd /vmtoolsd/open-vm-tools && \
+    autoreconf -i && \
+    ./configure --disable-multimon --disable-docs --disable-tests --with-gnu-ld \
+                --without-kernel-modules --without-procps --without-gtk2 \
+                --without-gtkmm --without-pam --without-x --without-icu && \
+    make LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" && \
+    make DESTDIR=$ROOTFS install &&\
+    libtool --finish /usr/local/lib
 
-# Compile open-vm-tools
-RUN cd /vmtoolsd/open-vm-tools && autoreconf -i &&\
-    CC="gcc -m32" CXX="g++ -m32" ./configure --host=i486-pc-linux-gnu --build=i486-pc-linux-gnu \
-                --without-kernel-modules --without-pam --without-procps --without-x --without-icu &&\
-    make CC="gcc -m32" CXX="g++ -m32" LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" &&\
-    make DESTDIR=$ROOTFS install
+# Kernel modules to build and install
+ENV VM_MODULES  vmhgfs
 
-# Download and compile libdnet as open-vm-tools rely on it.
+RUN cd /vmtoolsd/open-vm-tools &&\
+    TOPDIR=$PWD &&\
+    for module in $VM_MODULES; do \
+        cd modules/linux/$module; \
+        make -C /linux-kernel modules M=$PWD VM_CCVER=$(gcc -dumpversion) HEADER_DIR="/linux-kernel/include" SRCROOT=$PWD OVT_SOURCE_DIR=$TOPDIR; \
+        cd -; \
+    done && \
+    for module in $VM_MODULES; do \
+        make -C /linux-kernel INSTALL_MOD_PATH=$ROOTFS modules_install M=$PWD/modules/linux/$module; \
+    done
+
 ENV LIBDNET libdnet-1.11
 
 RUN mkdir -p /vmtoolsd/${LIBDNET} &&\
     curl -L http://sourceforge.net/projects/libdnet/files/libdnet/${LIBDNET}/${LIBDNET}.tar.gz \
         | tar -xzC /vmtoolsd/${LIBDNET} --strip-components 1 &&\
     cd /vmtoolsd/${LIBDNET} && ./configure --build=i486-pc-linux-gnu &&\
-    make CC="gcc -m32" CXX="g++ -m32" &&\
+    make &&\
     make install && make DESTDIR=$ROOTFS install
 
-RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1
+# Horrible hack again
+RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 &&\
+    cd $ROOTFS && ln -s lib lib64
 
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
 RUN depmod -a -b $ROOTFS $KERNEL_VERSION-boot2docker
@@ -241,7 +247,6 @@ COPY rootfs/rootfs $ROOTFS
 RUN cd /linux-kernel && \
     make headers_install INSTALL_HDR_PATH=/usr && \
     cd /linux-kernel/tools/hv && \
-    sed -i 's/\(^CFLAGS = .*\)/\1 -m64/' Makefile && \
     make hv_kvp_daemon && \
     cp hv_kvp_daemon $ROOTFS/usr/sbin
 
