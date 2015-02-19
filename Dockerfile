@@ -102,7 +102,7 @@ RUN cd $ROOTFS/lib/modules && \
 RUN curl -L http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
     cd /libcap-2.22 && \
     sed -i 's/LIBATTR := yes/LIBATTR := no/' Make.Rules && \
-    sed -i 's/\(^CFLAGS := .*\)/\1 -m32/' Make.Rules && \
+    sed -i 's/\(^CFLAGS := .*\)/\1 -m64/' Make.Rules && \
     make && \
     mkdir -p output && \
     make prefix=`pwd`/output install && \
@@ -116,7 +116,7 @@ RUN cd /linux-kernel && \
     git clone http://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
     git checkout aufs4.0 && \
-    CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
+    CPPFLAGS="-m64 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
     rm -rf /tmp/kheaders
 
@@ -218,12 +218,9 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
-# TEST Try to retrieve the proper docker binary
-# RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
-#    chmod +x $ROOTFS/usr/local/bin/docker && \
-#    { $ROOTFS/usr/local/bin/docker version || true; }
+# TODO Try following Docker version
 RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-1.4.1 && \
-    chmod +x $ROOTFS/usr/local/bin/docker && \
+    chmod +x $ROOTFS/usr/local/bin/docker&& \
     { $ROOTFS/usr/local/bin/docker version || true; }
 # Get the git versioning info
 COPY .git /git/.git
@@ -235,10 +232,10 @@ RUN cd /git && \
 
 # Dirty hack: copy /usr/local/etc/ssh/ssh_config_example into /usr/local/etc/ssh/ssh_config.example
 RUN cp $ROOTFS/usr/local/etc/ssh/ssh_config_example $ROOTFS/usr/local/etc/ssh/ssh_config.example
+
 # Dirty hack to allow SSH to use specific environment variables
 RUN echo "PermitUserEnvironment yes" >> $ROOTFS/usr/local/etc/ssh/sshd_config_example
 RUN cp $ROOTFS/usr/local/etc/ssh/sshd_config_example $ROOTFS/usr/local/etc/ssh/sshd_config.example
-
 
 # Install Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
@@ -250,7 +247,7 @@ COPY rootfs/rootfs $ROOTFS
 RUN cd /linux-kernel && \
     make headers_install INSTALL_HDR_PATH=/usr && \
     cd /linux-kernel/tools/hv && \
-    sed -i 's/\(^CFLAGS = .*\)/\1 -m32/' Makefile && \
+    sed -i 's/\(^CFLAGS = .*\)/\1 -m64/' Makefile && \
     make hv_kvp_daemon && \
     cp hv_kvp_daemon $ROOTFS/usr/sbin
 
