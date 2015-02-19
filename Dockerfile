@@ -17,6 +17,8 @@ RUN apt-get update \
 		sudo \
 		sysvinit \
 		\
+		sysvinit-core \
+		\
 		squashfs-tools \
 		xorriso \
 		xz-utils \
@@ -85,11 +87,31 @@ RUN mkdir -p /etc/systemd/system/serial-getty@.service.d && { \
 		echo 'ExecStart=-/sbin/agetty --autologin docker --keep-baud 115200,38400,9600 %I $TERM'; \
 	} > /etc/systemd/system/serial-getty@.service.d/autologin.conf
 
+# setup inittab for autologin too (in case of sysvinit)
+RUN set -e && { \
+	echo 'id:2:initdefault:'; \
+	echo 'si::sysinit:/etc/init.d/rcS'; \
+	for i in 0 1 2 3 4 5 6; do \
+		echo "l$i:$i:wait:/etc/init.d/rc $i"; \
+	done; \
+	for tty in 1 2 3 4 5 6; do \
+		[ $tty = 1 ] && rl=2345 || rl=23; \
+		echo "$tty:$rl:respawn:/sbin/getty --autologin docker --noclear 38400 tty$tty"; \
+	done; \
+	for ttyS in 0 1; do \
+		echo "T$ttyS:23:respawn:/sbin/getty --autologin docker -L ttyS$ttyS 9600 vt100"; \
+	done; \
+} > /etc/inittab
+
 # DOCKER DOCKER DOCKER
 ENV DOCKER_VERSION 1.5.0
 COPY docker-${DOCKER_VERSION} /usr/local/bin/docker
+
 COPY docker.service /etc/systemd/system/
 RUN systemctl enable docker.service
+
+COPY docker.sysvinit /etc/init.d/docker
+RUN update-rc.d docker defaults
 
 # PURE VANITY
 RUN { echo; echo 'Docker (\\s \\m \\r) [\\l]'; echo; } > /etc/issue \
