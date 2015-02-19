@@ -21,7 +21,6 @@ RUN apt-get update && apt-get -y install  unzip \
 
 # https://www.kernel.org/
 ENV KERNEL_VERSION  4.0.1
-
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
     mv /linux-$KERNEL_VERSION /linux-kernel
@@ -218,10 +217,7 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
-# TEST Try to retrieve the proper docker binary
-# RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
-#    chmod +x $ROOTFS/usr/local/bin/docker && \
-#    { $ROOTFS/usr/local/bin/docker version || true; }
+# TODO Try following Docker version
 RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-1.4.1 && \
     chmod +x $ROOTFS/usr/local/bin/docker
 # Get the git versioning info
