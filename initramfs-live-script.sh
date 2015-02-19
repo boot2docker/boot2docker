@@ -15,6 +15,9 @@ mountroot() {
 	# initramfs-tools setup scripts need these to exist to mount over them
 	mkdir -p "$rootmnt/dev" "$rootmnt/sys" "$rootmnt/proc"
 
+	# sysvinit expects/needs these to exist
+	mkdir -p "$rootmnt/tmp" "$rootmnt/var/log"
+
 	# initramfs-tools panics the kernel if this is missing
 	touch /conf/param.conf
 	# TODO file bug on initramfs-tools for this

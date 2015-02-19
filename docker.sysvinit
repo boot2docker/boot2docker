@@ -86,7 +86,6 @@ case "$1" in
 
 		cgroupfs_mount
 
-		mkdir -p "$(dirname "$DOCKER_LOGFILE")"
 		touch "$DOCKER_LOGFILE"
 		chgrp docker "$DOCKER_LOGFILE"
 
