@@ -1,3 +1,5 @@
 #!/bin/sh
 
+# vmtoolsd will start only if it can connect to the vmx backdoor, will
+# quit immediately if not running on a VMware-based system.
 /usr/local/bin/vmtoolsd --background /var/run/vmtoolsd.pid

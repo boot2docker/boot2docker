@@ -35,9 +35,9 @@ if [ ! -n "$BOOT2DOCKER_DATA" ]; then
             swapon "${UNPARTITIONED_HD}2"
         fi
 
-        DISK_VENDOR=`cat /sys/class/block/$(basename $UNPARTITIONED_HD /dev/)/device/vendor /sys/class/block/$(basename $UNPARTITIONED_HD /dev/)/device/model | tr -d "\n"`
+        DISK_VENDOR=$(cat /sys/class/block/$(basename $UNPARTITIONED_HD /dev/)/device/vendor /sys/class/block/$(basename $UNPARTITIONED_HD /dev/)/device/model | tr -d "\n")
         # Test if disk is "VMware, VMware Virtual S" and empty.
-        if [ "$DISK_VENDOR" = "VMware, VMware Virtual S" ]; then
+        if [ "$DISK_VENDOR" = "VMware, VMware Virtual S" ] || [ "$DISK_VENDOR" = "VMware  Virtual disk    " ]; then
             # Check whether the disk has any known partitions on it
             blkid -o device $UNPARTITIONED_HD
             if [ $? == 2 ]; then
