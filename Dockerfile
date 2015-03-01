@@ -134,7 +134,7 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
 # (... and we can't use VBoxControl or VBoxService at all because of this)
 # TEST removing the 32 bits version
 # TODO Not working yet
-ENV VBOX_VERSION 4.3.20
+ENV VBOX_VERSION 4.3.22
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
     \
