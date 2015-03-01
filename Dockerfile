@@ -160,10 +160,10 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
-# TODO Try following Docker version
-RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-1.4.1 && \
-    chmod +x $ROOTFS/usr/local/bin/docker&& \
+RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
+    chmod +x $ROOTFS/usr/local/bin/docker && \
     { $ROOTFS/usr/local/bin/docker version || true; }
+
 # Get the git versioning info
 COPY .git /git/.git
 RUN cd /git && \
@@ -220,7 +220,7 @@ RUN echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
 	echo "/bin/login -f docker" >> $ROOTFS/usr/local/bin/autologin && \
 	chmod 755 $ROOTFS/usr/local/bin/autologin && \
 	echo 'ttyS0:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab && \
-	echo 'ttyS1:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS1 vt100' >> $ROOTFS/etc/inittab
+	echo 'ttyS1:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab
 
 # fix "su -"
 RUN echo root > $ROOTFS/etc/sysconfig/superuser
