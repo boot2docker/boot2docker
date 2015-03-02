@@ -6,7 +6,7 @@ small ~24MB download and boots in ~5s (YMMV).
 
 ## Features
 
-* Kernel 3.16.7 with AUFS, Docker v1.4.1 - using libcontainer
+* Kernel 3.18.5 with AUFS, Docker v1.5.0 - using libcontainer
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
@@ -185,9 +185,7 @@ insecure registry.
 ```console
 $ boot2docker init
 $ boot2docker up
-$ boot2docker ssh
-$ echo 'EXTRA_ARGS="--insecure-registry <YOUR INSECURE HOST>"' | sudo tee -a /var/lib/boot2docker/profile
-$ sudo /etc/init.d/docker restart
+$ boot2docker ssh "echo $'EXTRA_ARGS=\"--insecure-registry <YOUR INSECURE HOST>\"' | sudo tee -a /var/lib/boot2docker/profile && sudo /etc/init.d/docker restart"
 ```
 
 then you should be able to do a docker push/pull.

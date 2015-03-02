@@ -24,7 +24,7 @@ ENV KERNEL_VERSION  3.18.7
 # http://sourceforge.net/p/aufs/aufs3-standalone/ref/master/branches/
 ENV AUFS_BRANCH     aufs3.18.1+
 ENV AUFS_COMMIT     f9f16b996df1651c5ab19bd6e6101310e3659c76
- we use AUFS_COMMIT to get stronger repeatability guarantees
+# we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
@@ -134,7 +134,7 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
 # (... and we can't use VBoxControl or VBoxService at all because of this)
 # TEST removing the 32 bits version
 # TODO Not working yet
-ENV VBOX_VERSION 4.3.20
+ENV VBOX_VERSION 4.3.22
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
     \
@@ -160,10 +160,10 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
-# TODO Try following Docker version
-RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-1.4.1 && \
-    chmod +x $ROOTFS/usr/local/bin/docker&& \
+RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
+    chmod +x $ROOTFS/usr/local/bin/docker && \
     { $ROOTFS/usr/local/bin/docker version || true; }
+
 # Get the git versioning info
 COPY .git /git/.git
 RUN cd /git && \
