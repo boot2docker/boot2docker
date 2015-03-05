@@ -20,6 +20,12 @@ or you can set up a permanent VirtualBox NAT Port forwarding:
 $ VBoxManage modifyvm "boot2docker-vm" --natpf1 "tcp-port8000,tcp,,8000,,8000";
 ```
 
+If the vm is already running, you should run this other command:
+
+```sh
+$ VBoxManage controlvm "boot2docker-vm" natpf1 "tcp-port8000,tcp,,8000,,8000";
+```
+
 Now you can access your container from your host machine under `localhost:8000`.
 
 ## Port forwarding on steroids
