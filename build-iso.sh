@@ -19,7 +19,11 @@ echo 'docker' > /etc/hostname
 	echo 'nameserver 8.8.4.4'
 } > /etc/resolv.conf
 
-docker -v > /tmp/iso/version
+if command -v docker &> /dev/null; then
+	docker -v > /tmp/iso/version
+else
+	echo 'Docker' > /tmp/iso/version
+fi
 
 mkdir -p /tmp/iso/isolinux
 

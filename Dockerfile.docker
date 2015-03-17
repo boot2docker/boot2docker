@@ -1,0 +1,23 @@
+FROM dockercore/iso:base
+
+# DOCKER DOCKER DOCKER
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+		aufs-tools \
+		btrfs-tools \
+		iptables \
+	&& rm -rf /var/lib/apt/lists/*
+
+ENV DOCKER_VERSION 1.5.0
+COPY docker-${DOCKER_VERSION} /usr/local/bin/docker
+
+COPY docker.service /etc/systemd/system/
+RUN systemctl enable docker.service
+
+COPY docker.sysvinit /etc/init.d/docker
+RUN update-rc.d docker defaults
+
+# PURE VANITY
+RUN { echo; docker -v; echo; } > /etc/motd
+
+#RUN build-iso.sh # creates /tmp/docker.iso

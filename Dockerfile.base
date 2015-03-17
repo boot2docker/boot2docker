@@ -2,14 +2,10 @@ FROM debian:jessie
 
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
-		aufs-tools \
 		bash-completion \
-		btrfs-tools \
 		busybox \
 		ca-certificates \
-		dbus \
 		ifupdown \
-		iptables \
 		isc-dhcp-client \
 		linux-image-3.16.0-4-amd64 \
 		openssh-server \
@@ -103,19 +99,8 @@ RUN set -e && { \
 	done; \
 } > /etc/inittab
 
-# DOCKER DOCKER DOCKER
-ENV DOCKER_VERSION 1.5.0
-COPY docker-${DOCKER_VERSION} /usr/local/bin/docker
-
-COPY docker.service /etc/systemd/system/
-RUN systemctl enable docker.service
-
-COPY docker.sysvinit /etc/init.d/docker
-RUN update-rc.d docker defaults
-
 # PURE VANITY
-RUN { echo; echo 'Docker (\\s \\m \\r) [\\l]'; echo; } > /etc/issue \
-	&& { echo; docker -v; echo; } > /etc/motd
+RUN { echo; echo 'Docker (\\s \\m \\r) [\\l]'; echo; } > /etc/issue
 
 COPY initramfs-live-hook.sh /usr/share/initramfs-tools/hooks/live
 COPY initramfs-live-script.sh /usr/share/initramfs-tools/scripts/live
@@ -123,4 +108,4 @@ COPY initramfs-live-script.sh /usr/share/initramfs-tools/scripts/live
 COPY excludes /tmp/
 COPY build-iso.sh /usr/local/bin/
 
-RUN build-iso.sh # creates /tmp/docker.iso
+#RUN build-iso.sh # creates /tmp/docker.iso
