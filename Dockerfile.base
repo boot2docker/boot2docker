@@ -101,6 +101,7 @@ RUN set -e && { \
 
 # PURE VANITY
 RUN { echo; echo 'Docker (\\s \\m \\r) [\\l]'; echo; } > /etc/issue
+RUN . /etc/os-release && echo "$PRETTY_NAME" > /tmp/iso/version
 
 COPY initramfs-live-hook.sh /usr/share/initramfs-tools/hooks/live
 COPY initramfs-live-script.sh /usr/share/initramfs-tools/scripts/live

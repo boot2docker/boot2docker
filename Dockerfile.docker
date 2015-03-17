@@ -19,5 +19,6 @@ RUN update-rc.d docker defaults
 
 # PURE VANITY
 RUN { echo; docker -v; echo; } > /etc/motd
+RUN docker -v > /tmp/iso/version
 
 #RUN build-iso.sh # creates /tmp/docker.iso
