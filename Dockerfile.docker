@@ -2,6 +2,7 @@ FROM dockercore/iso:base
 
 # DOCKER DOCKER DOCKER
 
+# https://github.com/docker/docker/blob/master/project/PACKAGERS.md#system-dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
 		aufs-tools \
 		btrfs-tools \
