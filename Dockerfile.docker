@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		btrfs-tools \
 		git \
 		iptables \
-		lxc \
 	&& rm -rf /var/lib/apt/lists/*
 
 ENV DOCKER_VERSION 1.5.0
