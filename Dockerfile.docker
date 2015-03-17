@@ -5,6 +5,7 @@ FROM dockercore/iso:base
 RUN apt-get update && apt-get install -y --no-install-recommends \
 		aufs-tools \
 		btrfs-tools \
+		git \
 		iptables \
 	&& rm -rf /var/lib/apt/lists/*
 
