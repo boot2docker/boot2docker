@@ -1,7 +1,7 @@
 Workarounds
 ===========
 
-*Note: The following steps are meant as a temporary solution and won't be needed anymore in the future.*
+*Note: The following steps are meant as a temporary solution. Check the changelog of the project to know if these are still necessary.
 
 ## Port forwarding
 
@@ -11,7 +11,7 @@ your other computers on your LAN. You can do it temporarily, using `ssh`:
 Run following command (and keep it open):
 
 ```sh
-$ boot2docker ssh -L 8000:localhost:8000
+$ boot2docker ssh -L 8000:localhost:8001
 ```
 
 or you can set up a permanent VirtualBox NAT Port forwarding:
