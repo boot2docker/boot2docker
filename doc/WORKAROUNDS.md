@@ -11,7 +11,7 @@ your other computers on your LAN. You can do it temporarily, using `ssh`:
 Run following command (and keep it open):
 
 ```sh
-$ boot2docker ssh -L 8000:localhost:8000
+$ boot2docker ssh -vnNTL 8000:localhost:8000
 ```
 
 or you can set up a permanent VirtualBox NAT Port forwarding:
