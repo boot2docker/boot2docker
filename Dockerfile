@@ -19,10 +19,10 @@ RUN apt-get update && apt-get -y install  unzip \
                         p7zip-full
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  3.18.7
+ENV KERNEL_VERSION  3.18.9
 # http://sourceforge.net/p/aufs/aufs3-standalone/ref/master/branches/
 ENV AUFS_BRANCH     aufs3.18.1+
-ENV AUFS_COMMIT     f9f16b996df1651c5ab19bd6e6101310e3659c76
+ENV AUFS_COMMIT     30b7ab5cba58c1eefdf55f00b9a1c8979fa30e1d
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Fetch the kernel sources
@@ -131,7 +131,7 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
 # Build VBox guest additions
 # For future reference, we have to use x86 versions of several of these bits because TCL doesn't support ELFCLASS64
 # (... and we can't use VBoxControl or VBoxService at all because of this)
-ENV VBOX_VERSION 4.3.20
+ENV VBOX_VERSION 4.3.26
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
     \
