@@ -1,6 +1,7 @@
 FROM debian:wheezy
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
+#Change libc6-i386 by libc6. Future test might involve libc6-amd64
 RUN apt-get update && apt-get -y install  unzip \
                         xz-utils \
                         curl \
@@ -8,7 +9,7 @@ RUN apt-get update && apt-get -y install  unzip \
                         git \
                         build-essential \
                         cpio \
-                        gcc-multilib libc6-i386 libc6-dev-i386 \
+                        gcc-multilib libc6 libc6-dev \
                         kmod \
                         squashfs-tools \
                         genisoimage \
@@ -52,7 +53,7 @@ RUN jobs=$(nproc); \
 # The post kernel build process
 
 ENV ROOTFS          /rootfs
-ENV TCL_REPO_BASE   http://tinycorelinux.net/5.x/x86
+ENV TCL_REPO_BASE   http://tinycorelinux.net/6.x/x86_64
 ENV TCZ_DEPS        iptables \
                     iproute2 \
                     openssh openssl-1.0.0 \
@@ -62,7 +63,7 @@ ENV TCZ_DEPS        iptables \
                     xz liblzma \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
                     nfs-utils tcp_wrappers portmap rpcbind libtirpc \
-                    curl ntpclient
+                    curl
 
 # Make the ROOTFS
 RUN mkdir -p $ROOTFS
@@ -92,7 +93,7 @@ RUN cd $ROOTFS/lib/modules && \
 RUN curl -L http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
     cd /libcap-2.22 && \
     sed -i 's/LIBATTR := yes/LIBATTR := no/' Make.Rules && \
-    sed -i 's/\(^CFLAGS := .*\)/\1 -m32/' Make.Rules && \
+    sed -i 's/\(^CFLAGS := .*\)/\1 -m64/' Make.Rules && \
     make && \
     mkdir -p output && \
     make prefix=`pwd`/output install && \
@@ -106,7 +107,7 @@ RUN cd /linux-kernel && \
     git clone http://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
     git checkout aufs3.9 && \
-    CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
+    CPPFLAGS="-m64 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
     rm -rf /tmp/kheaders
 
@@ -114,7 +115,7 @@ RUN cd /linux-kernel && \
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
 # Download the rootfs, don't unpack it though:
-RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.gz
+RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs64.gz
 
 # Install the TCZ dependencies
 RUN for dep in $TCZ_DEPS; do \
@@ -131,7 +132,9 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
 # Build VBox guest additions
 # For future reference, we have to use x86 versions of several of these bits because TCL doesn't support ELFCLASS64
 # (... and we can't use VBoxControl or VBoxService at all because of this)
-ENV VBOX_VERSION 4.3.20
+# TEST removing the 32 bits version
+# TODO Not working yet
+ENV VBOX_VERSION 4.3.22
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
     \
@@ -141,14 +144,13 @@ RUN mkdir -p /vboxguest && \
     \
     sh VBoxLinuxAdditions.run --noexec --target . && \
     mkdir amd64 && tar -C amd64 -xjf VBoxGuestAdditions-amd64.tar.bz2 && \
-    mkdir x86 && tar -C x86 -xjf VBoxGuestAdditions-x86.tar.bz2 && \
     rm VBoxGuestAdditions*.tar.bz2 && \
     \
     KERN_DIR=/linux-kernel/ make -C amd64/src/vboxguest-${VBOX_VERSION} && \
     cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-tinycore64/ && \
     \
     mkdir -p $ROOTFS/sbin && \
-    cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
+    cp amd64/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
 
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
 RUN depmod -a -b $ROOTFS $KERNEL_VERSION-tinycore64
@@ -170,6 +172,13 @@ RUN cd /git && \
     DATE=$(date) && \
     echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
 
+# Dirty hack: copy /usr/local/etc/ssh/ssh_config_example into /usr/local/etc/ssh/ssh_config.example
+RUN cp $ROOTFS/usr/local/etc/ssh/ssh_config_example $ROOTFS/usr/local/etc/ssh/ssh_config.example
+
+# Dirty hack to allow SSH to use specific environment variables
+RUN echo "PermitUserEnvironment yes" >> $ROOTFS/usr/local/etc/ssh/sshd_config_example
+RUN cp $ROOTFS/usr/local/etc/ssh/sshd_config_example $ROOTFS/usr/local/etc/ssh/sshd_config.example
+
 # Install Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
@@ -180,7 +189,7 @@ COPY rootfs/rootfs $ROOTFS
 RUN cd /linux-kernel && \
     make headers_install INSTALL_HDR_PATH=/usr && \
     cd /linux-kernel/tools/hv && \
-    sed -i 's/\(^CFLAGS = .*\)/\1 -m32/' Makefile && \
+    sed -i 's/\(^CFLAGS = .*\)/\1 -m64/' Makefile && \
     make hv_kvp_daemon && \
     cp hv_kvp_daemon $ROOTFS/usr/sbin
 
@@ -192,6 +201,11 @@ RUN find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';'
 
 # Change MOTD
 RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
+
+# Dirty hack to make the bootscript add an environment file to the .ssh/ directory
+RUN echo "touch /home/docker/.ssh/environment" >> $ROOTFS/bootscript.sh
+RUN echo "echo \"PATH=/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin\" >> /home/docker/.ssh/environment" >> $ROOTFS/bootscript.sh
+RUN echo "touch ./executed.log" >> $ROOTFS/bootscript.sh
 
 # Make sure we have the correct bootsync
 RUN mv $ROOTFS/boot*.sh $ROOTFS/opt/ && \
