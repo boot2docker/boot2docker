@@ -28,7 +28,7 @@ ENV AUFS_COMMIT     30b7ab5cba58c1eefdf55f00b9a1c8979fa30e1d
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Fetch the kernel sources
-RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
+RUN curl --silent --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
     mv /linux-$KERNEL_VERSION /linux-kernel
 
 # Download AUFS and apply patches and files, then remove it
