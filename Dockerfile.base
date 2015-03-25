@@ -94,10 +94,11 @@ RUN set -e && { \
 		[ $tty = 1 ] && rl=2345 || rl=23; \
 		echo "$tty:$rl:respawn:/sbin/getty --autologin docker --noclear 38400 tty$tty"; \
 	done; \
-	for ttyS in 0 1; do \
+	for ttyS in 0; do \
 		echo "T$ttyS:23:respawn:/sbin/getty --autologin docker -L ttyS$ttyS 9600 vt100"; \
 	done; \
 } > /etc/inittab
+# TODO figure out a clean way to suppress the "respawning too fast" error so we can have ttyS1 back
 
 # PURE VANITY
 RUN { echo; echo 'Docker (\\s \\m \\r) [\\l]'; echo; } > /etc/issue
