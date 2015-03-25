@@ -17,7 +17,8 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
                         syslinux \
                         automake \
                         pkg-config \
-                        p7zip-full
+                        p7zip-full && \
+    rm -rf /var/cache/apt /var/lib/apt
 
 # https://www.kernel.org/
 ENV KERNEL_VERSION  3.18.9
