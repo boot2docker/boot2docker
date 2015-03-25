@@ -1,7 +1,8 @@
 FROM debian:wheezy
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
-RUN apt-get update && apt-get -y install  unzip \
+RUN export DEBIAN_FRONTEND=noninteractive; \
+    apt-get update && apt-get -y install  unzip \
                         xz-utils \
                         curl \
                         bc \
