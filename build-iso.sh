@@ -37,7 +37,7 @@ declare -A inits=(
 	[sysvinit]='/lib/sysvinit/init'
 	[systemd]='/lib/systemd/systemd'
 )
-for init in '' sysvinit systemd; do
+for init in systemd sysvinit; do # add '' here to just use /sbin/init
 	cat >> /tmp/iso/isolinux/isolinux.cfg <<EOE
 
 label docker${init:+-$init}
