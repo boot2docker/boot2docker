@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+### BEGIN INIT INFO
+# Provides:          ssh-keygen
+# X-Start-Before:    ssh sshd
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Generate SSH host keys at boot
+# Description:       Generate SSH host keys at boot, if necessary.
+### END INIT INFO
+
+/usr/local/sbin/generate-ssh-host-keys.sh
