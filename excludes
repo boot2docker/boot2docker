@@ -4,8 +4,13 @@
 boot
 dev
 etc/apt
+etc/cron.daily/apt
+etc/cron.daily/dpkg
+etc/dpkg
 etc/initramfs-tools
 etc/kernel
+etc/logrotate.d/apt
+etc/logrotate.d/dpkg
 initrd.img
 lib/modules/*/kernel/arch/x86/kvm
 lib/modules/*/kernel/drivers/gpu
@@ -42,6 +47,8 @@ sys
 tmp
 usr/bin/*squashfs
 usr/bin/apt*
+usr/bin/debconf*
+usr/bin/dh_*
 usr/bin/dpkg*
 usr/bin/osirrox
 usr/bin/xorrecord
@@ -53,9 +60,11 @@ usr/lib/libburn.so*
 usr/lib/libisoburn.so*
 usr/lib/libisofs.so*
 usr/lib/libjte.so*
+usr/sbin/dpkg*
 usr/sbin/policy-rc.d
 usr/share/bug
 usr/share/doc
+usr/share/dpkg
 usr/share/info
 usr/share/initramfs-tools
 usr/share/lintian
