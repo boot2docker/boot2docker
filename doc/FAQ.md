@@ -39,6 +39,9 @@ that doesn't exist, it will pick the first ``ext4`` partition listed by ``blkid`
 
 **Local Customisation (with persistent partition)**
 
+From Boot2Docker version 1.6.0, the `/var/lib/boot2docker/bootsync.sh` script is
+run before the Docker daemon is started.
+
 If you have a persistence partition, you can make customisations that are run at
 the end of the boot initialisation in the ``/var/lib/boot2docker/bootlocal.sh`` file.
 
