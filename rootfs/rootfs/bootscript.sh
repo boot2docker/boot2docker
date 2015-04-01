@@ -59,17 +59,19 @@ date
 ip a
 echo "-------------------"
 
-# Launch Docker
-/etc/rc.d/docker
-
 # Allow local bootsync.sh customisation
 if [ -e /var/lib/boot2docker/bootsync.sh ]; then
     /var/lib/boot2docker/bootsync.sh
+    echo "------------------- ran /var/lib/boot2docker/bootsync.sh"
 fi
+
+# Launch Docker
+/etc/rc.d/docker
 
 # Allow local HD customisation
 if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
     /var/lib/boot2docker/bootlocal.sh > /var/log/bootlocal.log 2>&1 &
+    echo "------------------- ran /var/lib/boot2docker/bootlocal.sh"
 fi
 
 # Execute automated_script
