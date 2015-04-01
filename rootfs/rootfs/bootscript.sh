@@ -15,7 +15,10 @@
 
 mkdir -p /var/lib/boot2docker/log
 
-#import settings from profile (or unset them)
+# Add any custom certificate chains for secure private registries
+/etc/rc.d/install_ca_certs
+
+# import settings from profile (or unset them)
 test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
 
 # set the hostname
