@@ -20,12 +20,11 @@ RUN apt-get update && apt-get -y install  unzip \
                         p7zip-full
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  3.18.7
+ENV KERNEL_VERSION  3.18.10
 # http://sourceforge.net/p/aufs/aufs3-standalone/ref/master/branches/
 ENV AUFS_BRANCH     aufs3.18.1+
-ENV AUFS_COMMIT     f9f16b996df1651c5ab19bd6e6101310e3659c76
+ENV AUFS_COMMIT     e138e6fa4e84305394e1e20d6f16d44a3b1926b1
 # we use AUFS_COMMIT to get stronger repeatability guarantees
-
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
     mv /linux-$KERNEL_VERSION /linux-kernel
@@ -132,9 +131,11 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
 # Build VBox guest additions
 # For future reference, we have to use x86 versions of several of these bits because TCL doesn't support ELFCLASS64
 # (... and we can't use VBoxControl or VBoxService at all because of this)
-# TEST removing the 32 bits version
-# TODO Not working yet
-ENV VBOX_VERSION 4.3.22
+#TEST removing the 32 bits version
+# REMINDER
+# mkdir x86 && tar -C x86 -xjf VBoxGuestAdditions-x86.tar.bz2 && \
+# cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
+ENV VBOX_VERSION 4.3.26
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
     \
@@ -160,10 +161,9 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
-RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
-    chmod +x $ROOTFS/usr/local/bin/docker && \
-    { $ROOTFS/usr/local/bin/docker version || true; }
-
+# TODO Try following Docker version
+RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-1.4.1 && \
+    chmod +x $ROOTFS/usr/local/bin/docker
 # Get the git versioning info
 COPY .git /git/.git
 RUN cd /git && \
