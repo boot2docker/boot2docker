@@ -266,6 +266,55 @@ To 'install' the ISO onto an SD card, USB-Stick or even empty hard disk, you can
 use `dd if=boot2docker.iso of=/dev/sdX`.  This will create the small boot
 partition, and install an MBR.
 
+## Configuring NFS (OSX)
+- To improve the speed of Boot2Docker drastically, you will want to set it up to use NFS instead of the Virtual box sharing option.
+- First set up your host machine's NFS server:
+  - Add this to /etc/exports on your mac
+  
+    ```
+    # BOOT2-DOCKER-BEGIN
+    /Users 192.168.59.103 -alldirs -mapall=501:20
+    # BOOT2-DOCKER-END
+    ```
+  - Run this command on your host machine
+  
+    ```sudo nfsd restart```
+- Then Start boot2docker and connect to the VM with ssh by doing the following:
+  
+  ```
+  boot2docker up
+  boot2docker ssh
+  ```
+  
+- Within boot2docker do the following
+  
+  - Open the the /var/lib/boot2docker/bootlocal.sh file for editing with the following command:
+  
+  ```sudo vi /var/lib/boot2docker/bootlocal.sh```
+
+  - Then add the following content to that script.
+
+    ```
+    #/bin/bash
+    sudo umount /Users
+    sudo /usr/local/etc/init.d/nfs-client start
+    sudo mount -t nfs -o rw --actimeo=2 192.168.59.3:/Users /Users
+    ```
+
+  - Then run the following
+  
+    ```
+    sudo chmod +x /var/lib/boot2docker/bootlocal.sh
+    ```
+
+- To test, restart boot2docker, ssh into boot2docker and run ```df``` to confirm. You should see something like the following:
+ 
+  ```
+  192.168.59.3:/Users     XG    XG    XG  X% /Users
+  ```
+
+- You're all done. :)
+
 #### Build your own Boot2Docker ISO
 
 Goto [How to build](doc/BUILD.md) for Documentation on how to build your own
