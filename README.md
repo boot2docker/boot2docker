@@ -295,7 +295,7 @@ partition, and install an MBR.
   - Then add the following content to that script.
 
     ```
-    #/bin/bash
+    #!/bin/sh
     sudo umount /Users
     sudo /usr/local/etc/init.d/nfs-client start
     sudo mount -t nfs -o rw --actimeo=2 192.168.59.3:/Users /Users
