@@ -273,6 +273,7 @@ partition, and install an MBR.
   
     ```
     # BOOT2-DOCKER-BEGIN
+    # 192.168.59.103 is the boot2docker VM IP which you can find by running 'boot2docker ip' on the host machine
     /Users 192.168.59.103 -alldirs -mapall=501:20
     # BOOT2-DOCKER-END
     ```
@@ -298,6 +299,7 @@ partition, and install an MBR.
     #!/bin/sh
     sudo umount /Users
     sudo /usr/local/etc/init.d/nfs-client start
+    # 192.168.59.3 is the Host only adapter IP
     sudo mount -t nfs -o rw --actimeo=2 192.168.59.3:/Users /Users
     ```
 
