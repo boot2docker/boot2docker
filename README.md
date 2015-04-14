@@ -267,7 +267,11 @@ use `dd if=boot2docker.iso of=/dev/sdX`.  This will create the small boot
 partition, and install an MBR.
 
 ## Configuring NFS (OSX)
-- To improve the speed of Boot2Docker drastically, you will want to set it up to use NFS instead of the Virtual box sharing option.
+To improve the speed of Boot2Docker drastically, you will want to set it up to use NFS instead of the Virtual box sharing option.
+
+The easiest approach is to use this [automated script](scripts/enable_nfs.rb)
+
+For the manual breakdown, see the following:
 - First set up your host machine's NFS server:
   - Add this to /etc/exports on your mac
   
