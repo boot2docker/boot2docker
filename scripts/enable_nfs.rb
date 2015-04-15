@@ -19,8 +19,33 @@ sudo /usr/local/etc/init.d/nfs-client start
 sudo mount -t nfs -o noacl,async <%= vboxnet_ip %>:/Users /Users
 )
 
-# Ip addr for vboxnet
-vboxnet_ip = '192.168.59.3'
+machine_name = "boot2docker-vm"
+ 
+print "Get vboxnet ip address ..."
+ 
+# get host only adapter
+vboxnet_name = `VBoxManage showvminfo #{machine_name} --machinereadable | grep hostonlyadapter`
+vboxnet_name = vboxnet_name.scan(/"(.*)"/).flatten.first.chomp
+if vboxnet_name == '' 
+  puts "error: unable to find name of vboxnet"
+  exit 1
+end
+ 
+# get ip addr for vboxnet
+vboxnet_ip = ''
+vboxnets = `VBoxManage list hostonlyifs`.split("\n\n")
+vboxnets.each do |vboxnet|
+  if vboxnet.scan(/Name: *(.+?)\n/).flatten.first.chomp == vboxnet_name
+    vboxnet_ip = vboxnet.scan(/IPAddress: *(.*)\n/).flatten.first.chomp
+    break
+  end
+end
+if vboxnet_ip == ''
+  puts "error: unable to find ip of vboxnet #{vboxnet_name}"
+  exit 1
+end
+
+print " #{vboxnet_ip}\n"
 
 # create record in local /etc/exports and restart nsfd
 machine_ip = `boot2docker ip`.chomp
