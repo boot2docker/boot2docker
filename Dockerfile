@@ -1,7 +1,8 @@
 FROM debian:wheezy
 MAINTAINER Steeve Morin "steeve.morin@gmail.com"
 
-RUN apt-get update && apt-get -y install  unzip \
+RUN export DEBIAN_FRONTEND=noninteractive; \
+    apt-get update && apt-get -y install  unzip \
                         xz-utils \
                         curl \
                         bc \
@@ -16,7 +17,8 @@ RUN apt-get update && apt-get -y install  unzip \
                         syslinux \
                         automake \
                         pkg-config \
-                        p7zip-full
+                        p7zip-full && \
+    rm -rf /var/cache/apt /var/lib/apt
 
 # https://www.kernel.org/
 ENV KERNEL_VERSION  3.18.11
@@ -26,7 +28,7 @@ ENV AUFS_COMMIT     863c3b76303a1ebea5b6a5b1b014715ac416f913
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Fetch the kernel sources
-RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
+RUN curl --silent --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
     mv /linux-$KERNEL_VERSION /linux-kernel
 
 # Download AUFS and apply patches and files, then remove it
