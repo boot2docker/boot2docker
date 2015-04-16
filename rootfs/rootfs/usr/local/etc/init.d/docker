@@ -110,7 +110,7 @@ restart() {
 }
 
 check() {
-    [ -f /var/run/docker.pid ] && ps -o pid | grep $(cat /var/run/docker.pid) > /dev/null 2>&1
+    [ -f /var/run/docker.pid ] && ps -o pid | grep "^\s*$(cat /var/run/docker.pid)$" > /dev/null 2>&1
 }
 
 status() {
