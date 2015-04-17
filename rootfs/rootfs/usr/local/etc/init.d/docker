@@ -93,8 +93,8 @@ start() {
     ulimit -p $DOCKER_ULIMITS
 
     echo "------------------------" >> "$DOCKER_LOGFILE"
-    echo "/usr/local/bin/docker -d -D -g \"$DOCKER_DIR\" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> \"$DOCKER_LOGFILE\"" >> "$DOCKER_LOGFILE"
-    /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> "$DOCKER_LOGFILE" 2>&1 &
+    echo "/usr/local/bin/docker -d -D -g \"$DOCKER_DIR\" -H unix:///var/run/docker.sock $DOCKER_HOST $EXTRA_ARGS >> \"$DOCKER_LOGFILE\"" >> "$DOCKER_LOGFILE"
+    /usr/local/bin/docker -d -D -g "$DOCKER_DIR" -H unix:///var/run/docker.sock $DOCKER_HOST $EXTRA_ARGS >> "$DOCKER_LOGFILE" 2>&1 &
 }
 
 stop() {
