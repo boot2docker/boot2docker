@@ -62,7 +62,8 @@ ENV TCZ_DEPS        iptables \
                     xz liblzma \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
                     nfs-utils tcp_wrappers portmap rpcbind libtirpc \
-                    curl ntpclient
+                    curl ntpclient \
+                    procps glib2 libtirpc libffi fuse
 
 # Make the ROOTFS
 RUN mkdir -p $ROOTFS
@@ -149,6 +150,53 @@ RUN mkdir -p /vboxguest && \
     \
     mkdir -p $ROOTFS/sbin && \
     cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
+
+# Build VMware Tools
+ENV OVT_VERSION 9.4.6-1770165
+
+# Download and prepare ovt source
+RUN mkdir -p /vmtoolsd/open-vm-tools \
+    && curl -L http://downloads.sourceforge.net/open-vm-tools/open-vm-tools-$OVT_VERSION.tar.gz \
+        | tar -xzC /vmtoolsd/open-vm-tools --strip-components 1
+
+# Apply patches to make open-vm-tools compile with a recent 3.18.x kernel and
+# a network script that knows how to plumb/unplumb nics on a busybox system,
+# this will be removed once a new ovt version is released.
+RUN cd /vmtoolsd && \
+    curl -L -o open-vm-tools-3.x.x-patches.patch https://gist.github.com/frapposelli/5506651fa6f3d25d5760/raw/475f8fb2193549c10a477d506de40639b04fa2a7/open-vm-tools-3.x.x-patches.patch &&\
+    patch -p1 < open-vm-tools-3.x.x-patches.patch && rm open-vm-tools-3.x.x-patches.patch
+
+RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y libfuse2 libtool autoconf \
+                                                                         libglib2.0-dev libdumbnet-dev:i386 \
+                                                                         libdumbnet1:i386 libfuse2:i386 libfuse-dev \
+                                                                         libglib2.0-0:i386 libtirpc-dev libtirpc1:i386
+
+# Horrible Hack
+RUN ln -s /lib/i386-linux-gnu/libglib-2.0.so.0.3200.4 /lib/i386-linux-gnu/libglib-2.0.so &&\
+    ln -s /lib/i386-linux-gnu/libtirpc.so.1.0.10 /lib/i386-linux-gnu/libtirpc.so &&\
+    ln -s /usr/lib/i386-linux-gnu/libgthread-2.0.so.0 /usr/lib/i386-linux-gnu/libgthread-2.0.so &&\
+    ln -s /usr/lib/i386-linux-gnu/libgmodule-2.0.so.0 /usr/lib/i386-linux-gnu/libgmodule-2.0.so &&\
+    ln -s /usr/lib/i386-linux-gnu/libgobject-2.0.so.0 /usr/lib/i386-linux-gnu/libgobject-2.0.so &&\
+    ln -s /lib/i386-linux-gnu/libfuse.so.2 /lib/i386-linux-gnu/libfuse.so
+
+# Compile open-vm-tools
+RUN cd /vmtoolsd/open-vm-tools && autoreconf -i &&\
+    CC="gcc -m32" CXX="g++ -m32" ./configure --host=i486-pc-linux-gnu --build=i486-pc-linux-gnu \
+                --without-kernel-modules --without-pam --without-procps --without-x --without-icu &&\
+    make CC="gcc -m32" CXX="g++ -m32" LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" &&\
+    make DESTDIR=$ROOTFS install
+
+# Download and compile libdnet as open-vm-tools rely on it.
+ENV LIBDNET libdnet-1.11
+
+RUN mkdir -p /vmtoolsd/${LIBDNET} &&\
+    curl -L http://sourceforge.net/projects/libdnet/files/libdnet/${LIBDNET}/${LIBDNET}.tar.gz \
+        | tar -xzC /vmtoolsd/${LIBDNET} --strip-components 1 &&\
+    cd /vmtoolsd/${LIBDNET} && ./configure --build=i486-pc-linux-gnu &&\
+    make CC="gcc -m32" CXX="g++ -m32" &&\
+    make install && make DESTDIR=$ROOTFS install
+
+RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1
 
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
 RUN depmod -a -b $ROOTFS $KERNEL_VERSION-tinycore64
