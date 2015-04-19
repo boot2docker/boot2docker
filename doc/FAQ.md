@@ -84,6 +84,6 @@ so all commits need to be done via pull requests, and will need 2 or more LGTMs.
 **Is boot2docker only for VirtualBox?**
 
 There are two parts of Boot2Docker: the ISO image, and the `boot2docker` management
-tool to set up and mange a VM. The management tool only works with VirtualBox,
+tool to set up and manage a VM. The management tool only works with VirtualBox,
 but the ISO image is designed to also be used with physical hardware. There
 are no plans to make separate ISO images for different configurations.
