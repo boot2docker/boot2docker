@@ -50,7 +50,7 @@ print " #{vboxnet_ip}\n"
 # create record in local /etc/exports and restart nsfd
 machine_ip = `boot2docker ip`.chomp
 puts "Update /etc/exports ..."
-`echo '\n/Users #{machine_ip} -alldirs -maproot=root\n' | sudo tee -a /etc/exports`
+`echo '\n/Users #{machine_ip} -alldirs -mapall=501:20\n' | sudo tee -a /etc/exports`
 `awk '!a[$0]++' /etc/exports | sudo tee /etc/exports` # removes duplicate lines
 `sudo nfsd restart`; sleep 2
 puts `sudo nfsd checkexports`
