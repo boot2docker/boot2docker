@@ -11,6 +11,7 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${DOCKER_DIR:=/var/lib/docker}
 : ${DOCKER_ULIMITS:=1048576}
 : ${DOCKER_LOGFILE:=/var/lib/boot2docker/docker.log}
+: ${DOCKER_REG_MIRROR:=none}
 
 : ${CERTDIR:=/var/lib/boot2docker/tls/}
 : ${CERT_INTERFACES:='eth0 eth1'}
@@ -86,6 +87,13 @@ start() {
     if [ "$DOCKER_STORAGE" != 'auto' ]; then
         # in the general case, let's trust Docker to "do the right thing"
         EXTRA_ARGS="$EXTRA_ARGS -s $DOCKER_STORAGE"
+    fi
+
+    if [ "$DOCKER_REG_MIRROR" != 'none' ]; then
+        # several registry mirrors can be defined, declaring them separately
+        for mirror in $(echo $DOCKER_REG_MIRROR | sed "s/,/ /g"); do
+            EXTRA_ARGS="$EXTRA_ARGS --registry-mirror=$mirror"
+        done
     fi
 
     # Increasing the number of open files and processes by docker
