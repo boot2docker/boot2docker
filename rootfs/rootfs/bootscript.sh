@@ -52,6 +52,7 @@ fi
 /etc/rc.d/sshd
 
 # Launch ACPId
+ln -s /usr/local/etc/acpi /etc/
 /etc/rc.d/acpid
 
 echo "-------------------"
