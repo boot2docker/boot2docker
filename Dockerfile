@@ -1,6 +1,5 @@
 FROM debian:jessie
 
-#Change libc6-i386 by libc6. Future test might involve libc6-amd64
 RUN apt-get update && apt-get -y install  unzip \
                         xz-utils \
                         curl \
@@ -8,7 +7,7 @@ RUN apt-get update && apt-get -y install  unzip \
                         git \
                         build-essential \
                         cpio \
-                        gcc-multilib libc6 libc6-dev \
+                        gcc libc6 libc6-dev \
                         kmod \
                         squashfs-tools \
                         genisoimage \
@@ -157,31 +156,34 @@ RUN mkdir -p /vboxguest && \
     cp amd64/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
 
 # Build VMware Tools
-ENV OVT_VERSION 9.4.6-1770165
+ENV OVT_VERSION 9.10.0
 
 # Download and prepare ovt source
-RUN mkdir -p /vmtoolsd/open-vm-tools \
-    && curl -L http://downloads.sourceforge.net/open-vm-tools/open-vm-tools-$OVT_VERSION.tar.gz \
-        | tar -xzC /vmtoolsd/open-vm-tools --strip-components 1
+#RUN mkdir -p /vmtoolsd/open-vm-tools \
+#    && curl -L https://github.com/vmware/open-vm-tools/archive/stable-$OVT_VERSION.tar.gz \
+#        | tar -xzC /vmtoolsd/open-vm-tools --strip-components 2
+# use fixes for post 3.19 kernels from https://github.com/davispuh/open-vm-tools/tree/fixed
+# rebased onto the 9.10.0 release
+ENV OVT_REPO       https://github.com/SvenDowideit/open-vm-tools
+ENV OVT_BRANCH     stable-9.10.x-davispuh-fixed
+RUN git clone $OVT_REPO \
+    && cd /open-vm-tools \
+    && git checkout $OVT_BRANCH \
+    && mv /open-vm-tools /vmtoolsd
 
-# Apply patches to make open-vm-tools compile with a recent 3.18.x kernel and
-# a network script that knows how to plumb/unplumb nics on a busybox system,
-# this will be removed once a new ovt version is released.
-RUN cd /vmtoolsd && \
-    curl -L -o open-vm-tools-3.x.x-patches.patch https://gist.github.com/frapposelli/5506651fa6f3d25d5760/raw/475f8fb2193549c10a477d506de40639b04fa2a7/open-vm-tools-3.x.x-patches.patch &&\
-    patch -p1 < open-vm-tools-3.x.x-patches.patch && rm open-vm-tools-3.x.x-patches.patch
-
-RUN apt-get install -y libfuse2 libtool autoconf libglib2.0-dev libdumbnet-dev libdumbnet1 libfuse2 libfuse-dev libglib2.0-0 libtirpc-dev libtirpc1
+RUN apt-get install -y libfuse2 libtool autoconf libglib2.0-dev libdumbnet-dev libdumbnet1 libfuse2 libfuse-dev libglib2.0-0 \
+       libtirpc-dev libtirpc1 libmspack-dev libssl-dev
 
 # Compile
 RUN cd /vmtoolsd/open-vm-tools && \
     autoreconf -i && \
     ./configure --disable-multimon --disable-docs --disable-tests --with-gnu-ld \
                 --without-kernel-modules --without-procps --without-gtk2 \
-                --without-gtkmm --without-pam --without-x --without-icu && \
+                --without-gtkmm --without-pam --without-x --without-icu \
+		--without-xerces --without-xmlsecurity --without-ssl && \
     make LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" && \
     make DESTDIR=$ROOTFS install &&\
-    libtool --finish /usr/local/lib
+    /vmtoolsd/open-vm-tools/libtool --finish $ROOTFS/usr/local/lib
 
 # Kernel modules to build and install
 ENV VM_MODULES  vmhgfs
@@ -230,18 +232,18 @@ RUN cd /git && \
     DATE=$(date) && \
     echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
 
-# Dirty hack: copy /usr/local/etc/ssh/ssh_config_example into /usr/local/etc/ssh/ssh_config.example
-RUN cp $ROOTFS/usr/local/etc/ssh/ssh_config_example $ROOTFS/usr/local/etc/ssh/ssh_config.example
-
-# Dirty hack to allow SSH to use specific environment variables
-RUN echo "PermitUserEnvironment yes" >> $ROOTFS/usr/local/etc/ssh/sshd_config_example
-RUN cp $ROOTFS/usr/local/etc/ssh/sshd_config_example $ROOTFS/usr/local/etc/ssh/sshd_config.example
-
 # Install Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
 # Copy our custom rootfs
 COPY rootfs/rootfs $ROOTFS
+
+# setup acpi config dir &
+# tcl6's sshd is compiled without `/usr/local/sbin` in the path
+# Boot2Docker and Docker Machine need `ip`, so I'm linking it in here
+RUN cd $ROOTFS \
+    && ln -s /usr/local/etc/acpi etc/ \
+    && ln -s /usr/local/sbin/ip usr/sbin/
 
 # Build the Hyper-V KVP Daemon
 RUN cd /linux-kernel && \
@@ -258,12 +260,6 @@ RUN find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';'
 
 # Change MOTD
 RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
-
-# Dirty hack to make the bootscript add an environment file to the .ssh/ directory
-RUN echo "mkdir -p /home/docker/.ssh" >> $ROOTFS/bootscript.sh
-RUN echo "touch /home/docker/.ssh/environment" >> $ROOTFS/bootscript.sh
-RUN echo "echo \"PATH=/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin\" >> /home/docker/.ssh/environment" >> $ROOTFS/bootscript.sh
-RUN echo "touch ./executed.log" >> $ROOTFS/bootscript.sh
 
 # Make sure we have the correct bootsync
 RUN mv $ROOTFS/boot*.sh $ROOTFS/opt/ && \
