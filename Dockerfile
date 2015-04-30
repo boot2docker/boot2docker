@@ -137,12 +137,7 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
     chmod +x $ROOTFS/usr/local/bin/generate_cert
 
 # Build VBox guest additions
-# For future reference, we have to use x86 versions of several of these bits because TCL doesn't support ELFCLASS64
-# (... and we can't use VBoxControl or VBoxService at all because of this)
-#TEST removing the 32 bits version
-# REMINDER
-# mkdir x86 && tar -C x86 -xjf VBoxGuestAdditions-x86.tar.bz2 && \
-# cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
+# TODO and we can't use VBoxControl or VBoxService at all because of this
 ENV VBOX_VERSION 4.3.26
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
@@ -235,13 +230,6 @@ RUN cd /git && \
     DATE=$(date) && \
     echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
 
-# Dirty hack: copy /usr/local/etc/ssh/ssh_config_example into /usr/local/etc/ssh/ssh_config.example
-RUN cp $ROOTFS/usr/local/etc/ssh/ssh_config_example $ROOTFS/usr/local/etc/ssh/ssh_config.example
-
-# Dirty hack to allow SSH to use specific environment variables
-RUN echo "PermitUserEnvironment yes" >> $ROOTFS/usr/local/etc/ssh/sshd_config_example
-RUN cp $ROOTFS/usr/local/etc/ssh/sshd_config_example $ROOTFS/usr/local/etc/ssh/sshd_config.example
-
 # Install Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
@@ -263,12 +251,6 @@ RUN find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';'
 
 # Change MOTD
 RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
-
-# Dirty hack to make the bootscript add an environment file to the .ssh/ directory
-RUN echo "mkdir -p /home/docker/.ssh" >> $ROOTFS/bootscript.sh
-RUN echo "touch /home/docker/.ssh/environment" >> $ROOTFS/bootscript.sh
-RUN echo "echo \"PATH=/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin\" >> /home/docker/.ssh/environment" >> $ROOTFS/bootscript.sh
-RUN echo "touch ./executed.log" >> $ROOTFS/bootscript.sh
 
 # Make sure we have the correct bootsync
 RUN mv $ROOTFS/boot*.sh $ROOTFS/opt/ && \
