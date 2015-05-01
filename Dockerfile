@@ -1,5 +1,4 @@
-FROM debian:wheezy
-MAINTAINER Steeve Morin "steeve.morin@gmail.com"
+FROM debian:jessie
 
 RUN apt-get update && apt-get -y install  unzip \
                         xz-utils \
@@ -14,6 +13,7 @@ RUN apt-get update && apt-get -y install  unzip \
                         genisoimage \
                         xorriso \
                         syslinux \
+                        isolinux \
                         automake \
                         pkg-config \
                         p7zip-full
@@ -180,8 +180,8 @@ RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y libfuse
                                                                          libglib2.0-0:i386 libtirpc-dev libtirpc1:i386
 
 # Horrible Hack
-RUN ln -s /lib/i386-linux-gnu/libglib-2.0.so.0.3200.4 /lib/i386-linux-gnu/libglib-2.0.so &&\
-    ln -s /lib/i386-linux-gnu/libtirpc.so.1.0.10 /lib/i386-linux-gnu/libtirpc.so &&\
+RUN ln -s /lib/i386-linux-gnu/libglib-2.0.so.0 /lib/i386-linux-gnu/libglib-2.0.so &&\
+    ln -s /lib/i386-linux-gnu/libtirpc.so.1 /lib/i386-linux-gnu/libtirpc.so &&\
     ln -s /usr/lib/i386-linux-gnu/libgthread-2.0.so.0 /usr/lib/i386-linux-gnu/libgthread-2.0.so &&\
     ln -s /usr/lib/i386-linux-gnu/libgmodule-2.0.so.0 /usr/lib/i386-linux-gnu/libgmodule-2.0.so &&\
     ln -s /usr/lib/i386-linux-gnu/libgobject-2.0.so.0 /usr/lib/i386-linux-gnu/libgobject-2.0.so &&\
