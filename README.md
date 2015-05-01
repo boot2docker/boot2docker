@@ -179,12 +179,12 @@ can change the paths as needed.
 
 ##### Installing secure Registry certificates
 
-From Boot2Docker version 1.6.0, you can add your Registry server's public certificate
-(in `.pem` format) into the `/var/lib/boot2docker/certs/` directory, and Boot2Docker
-will automatically load it from the persistence partition at boot.
+You can add your Registry server's public certificate (in `.pem` format) into
+the `/var/lib/boot2docker/certs/` directory, and Boot2Docker will automatically
+load it from the persistence partition at boot.
 
-You may need to add several certificates (as separate `.pem` files) to this directory,
-depending on the CA signing chain used for your certificate.
+You may need to add several certificates (as separate `.pem` files) to this
+directory, depending on the CA signing chain used for your certificate.
 
 ##### Insecure Registry
 
