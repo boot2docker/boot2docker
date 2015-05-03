@@ -154,7 +154,7 @@ RUN mkdir -p /vboxguest && \
     rm VBoxGuestAdditions*.tar.bz2 && \
     \
     KERN_DIR=/linux-kernel/ make -C amd64/src/vboxguest-${VBOX_VERSION} && \
-    cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-tinycore64/ && \
+    cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/ && \
     \
     mkdir -p $ROOTFS/sbin && \
     cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
@@ -207,7 +207,7 @@ RUN mkdir -p /vmtoolsd/${LIBDNET} &&\
 RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1
 
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
-RUN depmod -a -b $ROOTFS $KERNEL_VERSION-tinycore64
+RUN depmod -a -b $ROOTFS $KERNEL_VERSION-boot2docker
 
 COPY VERSION $ROOTFS/etc/version
 RUN cp -v $ROOTFS/etc/version /tmp/iso/version
