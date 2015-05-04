@@ -1,14 +1,18 @@
 #!/bin/sh
 
-# Creates mountpoint for Shared Folders
-if [ ! -d /mnt/hgfs ]; then
-	mkdir -p /mnt/hgfs
-	# load shared folders kernel module
-	modprobe vmhgfs
-	# try to mount the root shared folder, this command can fail
-	# if shared folders are disabled on the host, vmtoolsd will take care of the mount
-	# if they are enabled while the machine is running.
-	mount -t vmhgfs .host:/ /mnt/hgfs
-fi
+SYSTYPE=$(cat /sys/class/dmi/id/sys_vendor | grep -ic vmware)
 
-/usr/local/bin/vmtoolsd --background /var/run/vmtoolsd.pid
+if [ "$SYSTYPE" -gt 0 ]; then
+	# Creates mountpoint for Shared Folders
+	if [ ! -d /mnt/hgfs ]; then
+		mkdir -p /mnt/hgfs
+		# load shared folders kernel module
+		modprobe vmhgfs
+		# try to mount the root shared folder, this command can fail
+		# if shared folders are disabled on the host, vmtoolsd will take care of the mount
+		# if they are enabled while the machine is running.
+		mount -t vmhgfs .host:/ /mnt/hgfs
+	fi
+
+	/usr/local/bin/vmtoolsd --background /var/run/vmtoolsd.pid
+fi
