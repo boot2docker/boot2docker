@@ -19,26 +19,34 @@ RUN apt-get update && apt-get -y install  unzip \
                         p7zip-full
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  3.18.11
-# http://sourceforge.net/p/aufs/aufs3-standalone/ref/master/branches/
-ENV AUFS_BRANCH     aufs3.18.1+
-ENV AUFS_COMMIT     863c3b76303a1ebea5b6a5b1b014715ac416f913
-# we use AUFS_COMMIT to get stronger repeatability guarantees
+ENV KERNEL_VERSION  4.0.1
 
 # Fetch the kernel sources
-RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
+RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
     mv /linux-$KERNEL_VERSION /linux-kernel
 
+# http://aufs.sourceforge.net/
+ENV AUFS_REPO       https://github.com/sfjro/aufs4-standalone
+ENV AUFS_BRANCH     aufs4.0
+ENV AUFS_COMMIT     170c7ace871c84ba70646f642003edf2d9162144
+# we use AUFS_COMMIT to get stronger repeatability guarantees
+
 # Download AUFS and apply patches and files, then remove it
-RUN git clone -b $AUFS_BRANCH http://git.code.sf.net/p/aufs/aufs3-standalone && \
-    cd aufs3-standalone && \
+RUN git clone -b "$AUFS_BRANCH" "$AUFS_REPO" aufs-standalone && \
+    cd aufs-standalone && \
     git checkout $AUFS_COMMIT && \
     cd /linux-kernel && \
-    cp -r /aufs3-standalone/Documentation /linux-kernel && \
-    cp -r /aufs3-standalone/fs /linux-kernel && \
-    cp -r /aufs3-standalone/include/uapi/linux/aufs_type.h /linux-kernel/include/uapi/linux/ &&\
-    for patch in aufs3-kbuild aufs3-base aufs3-mmap aufs3-standalone aufs3-loopback; do \
-        patch -p1 < /aufs3-standalone/$patch.patch; \
+    cp -r /aufs-standalone/Documentation /linux-kernel && \
+    cp -r /aufs-standalone/fs /linux-kernel && \
+    cp -r /aufs-standalone/include/uapi/linux/aufs_type.h /linux-kernel/include/uapi/linux/ && \
+    set -e && for patch in \
+        /aufs-standalone/aufs*-kbuild.patch \
+        /aufs-standalone/aufs*-base.patch \
+        /aufs-standalone/aufs*-mmap.patch \
+        /aufs-standalone/aufs*-standalone.patch \
+        /aufs-standalone/aufs*-loopback.patch \
+    ; do \
+        patch -p1 < "$patch"; \
     done
 
 COPY kernel_config /linux-kernel/.config
@@ -106,7 +114,7 @@ RUN cd /linux-kernel && \
     cd / && \
     git clone http://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
-    git checkout aufs3.9 && \
+    git checkout aufs4.0 && \
     CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
     rm -rf /tmp/kheaders
@@ -146,7 +154,7 @@ RUN mkdir -p /vboxguest && \
     rm VBoxGuestAdditions*.tar.bz2 && \
     \
     KERN_DIR=/linux-kernel/ make -C amd64/src/vboxguest-${VBOX_VERSION} && \
-    cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-tinycore64/ && \
+    cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/ && \
     \
     mkdir -p $ROOTFS/sbin && \
     cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
@@ -199,7 +207,7 @@ RUN mkdir -p /vmtoolsd/${LIBDNET} &&\
 RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1
 
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
-RUN depmod -a -b $ROOTFS $KERNEL_VERSION-tinycore64
+RUN depmod -a -b $ROOTFS $KERNEL_VERSION-boot2docker
 
 COPY VERSION $ROOTFS/etc/version
 RUN cp -v $ROOTFS/etc/version /tmp/iso/version
