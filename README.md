@@ -177,6 +177,15 @@ the "samba" container that refers to it by name. So, in this example, if you
 were on OS-X you now have /Volumes/data and /data in container being shared. You
 can change the paths as needed.
 
+##### Installing secure Registry certificates
+
+You can add your Registry server's public certificate (in `.pem` format) into
+the `/var/lib/boot2docker/certs/` directory, and Boot2Docker will automatically
+load it from the persistence partition at boot.
+
+You may need to add several certificates (as separate `.pem` files) to this
+directory, depending on the CA signing chain used for your certificate.
+
 ##### Insecure Registry
 
 As of Docker version 1.3.1, if your registry doesn't support HTTPS, you must add it as an
