@@ -71,7 +71,8 @@ ENV TCZ_DEPS        iptables \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
                     nfs-utils tcp_wrappers portmap rpcbind libtirpc \
                     curl ntpclient \
-                    procps glib2 libtirpc libffi fuse pcre
+                    procps glib2 libtirpc libffi fuse pcre \
+                    parted
 
 # Make the ROOTFS
 RUN mkdir -p $ROOTFS
