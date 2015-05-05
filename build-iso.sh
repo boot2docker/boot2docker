@@ -57,10 +57,10 @@ label docker-safe
 	append $commonAppend single
 
 label docker-bootdebug
-	menu label Docker (boot debug)
+	menu label Docker (systemd boot debug)
 	linux /live/vmlinuz
 	initrd /live/initrd.img
-	append $commonAppend $extraAppend systemd.log_level=debug systemd.log_target=console debug=vc
+	append init=${inits[systemd]} $commonAppend $extraAppend systemd.log_level=debug systemd.log_target=console debug=vc
 EOE
 
 mkdir -p /tmp/iso/live
