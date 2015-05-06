@@ -1,6 +1,5 @@
 FROM debian:jessie
 
-#Change libc6-i386 by libc6. Future test might involve libc6-amd64
 RUN apt-get update && apt-get -y install  unzip \
                         xz-utils \
                         curl \
@@ -8,7 +7,7 @@ RUN apt-get update && apt-get -y install  unzip \
                         git \
                         build-essential \
                         cpio \
-                        gcc-multilib libc6 libc6-dev \
+                        gcc libc6 libc6-dev \
                         kmod \
                         squashfs-tools \
                         genisoimage \
@@ -21,6 +20,7 @@ RUN apt-get update && apt-get -y install  unzip \
 
 # https://www.kernel.org/
 ENV KERNEL_VERSION  4.0.1
+
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
     mv /linux-$KERNEL_VERSION /linux-kernel
@@ -137,7 +137,6 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
     chmod +x $ROOTFS/usr/local/bin/generate_cert
 
 # Build VBox guest additions
-# TODO and we can't use VBoxControl or VBoxService at all because of this
 ENV VBOX_VERSION 4.3.26
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
@@ -181,7 +180,7 @@ RUN cd /vmtoolsd/open-vm-tools && \
                 --without-gtkmm --without-pam --without-x --without-icu && \
     make LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" && \
     make DESTDIR=$ROOTFS install &&\
-    libtool --finish /usr/local/lib
+    /vmtoolsd/open-vm-tools/libtool --finish $ROOTFS/usr/local/lib
 
 # Kernel modules to build and install
 ENV VM_MODULES  vmhgfs
