@@ -21,6 +21,9 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${CERT:="${CERTDIR}cert.pem"}
 : ${KEY:="${CERTDIR}key.pem"}
 
+# Add /usr/local/sbin to the path.
+export PATH=${PATH}:/usr/local/sbin
+
 start() {
     # Not enabling Docker daemon TLS by default.
     if [ "$DOCKER_TLS" != "no" ]; then

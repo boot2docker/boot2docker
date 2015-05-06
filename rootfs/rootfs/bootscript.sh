@@ -48,10 +48,15 @@ fi
 # Automount Shared Folders (VirtualBox, etc.)
 /etc/rc.d/automount-shares
 
+# tcl6's sshd is compiled without `/usr/local/sbin` in the path
+# Boot2Docker and Docker Machine need `ip`, so I'm linking it in here
+ln -s /usr/local/sbin/ip /usr/sbin/
+
 # Configure SSHD
 /etc/rc.d/sshd
 
 # Launch ACPId
+ln -s /usr/local/etc/acpi /etc/
 /etc/rc.d/acpid
 
 echo "-------------------"

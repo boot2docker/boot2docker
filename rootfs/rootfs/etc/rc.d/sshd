@@ -21,4 +21,9 @@ if ! grep -q "^UseDNS no" /usr/local/etc/ssh/sshd_config; then
     echo "UseDNS no" >> /usr/local/etc/ssh/sshd_config
 fi
 
+if ! grep -q "^PermitUserEnvironment yes" /usr/local/etc/ssh/sshd_config; then
+    # use the /home/docker/.ssh/environment file to add paths to things like `ip`
+    echo "PermitUserEnvironment yes" >> /usr/local/etc/ssh/sshd_config
+fi
+
 /usr/local/etc/init.d/openssh start
