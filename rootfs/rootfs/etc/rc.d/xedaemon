@@ -1,0 +1,5 @@
+#!/bin/sh
+
+if [ -x /etc/init.d/xe-linux-distribution ]; then
+	/etc/init.d/xe-linux-distribution start
+fi

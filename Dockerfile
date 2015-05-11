@@ -6,6 +6,7 @@ RUN apt-get update && apt-get -y install  unzip \
                         bc \
                         git \
                         build-essential \
+                        golang \
                         cpio \
                         gcc libc6 libc6-dev \
                         kmod \
@@ -211,6 +212,19 @@ RUN mkdir -p /vmtoolsd/${LIBDNET} &&\
 # Horrible hack again
 RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 &&\
     cd $ROOTFS && ln -s lib lib64
+
+# Build XenServer Tools
+ENV XENTOOLS_REPO xe-guest-utilities
+ENV XENTOOLS_BRANCH boot2docker
+
+RUN cd / && \
+    git clone https://github.com/xenserver/$XENTOOLS_REPO && \
+    cd $XENTOOLS_REPO && \
+    git checkout $XENTOOLS_BRANCH && \
+    make && \
+    tar xvf build/dist/${XENTOOLS_REPO}_*.tgz -C $ROOTFS/ && \
+    cd / && \
+    rm -rf $XENTOOLS_REPO
 
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
 RUN depmod -a -b $ROOTFS $KERNEL_VERSION-boot2docker
