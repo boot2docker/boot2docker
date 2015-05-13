@@ -6,7 +6,7 @@ CERTS_DIR=/etc/ssl/certs
 CAFILE=${CERTS_DIR}/ca-certificates.crt
 
 for cert_file in "${BOOT2DOCKER_CERTS_DIR}"/*.pem; do
-        cert=`basename $cert_file`
+	cert=`basename $cert_file`
 	echo "installing $cert"
 
 	SRC_CERT_FILE=${BOOT2DOCKER_CERTS_DIR}/${cert}
