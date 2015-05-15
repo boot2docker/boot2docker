@@ -1584,7 +1584,7 @@ CONFIG_ALTERA_STAPL=m
 # CONFIG_INTEL_MEI is not set
 # CONFIG_INTEL_MEI_ME is not set
 # CONFIG_INTEL_MEI_TXE is not set
-# CONFIG_VMWARE_VMCI is not set
+CONFIG_VMWARE_VMCI=m
 
 #
 # Intel MIC Bus Driver
