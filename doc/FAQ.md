@@ -1,5 +1,22 @@
 # FAQ
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [I've just installed a new Boot2Docker and I get `client and server don't have the same version`](#ive-just-installed-a-new-boot2docker-and-i-get-client-and-server-dont-have-the-same-version)
+- [What are the specs of the VM?](#what-are-the-specs-of-the-vm)
+- [How can I solve my problems with SSH?](#how-can-i-solve-my-problems-with-ssh)
+- [Login as root](#login-as-root)
+- [What is the Boot2Docker distribution based on?](#what-is-the-boot2docker-distribution-based-on)
+- [Why not CoreOS?](#why-not-coreos)
+- [Persistent partition choice](#persistent-partition-choice)
+- [Local Customisation (with persistent partition)](#local-customisation-with-persistent-partition)
+- [What is the development process](#what-is-the-development-process)
+- [Is boot2docker only for VirtualBox?](#is-boot2docker-only-for-virtualbox)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## I've just installed a new Boot2Docker and I get `client and server don't have the same version`
 
 There's a good chance that your Boot2Docker virtual machine existed before you

@@ -1,6 +1,19 @@
 Automated script
 ===========
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Overview](#overview)
+- [Summary](#summary)
+- [Usecase](#usecase)
+- [Extracting initrd and vmlinuz64](#extracting-initrd-and-vmlinuz64)
+- [Extracting boot parameters](#extracting-boot-parameters)
+- [iPxe example](#ipxe-example)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ##  Overview
 The document describes the "automated script" functionality and some use cases. I assume 
 you have basic knowledge of iPxe/pxe booting. Please see the following link for more documentaion regarding iPxe:

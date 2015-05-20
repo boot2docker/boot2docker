@@ -4,6 +4,38 @@ Boot2Docker is a lightweight Linux distribution made specifically to run
 [Docker](https://www.docker.com/) containers. It runs completely from RAM, is a
 small ~24MB download and boots in ~5s (YMMV).
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Features](#features)
+- [Caveat Emptor](#caveat-emptor)
+- [Installation](#installation)
+  - [All in one Installers for OS X and Windows](#all-in-one-installers-for-os-x-and-windows)
+  - [Installation using the `boot2docker` management tool](#installation-using-the-boot2docker-management-tool)
+- [How to use](#how-to-use)
+    - [Initialize](#initialize)
+    - [Start VM](#start-vm)
+    - [Upgrade the Boot2docker VM image](#upgrade-the-boot2docker-vm-image)
+- [Docker Hub](#docker-hub)
+- [More information](#more-information)
+    - [Boot script log](#boot-script-log)
+    - [Container Port redirection](#container-port-redirection)
+    - [TLS support](#tls-support)
+    - [Folder sharing](#folder-sharing)
+      - [Installing secure Registry certificates](#installing-secure-registry-certificates)
+      - [Insecure Registry](#insecure-registry)
+      - [VirtualBox Guest Additions](#virtualbox-guest-additions)
+    - [Customize](#customize)
+    - [SSH into VM](#ssh-into-vm)
+    - [Persist data](#persist-data)
+    - [Install on any device](#install-on-any-device)
+    - [Build your own Boot2Docker ISO](#build-your-own-boot2docker-iso)
+- [Troubleshooting](#troubleshooting)
+    - [`boot2docker up` doesn't work (OSX)](#boot2docker-up-doesnt-work-osx)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Features
 
 * Kernel 4.0.4 with AUFS, Docker v1.6.2 - using libcontainer
