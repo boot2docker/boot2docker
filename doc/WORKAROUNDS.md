@@ -5,6 +5,11 @@ Workarounds
 
 ## Port forwarding
 
+> **Note**: these instructions are for TCP only, not UDP. If you need to port forward
+> UDP packets, the commands are similar. Please see the [VirtualBox
+> NAT documentation](https://www.virtualbox.org/manual/ch06.html#network_nat)
+> for more details.
+
 Let's say your Docker container exposes the port 8000 and you want access it from
 your other computers on your LAN. You can do it temporarily, using `ssh`:
 
