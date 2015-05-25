@@ -1,6 +1,16 @@
 Workarounds
 ===========
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Port forwarding](#port-forwarding)
+- [Port forwarding on steroids](#port-forwarding-on-steroids)
+- [BTRFS (ie, mkfs inside a privileged container)](#btrfs-ie-mkfs-inside-a-privileged-container)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 *Note: The following steps are meant as a temporary solution and won't be needed anymore in the future.*
 
 ## Port forwarding
