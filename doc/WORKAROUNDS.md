@@ -1,8 +1,6 @@
 Workarounds
 ===========
 
-*Note: The following steps are meant as a temporary solution and won't be needed anymore in the future.*
-
 ## Port forwarding
 
 > **Note**: these instructions are for TCP only, not UDP. If you need to port forward
@@ -13,7 +11,9 @@ Workarounds
 Let's say your Docker container exposes the port 8000 and you want access it from
 your other computers on your LAN. You can do it temporarily, using `ssh`:
 
-Run following command (and keep it open):
+Run following command (and keep it open) to use ssh to forward all accesses
+to your OSX/Windows box's port 8000 to the Boot2Docker virtual machine's port
+8000:
 
 ```sh
 $ boot2docker ssh -vnNTL 8000:localhost:8000
