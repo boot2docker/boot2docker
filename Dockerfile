@@ -61,11 +61,13 @@ RUN jobs=$(nproc); \
 
 ENV ROOTFS          /rootfs
 ENV TCL_REPO_BASE   http://tinycorelinux.net/6.x/x86_64
+# Note that the ncurses is here explicitly so that top continues to work
 ENV TCZ_DEPS        iptables \
                     iproute2 \
                     openssh openssl-1.0.0 \
                     tar \
                     gcc_libs \
+                    ncurses \
                     acpid \
                     xz liblzma \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
