@@ -29,10 +29,10 @@ start() {
     if [ "$DOCKER_TLS" != "no" ]; then
         CERTHOSTNAMES="$(hostname -s),$(hostname -i)"
         for interface in ${CERT_INTERFACES}; do
-          IP=$(ip addr show ${interface} |sed -nEe 's/^[ \t]*inet[ \t]*([0-9.]+)\/.*$/\1/p')
-          if [ "$IP" != "" ]; then
-            CERTHOSTNAMES="$CERTHOSTNAMES,$IP"
-          fi
+          IPS=$(ip addr show ${interface} |sed -nEe 's/^[ \t]*inet[ \t]*([0-9.]+)\/.*$/\1/p')
+          for ip in $IPS; do
+            CERTHOSTNAMES="$CERTHOSTNAMES,$ip"
+          done
         done
         echo "Need TLS certs for $CERTHOSTNAMES"
         echo "-------------------"
