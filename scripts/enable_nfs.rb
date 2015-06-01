@@ -16,7 +16,7 @@ require 'erb'
 bootlocalsh = %Q(#/bin/bash
 sudo umount /Users
 sudo /usr/local/etc/init.d/nfs-client start
-sudo mount -t nfs -o noacl,async <%= vboxnet_ip %>:/Users /Users
+sudo mount -t nfs -o noacl,async,noatime,soft,nolock,vers=3,udp,proto=udp,rsize=8192,wsize=8192,namlen=255,timeo=10,retrans=3,nfsvers=3 <%= vboxnet_ip %>:/Users /Users
 )
 
 machine_name = "boot2docker-vm"
