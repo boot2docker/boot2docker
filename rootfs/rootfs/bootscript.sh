@@ -15,7 +15,10 @@
 
 mkdir -p /var/lib/boot2docker/log
 
-#import settings from profile (or unset them)
+# Add any custom certificate chains for secure private registries
+/etc/rc.d/install-ca-certs
+
+# import settings from profile (or unset them)
 test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
 
 # set the hostname
@@ -37,7 +40,7 @@ if grep -q '^docker:' /etc/passwd; then
     #preload data from boot2docker-cli
     if [ -e "/var/lib/boot2docker/userdata.tar" ]; then
         tar xf /var/lib/boot2docker/userdata.tar -C /home/docker/ > /var/log/userdata.log 2>&1
-        rm -f 'boot2docker, please format-me'
+        rm -f '/home/docker/boot2docker, please format-me'
         chown -R docker:staff /home/docker
     fi
 fi
@@ -59,17 +62,19 @@ date
 ip a
 echo "-------------------"
 
-# Launch Docker
-/etc/rc.d/docker
-
 # Allow local bootsync.sh customisation
 if [ -e /var/lib/boot2docker/bootsync.sh ]; then
     /var/lib/boot2docker/bootsync.sh
+    echo "------------------- ran /var/lib/boot2docker/bootsync.sh"
 fi
+
+# Launch Docker
+/etc/rc.d/docker
 
 # Allow local HD customisation
 if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
     /var/lib/boot2docker/bootlocal.sh > /var/log/bootlocal.log 2>&1 &
+    echo "------------------- ran /var/lib/boot2docker/bootlocal.sh"
 fi
 
 # Execute automated_script
@@ -80,3 +85,6 @@ fi
 if modprobe hv_utils &> /dev/null; then
     /usr/sbin/hv_kvp_daemon
 fi
+
+# Launch vmware-tools
+/etc/rc.d/vmtoolsd

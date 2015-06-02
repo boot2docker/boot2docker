@@ -1,23 +1,34 @@
 Workarounds
 ===========
 
-*Note: The following steps are meant as a temporary solution and won't be needed anymore in the future.*
-
 ## Port forwarding
+
+> **Note**: these instructions are for TCP only, not UDP. If you need to port forward
+> UDP packets, the commands are similar. Please see the [VirtualBox
+> NAT documentation](https://www.virtualbox.org/manual/ch06.html#network_nat)
+> for more details.
 
 Let's say your Docker container exposes the port 8000 and you want access it from
 your other computers on your LAN. You can do it temporarily, using `ssh`:
 
-Run following command (and keep it open):
+Run following command (and keep it open) to use ssh to forward all accesses
+to your OSX/Windows box's port 8000 to the Boot2Docker virtual machine's port
+8000:
 
 ```sh
-$ boot2docker ssh -L 8000:localhost:8000
+$ boot2docker ssh -vnNTL 8000:localhost:8000
 ```
 
 or you can set up a permanent VirtualBox NAT Port forwarding:
 
 ```sh
 $ VBoxManage modifyvm "boot2docker-vm" --natpf1 "tcp-port8000,tcp,,8000,,8000";
+```
+
+If the vm is already running, you should run this other command:
+
+```sh
+$ VBoxManage controlvm "boot2docker-vm" natpf1 "tcp-port8000,tcp,,8000,,8000";
 ```
 
 Now you can access your container from your host machine under `localhost:8000`.

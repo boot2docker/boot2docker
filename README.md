@@ -6,7 +6,7 @@ small ~24MB download and boots in ~5s (YMMV).
 
 ## Features
 
-* Kernel 3.16.7 with AUFS, Docker v1.5.0 - using libcontainer
+* Kernel 4.0.4 with AUFS, Docker v1.6.2 - using libcontainer
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
@@ -103,14 +103,14 @@ If you run a container with an exposed port, and then use OSX's `open` command:
 
 ```console
 $ boot2docker up
-$ $(boot2docker shellinit)
+$ eval "$(boot2docker shellinit)"
 $ docker run --name nginx-test -d -p 80:80 nginx
 $ open http://$(boot2docker ip 2>/dev/null)/
 $ docker stop nginx-test
 $ docker rm nginx-test
 ```
 
-The `$(boot2docker shellinit)` sets the `DOCKER_HOST` environment variable for
+The `eval "$(boot2docker shellinit)"` sets the `DOCKER_HOST` environment variable for
 this shell, then the `docker run` starts the webserver as a daemon, and `open`
 will then show the default page in your default web browser (using `boot2docker
 ip`).
@@ -126,7 +126,7 @@ certificates and stores them in `/home/docker/.docker` inside the VM. The
 host machine once the VM has started, and output the correct values for
 the `DOCKER_CERT_PATH` and `DOCKER_TLS_VERIFY` environment variables.
 
-`$(boot2docker shellinit)` will also set them correctly.
+`eval "$(boot2docker shellinit)"` will also set them correctly.
 
 We strongly recommend against running Boot2Docker with an unencrypted Docker 
 socket for security reasons, but if you have tools that cannot be easily 
@@ -177,6 +177,15 @@ the "samba" container that refers to it by name. So, in this example, if you
 were on OS-X you now have /Volumes/data and /data in container being shared. You
 can change the paths as needed.
 
+##### Installing secure Registry certificates
+
+You can add your Registry server's public certificate (in `.pem` format) into
+the `/var/lib/boot2docker/certs/` directory, and Boot2Docker will automatically
+load it from the persistence partition at boot.
+
+You may need to add several certificates (as separate `.pem` files) to this
+directory, depending on the CA signing chain used for your certificate.
+
 ##### Insecure Registry
 
 As of Docker version 1.3.1, if your registry doesn't support HTTPS, you must add it as an
@@ -185,9 +194,7 @@ insecure registry.
 ```console
 $ boot2docker init
 $ boot2docker up
-$ boot2docker ssh
-$ echo 'EXTRA_ARGS="--insecure-registry <YOUR INSECURE HOST>"' | sudo tee -a /var/lib/boot2docker/profile
-$ sudo /etc/init.d/docker restart
+$ boot2docker ssh "echo $'EXTRA_ARGS=\"--insecure-registry <YOUR INSECURE HOST>\"' | sudo tee -a /var/lib/boot2docker/profile && sudo /etc/init.d/docker restart"
 ```
 
 then you should be able to do a docker push/pull.

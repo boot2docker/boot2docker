@@ -1,5 +1,4 @@
-FROM debian:wheezy
-MAINTAINER Steeve Morin "steeve.morin@gmail.com"
+FROM debian:jessie
 
 RUN apt-get update && apt-get -y install  unzip \
                         xz-utils \
@@ -8,37 +7,46 @@ RUN apt-get update && apt-get -y install  unzip \
                         git \
                         build-essential \
                         cpio \
-                        gcc-multilib libc6-i386 libc6-dev-i386 \
+                        gcc libc6 libc6-dev \
                         kmod \
                         squashfs-tools \
                         genisoimage \
                         xorriso \
                         syslinux \
+                        isolinux \
                         automake \
                         pkg-config \
                         p7zip-full
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  3.18.5
-# http://sourceforge.net/p/aufs/aufs3-standalone/ref/master/branches/
-ENV AUFS_BRANCH     aufs3.18.1+
-ENV AUFS_COMMIT     f9f16b996df1651c5ab19bd6e6101310e3659c76
-# we use AUFS_COMMIT to get stronger repeatability guarantees
+ENV KERNEL_VERSION  4.0.4
 
 # Fetch the kernel sources
-RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v3.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
+RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
     mv /linux-$KERNEL_VERSION /linux-kernel
 
+# http://aufs.sourceforge.net/
+ENV AUFS_REPO       https://github.com/sfjro/aufs4-standalone
+ENV AUFS_BRANCH     aufs4.0
+ENV AUFS_COMMIT     e004c948c714de6c709161a9d32ab4546063cdb6
+# we use AUFS_COMMIT to get stronger repeatability guarantees
+
 # Download AUFS and apply patches and files, then remove it
-RUN git clone -b $AUFS_BRANCH http://git.code.sf.net/p/aufs/aufs3-standalone && \
-    cd aufs3-standalone && \
+RUN git clone -b "$AUFS_BRANCH" "$AUFS_REPO" aufs-standalone && \
+    cd aufs-standalone && \
     git checkout $AUFS_COMMIT && \
     cd /linux-kernel && \
-    cp -r /aufs3-standalone/Documentation /linux-kernel && \
-    cp -r /aufs3-standalone/fs /linux-kernel && \
-    cp -r /aufs3-standalone/include/uapi/linux/aufs_type.h /linux-kernel/include/uapi/linux/ &&\
-    for patch in aufs3-kbuild aufs3-base aufs3-mmap aufs3-standalone aufs3-loopback; do \
-        patch -p1 < /aufs3-standalone/$patch.patch; \
+    cp -r /aufs-standalone/Documentation /linux-kernel && \
+    cp -r /aufs-standalone/fs /linux-kernel && \
+    cp -r /aufs-standalone/include/uapi/linux/aufs_type.h /linux-kernel/include/uapi/linux/ && \
+    set -e && for patch in \
+        /aufs-standalone/aufs*-kbuild.patch \
+        /aufs-standalone/aufs*-base.patch \
+        /aufs-standalone/aufs*-mmap.patch \
+        /aufs-standalone/aufs*-standalone.patch \
+        /aufs-standalone/aufs*-loopback.patch \
+    ; do \
+        patch -p1 < "$patch"; \
     done
 
 COPY kernel_config /linux-kernel/.config
@@ -52,17 +60,21 @@ RUN jobs=$(nproc); \
 # The post kernel build process
 
 ENV ROOTFS          /rootfs
-ENV TCL_REPO_BASE   http://tinycorelinux.net/5.x/x86
+ENV TCL_REPO_BASE   http://tinycorelinux.net/6.x/x86_64
+# Note that the ncurses is here explicitly so that top continues to work
 ENV TCZ_DEPS        iptables \
                     iproute2 \
                     openssh openssl-1.0.0 \
                     tar \
                     gcc_libs \
+                    ncurses \
                     acpid \
                     xz liblzma \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
                     nfs-utils tcp_wrappers portmap rpcbind libtirpc \
-                    curl ntpclient
+                    curl ntpclient \
+                    procps glib2 libtirpc libffi fuse pcre \
+                    parted
 
 # Make the ROOTFS
 RUN mkdir -p $ROOTFS
@@ -92,7 +104,6 @@ RUN cd $ROOTFS/lib/modules && \
 RUN curl -L http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
     cd /libcap-2.22 && \
     sed -i 's/LIBATTR := yes/LIBATTR := no/' Make.Rules && \
-    sed -i 's/\(^CFLAGS := .*\)/\1 -m32/' Make.Rules && \
     make && \
     mkdir -p output && \
     make prefix=`pwd`/output install && \
@@ -105,8 +116,8 @@ RUN cd /linux-kernel && \
     cd / && \
     git clone http://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
-    git checkout aufs3.9 && \
-    CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
+    git checkout aufs4.0 && \
+    CPPFLAGS="-I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
     rm -rf /tmp/kheaders
 
@@ -114,7 +125,7 @@ RUN cd /linux-kernel && \
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
 # Download the rootfs, don't unpack it though:
-RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs.gz
+RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs64.gz
 
 # Install the TCZ dependencies
 RUN for dep in $TCZ_DEPS; do \
@@ -129,9 +140,7 @@ RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowide
     chmod +x $ROOTFS/usr/local/bin/generate_cert
 
 # Build VBox guest additions
-# For future reference, we have to use x86 versions of several of these bits because TCL doesn't support ELFCLASS64
-# (... and we can't use VBoxControl or VBoxService at all because of this)
-ENV VBOX_VERSION 4.3.20
+ENV VBOX_VERSION 4.3.28
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
     \
@@ -141,17 +150,73 @@ RUN mkdir -p /vboxguest && \
     \
     sh VBoxLinuxAdditions.run --noexec --target . && \
     mkdir amd64 && tar -C amd64 -xjf VBoxGuestAdditions-amd64.tar.bz2 && \
-    mkdir x86 && tar -C x86 -xjf VBoxGuestAdditions-x86.tar.bz2 && \
     rm VBoxGuestAdditions*.tar.bz2 && \
     \
     KERN_DIR=/linux-kernel/ make -C amd64/src/vboxguest-${VBOX_VERSION} && \
-    cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-tinycore64/ && \
+    cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/ && \
     \
     mkdir -p $ROOTFS/sbin && \
-    cp x86/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
+    cp amd64/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
+
+# Build VMware Tools
+ENV OVT_VERSION 9.10.0
+
+# Download and prepare ovt source
+#RUN mkdir -p /vmtoolsd/open-vm-tools \
+#    && curl -L https://github.com/vmware/open-vm-tools/archive/stable-$OVT_VERSION.tar.gz \
+#        | tar -xzC /vmtoolsd/open-vm-tools --strip-components 2
+# use fixes for post 3.19 kernels from https://github.com/davispuh/open-vm-tools/tree/fixed
+# rebased onto the 9.10.0 release
+ENV OVT_REPO       https://github.com/SvenDowideit/open-vm-tools
+ENV OVT_BRANCH     stable-9.10.x-davispuh-fixed
+RUN git clone $OVT_REPO \
+    && cd /open-vm-tools \
+    && git checkout $OVT_BRANCH \
+    && mv /open-vm-tools /vmtoolsd
+
+RUN apt-get install -y libfuse2 libtool autoconf libglib2.0-dev libdumbnet-dev libdumbnet1 libfuse2 libfuse-dev libglib2.0-0 \
+       libtirpc-dev libtirpc1 libmspack-dev libssl-dev
+
+# Compile
+RUN cd /vmtoolsd/open-vm-tools && \
+    autoreconf -i && \
+    ./configure --disable-multimon --disable-docs --disable-tests --with-gnu-ld \
+                --without-kernel-modules --without-procps --without-gtk2 \
+                --without-gtkmm --without-pam --without-x --without-icu \
+		--without-xerces --without-xmlsecurity --without-ssl && \
+    make LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" && \
+    make DESTDIR=$ROOTFS install &&\
+    /vmtoolsd/open-vm-tools/libtool --finish $ROOTFS/usr/local/lib
+
+# Kernel modules to build and install
+ENV VM_MODULES  vmhgfs
+
+RUN cd /vmtoolsd/open-vm-tools &&\
+    TOPDIR=$PWD &&\
+    for module in $VM_MODULES; do \
+        cd modules/linux/$module; \
+        make -C /linux-kernel modules M=$PWD VM_CCVER=$(gcc -dumpversion) HEADER_DIR="/linux-kernel/include" SRCROOT=$PWD OVT_SOURCE_DIR=$TOPDIR; \
+        cd -; \
+    done && \
+    for module in $VM_MODULES; do \
+        make -C /linux-kernel INSTALL_MOD_PATH=$ROOTFS modules_install M=$PWD/modules/linux/$module; \
+    done
+
+ENV LIBDNET libdnet-1.11
+
+RUN mkdir -p /vmtoolsd/${LIBDNET} &&\
+    curl -L http://sourceforge.net/projects/libdnet/files/libdnet/${LIBDNET}/${LIBDNET}.tar.gz \
+        | tar -xzC /vmtoolsd/${LIBDNET} --strip-components 1 &&\
+    cd /vmtoolsd/${LIBDNET} && ./configure --build=i486-pc-linux-gnu &&\
+    make &&\
+    make install && make DESTDIR=$ROOTFS install
+
+# Horrible hack again
+RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 &&\
+    cd $ROOTFS && ln -s lib lib64
 
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
-RUN depmod -a -b $ROOTFS $KERNEL_VERSION-tinycore64
+RUN depmod -a -b $ROOTFS $KERNEL_VERSION-boot2docker
 
 COPY VERSION $ROOTFS/etc/version
 RUN cp -v $ROOTFS/etc/version /tmp/iso/version
@@ -176,11 +241,17 @@ RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-file
 # Copy our custom rootfs
 COPY rootfs/rootfs $ROOTFS
 
+# setup acpi config dir &
+# tcl6's sshd is compiled without `/usr/local/sbin` in the path
+# Boot2Docker and Docker Machine need `ip`, so I'm linking it in here
+RUN cd $ROOTFS \
+    && ln -s /usr/local/etc/acpi etc/ \
+    && ln -s /usr/local/sbin/ip usr/sbin/
+
 # Build the Hyper-V KVP Daemon
 RUN cd /linux-kernel && \
     make headers_install INSTALL_HDR_PATH=/usr && \
     cd /linux-kernel/tools/hv && \
-    sed -i 's/\(^CFLAGS = .*\)/\1 -m32/' Makefile && \
     make hv_kvp_daemon && \
     cp hv_kvp_daemon $ROOTFS/usr/sbin
 
