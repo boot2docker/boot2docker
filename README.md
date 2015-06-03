@@ -128,7 +128,7 @@ daemon.
 The following example will enable core dumps inside containers, but you can
 specify any other options you may need.
 
-```
+```console
 boot2docker ssh -t sudo vi /var/lib/boot2docker/profile
 # Add something like:
 #     EXTRA_ARGS="--default-ulimit core=-1"
@@ -145,9 +145,9 @@ the `DOCKER_CERT_PATH` and `DOCKER_TLS_VERIFY` environment variables.
 
 `eval "$(boot2docker shellinit)"` will also set them correctly.
 
-We strongly recommend against running Boot2Docker with an unencrypted Docker 
-socket for security reasons, but if you have tools that cannot be easily 
-switched, you can disable it by adding `DOCKER_TLS=no` to your 
+We strongly recommend against running Boot2Docker with an unencrypted Docker
+socket for security reasons, but if you have tools that cannot be easily
+switched, you can disable it by adding `DOCKER_TLS=no` to your
 `/var/lib/boot2docker/profile` file.
 
 #### Folder sharing
