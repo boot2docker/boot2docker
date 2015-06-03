@@ -96,3 +96,6 @@ fi
 
 # Launch xenserver-tools
 /etc/rc.d/xedaemon
+
+# Load Parallels Tools daemon
+/etc/rc.d/prltoolsd
