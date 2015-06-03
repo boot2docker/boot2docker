@@ -118,6 +118,23 @@ ip`).
 If you want to share container ports with other computers on your LAN, you will
 need to set up [NAT adaptor based port forwarding](doc/WORKAROUNDS.md).
 
+#### Docker daemon options
+
+If you need to customize the options used to start the Docker daemon, you can
+do so by adding entries to the `/var/lib/boot2docker/profile` file on the
+persistent partition inside the Boot2Docker virtual machine. Then restart the
+daemon.
+
+The following example will enable core dumps inside containers, but you can
+specify any other options you may need.
+
+```
+boot2docker ssh -t sudo vi /var/lib/boot2docker/profile
+# Add something like:
+#     EXTRA_ARGS="--default-ulimit core=-1"
+boot2docker restart
+```
+
 #### TLS support
 
 By default, `boot2docker` runs `docker` with TLS enabled. It auto-generates
@@ -131,9 +148,7 @@ the `DOCKER_CERT_PATH` and `DOCKER_TLS_VERIFY` environment variables.
 We strongly recommend against running Boot2Docker with an unencrypted Docker 
 socket for security reasons, but if you have tools that cannot be easily 
 switched, you can disable it by adding `DOCKER_TLS=no` to your 
-`/var/lib/boot2docker/profile` file on the persistent partition inside the
-Boot2Docker virtual machine (use 
-`boot2docker ssh sudo vi /var/lib/boot2docker/profile`).
+`/var/lib/boot2docker/profile` file.
 
 #### Folder sharing
 
