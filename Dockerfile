@@ -205,7 +205,7 @@ RUN cd /vmtoolsd/open-vm-tools &&\
 ENV LIBDNET libdnet-1.11
 
 RUN mkdir -p /vmtoolsd/${LIBDNET} &&\
-    curl -L http://sourceforge.net/projects/libdnet/files/libdnet/${LIBDNET}/${LIBDNET}.tar.gz \
+    curl -L http://pkgs.fedoraproject.org/repo/pkgs/libdnet/${LIBDNET}.tar.gz/04c394ed8e1e7fc455456e79e908916d/${LIBDNET}.tar.gz \
         | tar -xzC /vmtoolsd/${LIBDNET} --strip-components 1 &&\
     cd /vmtoolsd/${LIBDNET} && ./configure --build=i486-pc-linux-gnu &&\
     make &&\
