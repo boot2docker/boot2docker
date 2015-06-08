@@ -28,7 +28,7 @@ RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.
 # http://aufs.sourceforge.net/
 ENV AUFS_REPO       https://github.com/sfjro/aufs4-standalone
 ENV AUFS_BRANCH     aufs4.0
-ENV AUFS_COMMIT     e004c948c714de6c709161a9d32ab4546063cdb6
+ENV AUFS_COMMIT     a8c8a849e236d7f7fa121c8344899a796ccf7b8f
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Download AUFS and apply patches and files, then remove it
