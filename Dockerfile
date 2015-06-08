@@ -117,7 +117,7 @@ RUN cd /linux-kernel && \
     git clone http://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
     git checkout aufs4.0 && \
-    CPPFLAGS="-I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
+    CFLAGS='-I/tmp/kheaders/include' CPPLFAGS="$CFLAGS" LDFLAGS="$CPPFLAGS" make && \
     DESTDIR=$ROOTFS make install && \
     rm -rf /tmp/kheaders
 
@@ -250,10 +250,11 @@ RUN cd $ROOTFS \
 
 # Build the Hyper-V KVP Daemon
 RUN cd /linux-kernel && \
-    make headers_install INSTALL_HDR_PATH=/usr && \
+    make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
     cd /linux-kernel/tools/hv && \
-    make hv_kvp_daemon && \
-    cp hv_kvp_daemon $ROOTFS/usr/sbin
+    CFLAGS='-I/tmp/kheaders/include' CPPLFAGS="$CFLAGS" LDFLAGS="$CPPFLAGS" make hv_kvp_daemon && \
+    cp hv_kvp_daemon $ROOTFS/usr/sbin && \
+    rm -rf /tmp/kheaders
 
 # These steps can only be run once, so can't be in make_iso.sh (which can be run in chained Dockerfiles)
 # see https://github.com/boot2docker/boot2docker/blob/master/doc/BUILD.md
