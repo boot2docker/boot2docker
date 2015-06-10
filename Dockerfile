@@ -252,7 +252,7 @@ RUN cd $ROOTFS \
 RUN cd /linux-kernel && \
     make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
     cd /linux-kernel/tools/hv && \
-    sed -i 's!\(^CFLAGS = .*\)!\1 -m32 -I/tmp/kheaders/include!' Makefile && \
+    sed -i 's!\(^CFLAGS = .*\)!\1 -I/tmp/kheaders/include!' Makefile && \
     make hv_kvp_daemon && \
     cp hv_kvp_daemon $ROOTFS/usr/sbin && \
     rm -rf /tmp/kheaders
