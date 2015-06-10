@@ -19,10 +19,10 @@ RUN apt-get update && apt-get -y install  unzip \
                         p7zip-full
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  3.18.11
+ENV KERNEL_VERSION  3.8.13
 # http://sourceforge.net/p/aufs/aufs3-standalone/ref/master/branches/
-ENV AUFS_BRANCH     aufs3.18.1+
-ENV AUFS_COMMIT     863c3b76303a1ebea5b6a5b1b014715ac416f913
+ENV AUFS_BRANCH     aufs3.8
+ENV AUFS_COMMIT     e98c69e26250b411e51cc92bf73df2f0829d0759
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Fetch the kernel sources
@@ -62,7 +62,8 @@ ENV TCZ_DEPS        iptables \
                     xz liblzma \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
                     nfs-utils tcp_wrappers portmap rpcbind libtirpc \
-                    curl ntpclient
+                    curl ntpclient \
+                    libpci libpci-dev libpciaccess pci-utils libasound input-joystick-3.8.13-tinycore64 alsa-modules-3.8.13-tinycore64 alsa alsaconf alsa-config
 
 # Make the ROOTFS
 RUN mkdir -p $ROOTFS
@@ -76,7 +77,6 @@ RUN cd /linux-kernel && \
 
 # Remove useless kernel modules, based on unclejack/debian2docker
 RUN cd $ROOTFS/lib/modules && \
-    rm -rf ./*/kernel/sound/* && \
     rm -rf ./*/kernel/drivers/gpu/* && \
     rm -rf ./*/kernel/drivers/infiniband/* && \
     rm -rf ./*/kernel/drivers/isdn/* && \
@@ -105,7 +105,7 @@ RUN cd /linux-kernel && \
     cd / && \
     git clone http://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
-    git checkout aufs3.9 && \
+    git checkout aufs3.2 && \
     CPPFLAGS="-m32 -I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
     rm -rf /tmp/kheaders
@@ -158,9 +158,9 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
-RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
+RUN curl -L -o $ROOTFS/usr/local/bin/docker http://get.docker.io/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
     chmod +x $ROOTFS/usr/local/bin/docker && \
-    { $ROOTFS/usr/local/bin/docker version || true; }
+    { $ROOTFS/usr/local/bin/docker version || true }
 
 # Get the git versioning info
 COPY .git /git/.git
@@ -176,11 +176,16 @@ RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-file
 # Copy our custom rootfs
 COPY rootfs/rootfs $ROOTFS
 
+COPY hyper_v.patch /linux-kernel/hyper_v.patch
+
 # Build the Hyper-V KVP Daemon
+# https://lkml.org/lkml/2014/1/18/116
+RUN cd /linux-kernel && \
+    { patch -p1 < /linux-kernel/hyper_v.patch || true; }
+
 RUN cd /linux-kernel && \
     make headers_install INSTALL_HDR_PATH=/usr && \
     cd /linux-kernel/tools/hv && \
-    sed -i 's/\(^CFLAGS = .*\)/\1 -m32/' Makefile && \
     make hv_kvp_daemon && \
     cp hv_kvp_daemon $ROOTFS/usr/sbin
 
