@@ -161,14 +161,11 @@ RUN mkdir -p /vboxguest && \
 # Build VMware Tools
 ENV OVT_VERSION 9.10.0
 
-# Download and prepare ovt source
-#RUN mkdir -p /vmtoolsd/open-vm-tools \
-#    && curl -L https://github.com/vmware/open-vm-tools/archive/stable-$OVT_VERSION.tar.gz \
-#        | tar -xzC /vmtoolsd/open-vm-tools --strip-components 2
-# use fixes for post 3.19 kernels from https://github.com/davispuh/open-vm-tools/tree/fixed
+# use fixes for post 3.19 and 4.0 kernels from https://github.com/davispuh/open-vm-tools/tree/fixed and http://git.io/vIXpn
 # rebased onto the 9.10.0 release
-ENV OVT_REPO       https://github.com/SvenDowideit/open-vm-tools
-ENV OVT_BRANCH     stable-9.10.x-davispuh-fixed
+ENV OVT_REPO       https://github.com/cloudnativeapps/open-vm-tools
+ENV OVT_BRANCH     stable-9.10.x-kernel4-vmhgfs-fix
+
 RUN git clone $OVT_REPO \
     && cd /open-vm-tools \
     && git checkout $OVT_BRANCH \
