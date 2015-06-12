@@ -247,10 +247,12 @@ RUN cd $ROOTFS \
 
 # Build the Hyper-V KVP Daemon
 RUN cd /linux-kernel && \
-    make headers_install INSTALL_HDR_PATH=/usr && \
+    make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
     cd /linux-kernel/tools/hv && \
+    sed -i 's!\(^CFLAGS = .*\)!\1 -I/tmp/kheaders/include!' Makefile && \
     make hv_kvp_daemon && \
-    cp hv_kvp_daemon $ROOTFS/usr/sbin
+    cp hv_kvp_daemon $ROOTFS/usr/sbin && \
+    rm -rf /tmp/kheaders
 
 # These steps can only be run once, so can't be in make_iso.sh (which can be run in chained Dockerfiles)
 # see https://github.com/boot2docker/boot2docker/blob/master/doc/BUILD.md
