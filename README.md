@@ -273,10 +273,16 @@ pass: tcuser
 
 #### Persist data
 
+Boot2docker uses [Tiny Core Linux](http://tinycorelinux.net), which runs from
+RAM and so does not persist filesystem changes by default.
+
 When you run `boot2docker init`, the `boot2docker` tool auto-creates a disk that
 will be automounted and used to persist your docker data in `/var/lib/docker`
 and `/var/lib/boot2docker`.  This virtual disk will be removed when you run
 `boot2docker delete`.  It will also persist the SSH keys of the machine.
+Changes outside of these directories will be lost after powering down or
+restarting the VM - to make permanent modifications see the
+[FAQ](doc/FAQ.md#local-customisation-with-persistent-partition).
 
 If you are not using the `boot2docker` management tool, you can create an `ext4`
 or `btrfs` formatted partition with the label `boot2docker-data` (`mkfs.ext4 -L
