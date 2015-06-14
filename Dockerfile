@@ -224,6 +224,13 @@ RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.io/builds/Linux/x
     chmod +x $ROOTFS/usr/local/bin/docker && \
     { $ROOTFS/usr/local/bin/docker version || true; }
 
+# Get the docker-compose binary
+ENV COMPOSE_VERSION 1.2.0
+
+RUN curl -L -o $ROOTFS/usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-Linux-x86_64 && \
+    chmod +x $ROOTFS/usr/local/bin/docker-compose && \
+    $ROOTFS/usr/local/bin/docker-compose --version
+
 # Get the git versioning info
 COPY .git /git/.git
 RUN cd /git && \
