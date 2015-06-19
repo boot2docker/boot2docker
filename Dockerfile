@@ -32,9 +32,9 @@ ENV AUFS_COMMIT     a8c8a849e236d7f7fa121c8344899a796ccf7b8f
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Download AUFS and apply patches and files, then remove it
-RUN git clone -b "$AUFS_BRANCH" "$AUFS_REPO" aufs-standalone && \
-    cd aufs-standalone && \
-    git checkout $AUFS_COMMIT && \
+RUN git clone -b "$AUFS_BRANCH" "$AUFS_REPO" /aufs-standalone && \
+    cd /aufs-standalone && \
+    git checkout -q "$AUFS_COMMIT" && \
     cd /linux-kernel && \
     cp -r /aufs-standalone/Documentation /linux-kernel && \
     cp -r /aufs-standalone/fs /linux-kernel && \
@@ -158,6 +158,23 @@ RUN mkdir -p /vboxguest && \
     mkdir -p $ROOTFS/sbin && \
     cp amd64/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
 
+# Install build dependencies for VMware Tools
+RUN apt-get update && apt-get install -y \
+        autoconf \
+        libdumbnet-dev \
+        libdumbnet1 \
+        libfuse-dev \
+        libfuse2 \
+        libfuse2 \
+        libglib2.0-0 \
+        libglib2.0-dev \
+        libmspack-dev \
+        libssl-dev \
+        libtirpc-dev \
+        libtirpc1 \
+        libtool \
+    && rm -rf /var/lib/apt/lists/*
+
 # Build VMware Tools
 ENV OVT_VERSION 9.10.0
 
@@ -165,14 +182,11 @@ ENV OVT_VERSION 9.10.0
 # rebased onto the 9.10.0 release
 ENV OVT_REPO       https://github.com/cloudnativeapps/open-vm-tools
 ENV OVT_BRANCH     stable-9.10.x-kernel4-vmhgfs-fix
+ENV OVT_COMMIT     f654bdb390dd6753985379ea7df058aa8f6294ee
 
-RUN git clone $OVT_REPO \
-    && cd /open-vm-tools \
-    && git checkout $OVT_BRANCH \
-    && mv /open-vm-tools /vmtoolsd
-
-RUN apt-get install -y libfuse2 libtool autoconf libglib2.0-dev libdumbnet-dev libdumbnet1 libfuse2 libfuse-dev libglib2.0-0 \
-       libtirpc-dev libtirpc1 libmspack-dev libssl-dev
+RUN git clone -b "$OVT_BRANCH" "$OVT_REPO" /vmtoolsd \
+    && cd /vmtoolsd \
+    && git checkout -q "$OVT_COMMIT"
 
 # Compile
 RUN cd /vmtoolsd/open-vm-tools && \
@@ -180,7 +194,7 @@ RUN cd /vmtoolsd/open-vm-tools && \
     ./configure --disable-multimon --disable-docs --disable-tests --with-gnu-ld \
                 --without-kernel-modules --without-procps --without-gtk2 \
                 --without-gtkmm --without-pam --without-x --without-icu \
-		--without-xerces --without-xmlsecurity --without-ssl && \
+                --without-xerces --without-xmlsecurity --without-ssl && \
     make LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" && \
     make DESTDIR=$ROOTFS install &&\
     /vmtoolsd/open-vm-tools/libtool --finish $ROOTFS/usr/local/lib
