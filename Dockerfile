@@ -214,17 +214,15 @@ RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 &&\
     cd $ROOTFS && ln -s lib lib64
 
 # Build XenServer Tools
-ENV XENTOOLS_REPO xe-guest-utilities
-ENV XENTOOLS_BRANCH boot2docker
+ENV XEN_REPO https://github.com/xenserver/xe-guest-utilities
+ENV XEN_BRANCH boot2docker
+ENV XEN_COMMIT 4a9417fa61a5ca46676b7073fdb9181fe77ba56e
 
-RUN cd / && \
-    git clone https://github.com/xenserver/$XENTOOLS_REPO && \
-    cd $XENTOOLS_REPO && \
-    git checkout $XENTOOLS_BRANCH && \
-    make && \
-    tar xvf build/dist/${XENTOOLS_REPO}_*.tgz -C $ROOTFS/ && \
-    cd / && \
-    rm -rf $XENTOOLS_REPO
+RUN git clone -b "$XEN_BRANCH" "$XEN_REPO" /xentools \
+    && cd /xentools \
+    && git checkout -q "$XEN_COMMIT" \
+    && make \
+    && tar xvf build/dist/*.tgz -C $ROOTFS/
 
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
 RUN depmod -a -b $ROOTFS $KERNEL_VERSION-boot2docker
