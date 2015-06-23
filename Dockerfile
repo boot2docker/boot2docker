@@ -75,6 +75,8 @@ ENV TCZ_DEPS        iptables \
                     nfs-utils tcp_wrappers portmap rpcbind libtirpc \
                     curl ntpclient \
                     procps glib2 libtirpc libffi fuse pcre \
+                    udev-lib \
+                    liblvm2 \
                     parted
 
 # Make the ROOTFS
