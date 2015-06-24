@@ -16,7 +16,7 @@ to your OSX/Windows box's port 8000 to the Boot2Docker virtual machine's port
 8000:
 
 ```sh
-$ boot2docker ssh -vnNTL 8000:localhost:8000
+$ boot2docker ssh -vnNTL *:8000:localhost:8000
 ```
 
 or you can set up a permanent VirtualBox NAT Port forwarding:
