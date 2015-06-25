@@ -64,7 +64,7 @@ echo "-------------------"
 
 # Allow local bootsync.sh customisation
 if [ -e /var/lib/boot2docker/bootsync.sh ]; then
-    /var/lib/boot2docker/bootsync.sh
+    /bin/sh /var/lib/boot2docker/bootsync.sh
     echo "------------------- ran /var/lib/boot2docker/bootsync.sh"
 fi
 
@@ -73,7 +73,7 @@ fi
 
 # Allow local HD customisation
 if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
-    /var/lib/boot2docker/bootlocal.sh > /var/log/bootlocal.log 2>&1 &
+    /bin/sh /var/lib/boot2docker/bootlocal.sh > /var/log/bootlocal.log 2>&1 &
     echo "------------------- ran /var/lib/boot2docker/bootlocal.sh"
 fi
 
