@@ -9,6 +9,11 @@
 # Automount a hard drive
 /etc/rc.d/automount
 
+# Trigger the DHCP request sooner (the x64 bit userspace appears to be a second slower)
+echo "$(date) dhcp -------------------------------"
+/etc/rc.d/dhcp.sh
+echo "$(date) dhcp -------------------------------"
+
 # Mount cgroups hierarchy
 /etc/rc.d/cgroupfs-mount
 # see https://github.com/tianon/cgroupfs-mount

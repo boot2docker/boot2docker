@@ -274,6 +274,9 @@ RUN cd /linux-kernel && \
 # Make sure init scripts are executable
 RUN find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';'
 
+# move dhcp.sh out of init.d as we're triggering it manually so its ready a bit faster
+RUN mv $ROOTFS/etc/init.d/dhcp.sh $ROOTFS/etc/rc.d/
+
 # Change MOTD
 RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 
