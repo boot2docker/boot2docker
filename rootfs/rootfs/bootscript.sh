@@ -93,3 +93,6 @@ fi
 
 # Launch vmware-tools
 /etc/rc.d/vmtoolsd
+
+# Launch xenserver-tools
+/etc/rc.d/xedaemon
