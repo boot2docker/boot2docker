@@ -28,7 +28,7 @@ if [ ! -n "$BOOT2DOCKER_DATA" ]; then
             (echo n; echo p; echo 2; echo ; echo +1000M ; echo w) | fdisk $UNPARTITIONED_HD
             # Let kernel re-read partition table
             partprobe
-            (echo t; echo 2; echo 82; echo w) | fdisk $UNPARTITIONED_HD
+            (echo t; echo 82; echo w) | fdisk $UNPARTITIONED_HD
             # Let kernel re-read partition table
             partprobe
             mkswap "${UNPARTITIONED_HD}2"
