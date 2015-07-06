@@ -226,9 +226,13 @@ RUN mkdir -p /vmtoolsd/${LIBDNET} &&\
     make install && make DESTDIR=$ROOTFS install
 
 # Download and build Parallels Tools
-ENV PRL_TOOLS_URL = http://download.parallels.com/desktop/v11/11.0.0-rtm/ParallelsTools-11.0.0-30901-boot2docker.tar.gz
+ENV PRL_MAJOR 11
+ENV PRL_VERSION 11.0.0
+ENV PRL_BUILD 30901
 
-RUN mkdir -p /prl_tools && curl -L $PRL_TOOLS_URL | tar -xzC /prl_tools --strip-components 1 &&\
+RUN mkdir -p /prl_tools && \
+    curl -L http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}-rtm/ParallelsTools-${PRL_VERSION}-${PRL_BUILD}-boot2docker.tar.gz \
+        | tar -xzC /prl_tools --strip-components 1 &&\
     cd /prl_tools &&\
     cp -Rv tools/* $ROOTFS &&\
     \
