@@ -228,7 +228,7 @@ RUN mkdir -p /vmtoolsd/${LIBDNET} &&\
 # Download and build Parallels Tools
 ENV PRL_MAJOR 11
 ENV PRL_VERSION 11.0.0
-ENV PRL_BUILD 30901
+ENV PRL_BUILD 30916
 
 RUN mkdir -p /prl_tools && \
     curl -L http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}-rtm/ParallelsTools-${PRL_VERSION}-${PRL_BUILD}-boot2docker.tar.gz \

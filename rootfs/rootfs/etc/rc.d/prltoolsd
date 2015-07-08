@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/bin/sh /usr/local/etc/init.d/prltoolsd start
+/usr/local/etc/init.d/prltoolsd start
