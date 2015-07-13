@@ -12,14 +12,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #		git \
 #		lxc \
 
-ENV DOCKER_VERSION 1.6.0
-COPY docker-${DOCKER_VERSION} /usr/local/bin/docker
-
-COPY docker.service /etc/systemd/system/
-RUN systemctl enable docker.service
-
-COPY docker.sysvinit /etc/init.d/docker
-RUN update-rc.d docker defaults
+COPY docker-engine*.deb /tmp/
+RUN dpkg --unpack /tmp/docker-engine*.deb \
+	&& apt-get update \
+	&& apt-get install -y --no-install-recommends -f \
+	&& rm -rf /var/lib/apt/lists/*
 
 # PURE VANITY
 RUN { echo; docker -v; echo; } > /etc/motd
