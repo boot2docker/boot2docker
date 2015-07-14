@@ -26,5 +26,7 @@ RUN { echo; docker -v; echo; } > /etc/motd
 RUN docker -v > /tmp/iso/version
 
 COPY autoformat.sh /usr/local/sbin/
+COPY autoformat.init /etc/init.d/autoformat
+RUN update-rc.d autoformat defaults
 
 #RUN build-iso.sh # creates /tmp/docker.iso

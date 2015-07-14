@@ -19,8 +19,13 @@ done
 
 post_mount() {
 	if [ -d "$mountPoint/var/lib/docker" ]; then
-		rm -rf /var/lib/docker
-		ln -s "$mountPoint/var/lib/docker" /var/lib/docker
+		if /etc/init.d/docker status &> /dev/null; then
+			echo >&2 'warning: Docker is running;'
+			echo >&2 '  cautiously avoiding replacing the existing /var/lib/docker with a symlink'
+		else
+			rm -rf /var/lib/docker
+			ln -s "$mountPoint/var/lib/docker" /var/lib/docker
+		fi
 	fi
 }
 
