@@ -1,6 +1,38 @@
 Workarounds
 ===========
 
+## Connection Issues
+
+There are currently a few connections issues in Boot2docker. If you see
+
+    Couldn't connect to Docker daemon
+
+or something like
+
+    FATA[0000] An error occurred trying to connect: Get https://192.168.59.107:2376/v1.18/containers/json?all=1: x509: certificate is valid for 127.0.0.1, 10.0.2.15, not 192.168.59.107
+
+
+it could be one of many issues reported recently.  Try this
+
+
+    boot2docker ssh sudo /etc/init.d/docker restart
+
+
+and run `docker ps` to see if you can connect. If not, then try deleting the keys
+
+
+    boot2docker ssh sudo rm /var/lib/boot2docker/tls/server*.pem
+    boot2docker ssh sudo /etc/init.d/docker restart
+    boot2docker shellinit
+
+and run `docker ps` to see if you can connect. If that doesn't work:
+
+- `boot2docker restart`
+- `docker ps` # Should see some output, not errors.
+
+
+
+
 ## Port forwarding
 
 > **Note**: these instructions are for TCP only, not UDP. If you need to port forward

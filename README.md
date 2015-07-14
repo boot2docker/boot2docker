@@ -303,6 +303,8 @@ Boot2Docker ISOs.
 
 ## Troubleshooting
 
+See the [workarounds doc](https://github.com/boot2docker/boot2docker/blob/master/doc/WORKAROUNDS.md) for solutions to known issues.
+
 #### `boot2docker up` doesn't work (OSX)
 
 Sometimes OSX will install updates that break VirtualBox and require a restart
