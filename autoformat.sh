@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-preferLabel='docker-data'
-mountPoint='/mnt/docker-data'
+preferLabel='data'
+mountPoint='/mnt/data'
 
 mkdir -p "$mountPoint"
 mountpoint "$mountPoint" &> /dev/null && exit
@@ -18,15 +18,24 @@ for swap in "${swaps[@]}"; do
 done
 
 post_mount() {
-	if [ -d "$mountPoint/var/lib/docker" ]; then
-		if /etc/init.d/docker status &> /dev/null; then
-			echo >&2 'warning: Docker is running;'
-			echo >&2 '  cautiously avoiding replacing the existing /var/lib/docker with a symlink'
-		else
-			rm -rf /var/lib/docker
-			ln -s "$mountPoint/var/lib/docker" /var/lib/docker
-		fi
+	if /etc/init.d/docker status &> /dev/null; then
+		echo >&2 'warning: Docker is running;'
+		echo >&2 '  cautiously avoiding replacing the existing /var/lib/docker with a symlink'
+	else
+		mkdir -p "$mountPoint/var/lib/docker"
+		rm -rf /var/lib/docker
+		ln -sfT "$mountPoint/var/lib/docker" /var/lib/docker
 	fi
+
+	mkdir -p "$mountPoint/etc/ssh"
+
+	if [ ! -d "$mountPoint/home/docker" ]; then
+		# if we don't have a /home/docker yet, let's pre-seed it with our current /home/docker content
+		mkdir -p "$mountPoint/home/docker"
+		rsync -aq /home/docker/ "$mountPoint/home/docker/"
+	fi
+	rm -rf /home/docker
+	ln -sfT "$mountPoint/home/docker" /home/docker
 }
 
 if [ -e "/dev/disk/by-label/$preferLabel" ]; then
@@ -68,14 +77,11 @@ for drive in "${drives[@]}"; do
 		} | fdisk "$drive"
 
 		mkswap "${drive}2"
-		mkfs.ext4 -L "$preferLabel" "${drive}1"
-
 		swapon "${drive}2"
+
+		mkfs.ext4 -L "$preferLabel" "${drive}1"
 		mount "${drive}1" "$mountPoint"
-
-		mkdir -p "$mountPoint/var/lib/docker"
 		post_mount
-
 		exit
 	fi
 done
