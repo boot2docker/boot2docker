@@ -3,7 +3,7 @@ set -e
 
 ### BEGIN INIT INFO
 # Provides:          autoformat
-# X-Start-Before:    docker ssh-keygen getty.target
+# X-Start-Before:    docker ssh-keygen systemd-user-sessions
 # Required-Start:    $remote_fs
 # Required-Stop:     $remote_fs
 # Default-Start:     2 3 4 5

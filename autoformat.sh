@@ -79,7 +79,9 @@ for drive in "${drives[@]}"; do
 		mkswap "${drive}2"
 		swapon "${drive}2"
 
-		mkfs.ext4 -L "$preferLabel" "${drive}1"
+		# overlayfs is a bit of an inode snob, so we set bytes-per-inode to half the usual default of roughly 16384
+		# http://stackoverflow.com/a/5425321/433558
+		mkfs.ext4 -i 8192 -L "$preferLabel" "${drive}1"
 		mount "${drive}1" "$mountPoint"
 		post_mount
 		exit
