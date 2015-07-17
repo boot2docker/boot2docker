@@ -1,0 +1,8 @@
+FROM dockercore/iso
+
+RUN { \
+		echo 'VARIANT="VMware"'; \
+		echo 'VARIANT_ID=vmware'; \
+	} >> /etc/os-release
+
+RUN apt-get update && apt-get install -y open-vm-tools && rm -rf /var/lib/apt/lists/*
