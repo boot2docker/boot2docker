@@ -3,6 +3,26 @@ set -e
 
 preferLabel='data'
 mountPoint='/mnt/data'
+forceMkdir=(
+	/etc/docker
+	/home/docker
+)
+persist=(
+	"${forceMkdir[@]}"
+	/etc/default/docker
+	/etc/hostname
+	/etc/systemd/system/docker.service
+)
+mkdir -p "${forceMkdir[@]}" /etc/ssh
+touch "${persist[@]}"
+
+if [ ! -s /etc/systemd/system/docker.service ]; then
+	{
+		echo '[Service]'
+		echo 'ExecStart='
+		awk -F= '$1 == "ExecStart" { print }' /lib/systemd/system/docker.service
+	} > /etc/systemd/system/docker.service
+fi
 
 mkdir -p "$mountPoint"
 mountpoint "$mountPoint" &> /dev/null && exit
@@ -29,13 +49,28 @@ post_mount() {
 
 	mkdir -p "$mountPoint/etc/ssh"
 
-	if [ ! -d "$mountPoint/home/docker" ]; then
-		# if we don't have a /home/docker yet, let's pre-seed it with our current /home/docker content
-		mkdir -p "$mountPoint/home/docker"
-		rsync -aq /home/docker/ "$mountPoint/home/docker/"
+	for f in "${persist[@]}"; do
+		t="$mountPoint$f"
+		if [ ! -e "$t" ]; then
+			mkdir -p "$(dirname "$t")"
+			mv -T "$f" "$t"
+		fi
+		rm -rf "$f"
+		ln -sfT "$t" "$f"
+	done
+	sync
+
+	# make sure changes to /etc/systemd/system take effect
+	systemctl daemon-reload || true
+	# (only matters on systemd, of course)
+
+	# TODO figure out why "X-Start-Before:" of "hostname", "hostname.sh", and/or "systemd-hostnamed" have no effect and we have to have this little hack
+	host="$(cat /etc/hostname)"
+	hostname "$host"
+	if [ "$host" != 'docker' ]; then
+		sedEscapedHost="$(echo "$host" | sed 's/[\/&]/\\&/g')"
+		sed -ri 's/\bdocker\b/'"$sedEscapedHost"'/g' /etc/hosts
 	fi
-	rm -rf /home/docker
-	ln -sfT "$mountPoint/home/docker" /home/docker
 }
 
 if [ -e "/dev/disk/by-label/$preferLabel" ]; then
