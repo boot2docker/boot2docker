@@ -15,3 +15,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # wuuut: "test -d /usr/share/doc/virtualbox-guest-utils -a -x /usr/sbin/VBoxService || exit 0"
 RUN sed -i 's! -d /usr/share/doc/virtualbox-guest-utils -a!!' /etc/init.d/virtualbox-guest-utils
+
+# let "docker" access vboxsf stuff
+RUN usermod -aG vboxsf docker
