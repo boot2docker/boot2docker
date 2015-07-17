@@ -18,3 +18,6 @@ RUN sed -i 's! -d /usr/share/doc/virtualbox-guest-utils -a!!' /etc/init.d/virtua
 
 # let "docker" access vboxsf stuff
 RUN usermod -aG vboxsf docker
+
+# simple, dirty fix for being able to mount inside /Users and have that work
+RUN mkdir -p /Users && chgrp vboxsf /Users && chmod g+rwx /Users
