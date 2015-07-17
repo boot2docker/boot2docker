@@ -24,6 +24,15 @@ RUN dpkg --unpack /tmp/docker-engine*.deb \
 # PURE VANITY
 RUN { echo; docker -v; echo; } > /etc/motd
 RUN docker -v > /tmp/iso/version
+RUN { \
+		echo 'PRETTY_NAME="'"$(docker -v)"'"'; \
+		echo 'NAME="Docker"'; \
+		echo 'VERSION_ID="'"$(docker -v | sed -r 's/.* version ([^ ,]+).*/\1/')"'"'; \
+		echo 'VERSION="'"$(dpkg-query --show --showformat='${Version}' docker-engine)"'"'; \
+		echo 'ID=docker'; \
+		echo 'ID_LIKE="debian boot2docker"'; \
+		echo 'HOME_URL="https://dockerproject.org"'; \
+	} > /etc/os-release
 
 COPY autoformat.sh /usr/local/sbin/
 COPY autoformat.init /etc/init.d/autoformat
