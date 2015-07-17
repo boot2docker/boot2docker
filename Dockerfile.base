@@ -2,6 +2,7 @@ FROM debian:jessie
 
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
+		acpi-support-base \
 		bash-completion \
 		busybox \
 		ca-certificates \
