@@ -12,3 +12,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		virtualbox-guest-dkms \
 		virtualbox-guest-utils \
 	&& rm -rf /var/lib/apt/lists/*
+
+# wuuut: "test -d /usr/share/doc/virtualbox-guest-utils -a -x /usr/sbin/VBoxService || exit 0"
+RUN sed -i 's! -d /usr/share/doc/virtualbox-guest-utils -a!!' /etc/init.d/virtualbox-guest-utils
