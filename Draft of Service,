@@ -1,0 +1,429 @@
+<atom:link href="http://www.w3.org/blog/news/feed" rel="self" type="application/rss+xml"/>
+<link>http://www.w3.org/blog/news</link>
+<description>Leading the Web to its Full Potential</description>
+<lastBuildDate>Thu, 09 Jul 2015 13:53:34 +0000</lastBuildDate>
+<language>en-US</language>
+<sy:updatePeriod>hourly</sy:updatePeriod>
+<sy:updateFrequency>1</sy:updateFrequency>
+<generator>http://wordpress.org/?v=4.2.2</generator>
+<item>
+<title>
+Scalable Vector Graphics (SVG) WG: 2 Drafts Published
+</title>
+<link>
+http://www.w3.org/blog/news/archives/4806?pk_campaign=feed&pk_kwd=scalable-vector-graphics-svg-wg-2-drafts-published
+</link>
+<comments>
+http://www.w3.org/blog/news/archives/4806?pk_campaign=feed&pk_kwd=scalable-vector-graphics-svg-wg-2-drafts-published#comments
+</comments>
+<pubDate>Thu, 09 Jul 2015 13:53:34 +0000</pubDate>
+<dc:creator>
+<![CDATA[ Maria Auday ]]>
+</dc:creator>
+<category>
+<![CDATA[ Home Page Stories ]]>
+</category>
+<category>
+<![CDATA[ Publication ]]>
+</category>
+<category>
+<![CDATA[ Web Design and Applications ]]>
+</category>
+<guid isPermaLink="false">http://www.w3.org/blog/news/?p=4806</guid>
+<description>
+<![CDATA[
+The SVG Working Group has published a First Public Working Draft and one Working Draft. SVG Paths is a specification that defines a syntax and DOM representation for paths, which are shapes that can be rendered in a document. Paths are primarily used for rendering shapes using the SVG ‘path’ ele
+]]>
+<![CDATA[
+ment, but are also used [&#8230;]<img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4806%3Fpk_campaign%3Dfeed%26pk_kwd%3Dscalable-vector-graphics-svg-wg-2-drafts-published&amp;action_name=Scalable+Vector+Graphics+%28SVG%29+WG%3A+2+Drafts+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" />
+]]>
+</description>
+<content:encoded>
+<![CDATA[
+<p>The <a href="http://www.w3.org/Graphics/SVG/WG/">SVG Working Group</a> has published a First Public Working Draft and one Working Draft. </p> <p><a href="http://www.w3.org/TR/2015/WD-svg-paths-20150709/">SVG Paths</a> is a specification that defines a syntax and DOM representation for paths, which are shapes that can be rendered in a document. Paths are primarily used for rendering shapes using the SVG ‘path’ element, but are also used by a number of other Web platform features, such as clipping paths and rendering in an HTML ‘canvas’. </p> <p><a href="http://www.w3.org/TR/2015/WD-SVG2-20150709/">Scalable Vector Graphics (SVG) 2</a> is a specification that defines the features and syntax for Scalable Vector Graphics (SVG) Version 2. SVG is a language based on XML for describing two-dimensional vector and mixed vector/raster graphics. SVG content is stylable, scalable to different display resolutions, and can be viewed stand-alone, mixed with HTML content, or embedded using XML namespaces within other XML languages. SVG also supports dynamic changes; script can be used to create interactive documents, and animations can be performed using declarative animation features or by using script. </p> <p>Learn more about the <a href="http://www.w3.org/Graphics/">Graphics Activity</a>.</p> <p><img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4806%3Fpk_campaign%3Dfeed%26pk_kwd%3Dscalable-vector-graphics-svg-wg-2-drafts-published&amp;action_name=Scalable+Vector+Graphics+%28SVG%29+WG%3A+2+Drafts+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" /></p>
+]]>
+</content:encoded>
+<wfw:commentRss>
+http://www.w3.org/blog/news/archives/4806?pk_campaign=feed&pk_kwd=scalable-vector-graphics-svg-wg-2-drafts-published/feed
+</wfw:commentRss>
+<slash:comments>0</slash:comments>
+</item>
+<item>
+<title>
+First Public Working Draft: Digital Publishing WAI-ARIA Module
+</title>
+<link>
+http://www.w3.org/blog/news/archives/4798?pk_campaign=feed&pk_kwd=first-public-working-draft-digital-publishing-wai-aria-module
+</link>
+<comments>
+http://www.w3.org/blog/news/archives/4798?pk_campaign=feed&pk_kwd=first-public-working-draft-digital-publishing-wai-aria-module#comments
+</comments>
+<pubDate>Tue, 07 Jul 2015 14:31:28 +0000</pubDate>
+<dc:creator>
+<![CDATA[ Maria Auday ]]>
+</dc:creator>
+<category>
+<![CDATA[ Home Page Stories ]]>
+</category>
+<category>
+<![CDATA[ Publication ]]>
+</category>
+<category>
+<![CDATA[ Web Design and Applications ]]>
+</category>
+<guid isPermaLink="false">http://www.w3.org/blog/news/?p=4798</guid>
+<description>
+<![CDATA[
+The Protocols and Formats Working Group, in coordination with the Digital Publishing Interest Group, published a First Public Working Draft of Digital Publishing WAI-ARIA Module 1.0. This specification extends WAI-ARIA 1.1 to define an ontology of roles, states, and properties specific to digital publishing. It facilitates automated processing and accessibility support by providing semantics that [&#8230;]<img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4798%3Fpk_campaign%3Dfeed%26pk_kwd%3Dfirst-public-working-draft-digital-publishing-wai-aria-module&amp;action_name=First+Public+Working+Draft%3A+Digital+Publishing+WAI-ARIA+Module&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" />
+]]>
+</description>
+<content:encoded>
+<![CDATA[
+<p>The <a href="http://www.w3.org/WAI/PF">Protocols and Formats Working Group</a>, in coordination with the <a href="http://www.w3.org/dpub/IG/">Digital Publishing Interest Group</a>, published a First Public Working Draft of <a href="http://www.w3.org/TR/2015/WD-dpub-aria-1.0-20150707/">Digital Publishing WAI-ARIA Module 1.0</a>. This specification extends <a href="http://www.w3.org/WAI/intro/aria"><abbr title="Accessible Rich Internet Applications">WAI-ARIA 1.1</abbr></a> to define an ontology of roles, states, and properties specific to digital publishing. It facilitates automated processing and accessibility support by providing semantics that are not included in base languages such as HTML. It allows authors to convey structural information to assistive technologies, and to enable semantic navigation, styling, and interactive features used by readers. More information is available in the <a href="http://www.w3.org/blog/2015/07/aria-and-dpub-publish-fpwd/">blog post &#8220;ARIA and DPUB publish FPWD&#8221;</a>. Learn more about the the <a href="http://www.w3.org/WAI/">Web Accessibility Initiative (WAI)</a> and the <a href="http://www.w3.org/dpub/">Digital Publishing Activity</a>.</p> <p><img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4798%3Fpk_campaign%3Dfeed%26pk_kwd%3Dfirst-public-working-draft-digital-publishing-wai-aria-module&amp;action_name=First+Public+Working+Draft%3A+Digital+Publishing+WAI-ARIA+Module&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" /></p>
+]]>
+</content:encoded>
+<wfw:commentRss>
+http://www.w3.org/blog/news/archives/4798?pk_campaign=feed&pk_kwd=first-public-working-draft-digital-publishing-wai-aria-module/feed
+</wfw:commentRss>
+<slash:comments>0</slash:comments>
+</item>
+<item>
+<title>Web Animations Draft Published</title>
+<link>
+http://www.w3.org/blog/news/archives/4802?pk_campaign=feed&pk_kwd=web-animations-draft-published
+</link>
+<comments>
+http://www.w3.org/blog/news/archives/4802?pk_campaign=feed&pk_kwd=web-animations-draft-published#comments
+</comments>
+<pubDate>Tue, 07 Jul 2015 14:31:27 +0000</pubDate>
+<dc:creator>
+<![CDATA[ Maria Auday ]]>
+</dc:creator>
+<category>
+<![CDATA[ Home Page Stories ]]>
+</category>
+<category>
+<![CDATA[ Publication ]]>
+</category>
+<category>
+<![CDATA[ Web Design and Applications ]]>
+</category>
+<guid isPermaLink="false">http://www.w3.org/blog/news/?p=4802</guid>
+<description>
+<![CDATA[
+The CSS Working Group and the SVG Working Group have published a working draft of Web Animations. This specification defines a model for synchronization and timing of changes to the presentation of a Web page. It also defines an application programming interface for interacting with this model and it is expected that further specifications will [&#8230;]<img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4802%3Fpk_campaign%3Dfeed%26pk_kwd%3Dweb-animations-draft-published&amp;action_name=Web+Animations+Draft+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" />
+]]>
+</description>
+<content:encoded>
+<![CDATA[
+<p>The <a href="http://www.w3.org/Style/CSS/members">CSS Working Group</a> and the <a href="http://www.w3.org/Graphics/SVG/WG/">SVG Working Group</a> have published a working draft of <a href="http://www.w3.org/TR/2015/WD-web-animations-1-20150707/">Web Animations</a>. This specification defines a model for synchronization and timing of changes to the presentation of a Web page. It also defines an application programming interface for interacting with this model and it is expected that further specifications will define declarative means for exposing these features. Learn more about the <a href="http://www.w3.org/Style/">Style Activity</a>, and the <a href="http://www.w3.org/Graphics/">Graphics Activity</a>.</p> <p><img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4802%3Fpk_campaign%3Dfeed%26pk_kwd%3Dweb-animations-draft-published&amp;action_name=Web+Animations+Draft+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" /></p>
+]]>
+</content:encoded>
+<wfw:commentRss>
+http://www.w3.org/blog/news/archives/4802?pk_campaign=feed&pk_kwd=web-animations-draft-published/feed
+</wfw:commentRss>
+<slash:comments>0</slash:comments>
+</item>
+<item>
+<title>
+W3C Invites Implementations of CSS Basic User Interface Module Level 3 (CSS3 UI)
+</title>
+<link>
+http://www.w3.org/blog/news/archives/4800?pk_campaign=feed&pk_kwd=w3c-invites-implementations-of-css-basic-user-interface-module-level-3-css3-ui
+</link>
+<comments>
+http://www.w3.org/blog/news/archives/4800?pk_campaign=feed&pk_kwd=w3c-invites-implementations-of-css-basic-user-interface-module-level-3-css3-ui#comments
+</comments>
+<pubDate>Tue, 07 Jul 2015 14:31:27 +0000</pubDate>
+<dc:creator>
+<![CDATA[ Maria Auday ]]>
+</dc:creator>
+<category>
+<![CDATA[ Home Page Stories ]]>
+</category>
+<category>
+<![CDATA[ Publication ]]>
+</category>
+<category>
+<![CDATA[ Web Design and Applications ]]>
+</category>
+<guid isPermaLink="false">http://www.w3.org/blog/news/?p=4800</guid>
+<description>
+<![CDATA[
+The Cascading Style Sheets (CSS) Working Group invites implementation of the Candidate Recommendation of CSS Basic User Interface Module Level 3 (CSS3 UI). This specification describes user interface related properties and values that are proposed for CSS level 3 to style HTML and XML (including XHTML). It includes and extends user interface related features from [&#8230;]<img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4800%3Fpk_campaign%3Dfeed%26pk_kwd%3Dw3c-invites-implementations-of-css-basic-user-interface-module-level-3-css3-ui&amp;action_name=W3C+Invites+Implementations+of+CSS+Basic+User+Interface+Module+Level+3+%28CSS3+UI%29&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" />
+]]>
+</description>
+<content:encoded>
+<![CDATA[
+<p>The <a href="http://www.w3.org/Style/CSS/members">Cascading Style Sheets (CSS) Working Group</a> invites implementation of the Candidate Recommendation of <a href="http://www.w3.org/TR/2015/CR-css-ui-3-20150707/">CSS Basic User Interface Module Level 3 (CSS3 UI)</a>. This specification describes user interface related properties and values that are proposed for CSS level 3 to style HTML and XML (including XHTML). It includes and extends user interface related features from the properties and values of CSS level 2 revision 1. It uses various properties and values to style basic user interface elements in a document. Learn more about the <a href="http://www.w3.org/Style/">Style Activity</a>.</p> <p><img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4800%3Fpk_campaign%3Dfeed%26pk_kwd%3Dw3c-invites-implementations-of-css-basic-user-interface-module-level-3-css3-ui&amp;action_name=W3C+Invites+Implementations+of+CSS+Basic+User+Interface+Module+Level+3+%28CSS3+UI%29&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" /></p>
+]]>
+</content:encoded>
+<wfw:commentRss>
+http://www.w3.org/blog/news/archives/4800?pk_campaign=feed&pk_kwd=w3c-invites-implementations-of-css-basic-user-interface-module-level-3-css3-ui/feed
+</wfw:commentRss>
+<slash:comments>0</slash:comments>
+</item>
+<item>
+<title>
+W3C Invites Implementations of HTML Canvas 2D Context
+</title>
+<link>
+http://www.w3.org/blog/news/archives/4793?pk_campaign=feed&pk_kwd=w3c-invites-implementations-of-html-canvas-2d-context-2
+</link>
+<comments>
+http://www.w3.org/blog/news/archives/4793?pk_campaign=feed&pk_kwd=w3c-invites-implementations-of-html-canvas-2d-context-2#comments
+</comments>
+<pubDate>Thu, 02 Jul 2015 11:44:23 +0000</pubDate>
+<dc:creator>
+<![CDATA[ Maria Auday ]]>
+</dc:creator>
+<category>
+<![CDATA[ Home Page Stories ]]>
+</category>
+<category>
+<![CDATA[ Publication ]]>
+</category>
+<category>
+<![CDATA[ Web Design and Applications ]]>
+</category>
+<guid isPermaLink="false">http://www.w3.org/blog/news/?p=4793</guid>
+<description>
+<![CDATA[
+The HTML Working Group invites implementation of the Candidate Recommendation of HTML Canvas 2D Context. This specification defines the 2D Context for the HTML canvas element. The 2D Context provides objects, methods, and properties to draw and manipulate graphics on a canvas drawing surface. Learn more about the HTML Activity.<img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4793%3Fpk_campaign%3Dfeed%26pk_kwd%3Dw3c-invites-implementations-of-html-canvas-2d-context-2&amp;action_name=W3C+Invites+Implementations+of+HTML+Canvas+2D+Context&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" />
+]]>
+</description>
+<content:encoded>
+<![CDATA[
+<p>The <a href="http://www.w3.org/html/wg/">HTML Working Group</a> invites implementation of the Candidate Recommendation of <a href="http://www.w3.org/TR/2015/CR-2dcontext-20150702/">HTML Canvas 2D Context</a>. This specification defines the 2D Context for the HTML canvas element. The 2D Context provides objects, methods, and properties to draw and manipulate graphics on a canvas drawing surface. Learn more about the <a href="http://www.w3.org/html/">HTML Activity</a>.</p> <p><img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4793%3Fpk_campaign%3Dfeed%26pk_kwd%3Dw3c-invites-implementations-of-html-canvas-2d-context-2&amp;action_name=W3C+Invites+Implementations+of+HTML+Canvas+2D+Context&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" /></p>
+]]>
+</content:encoded>
+<wfw:commentRss>
+http://www.w3.org/blog/news/archives/4793?pk_campaign=feed&pk_kwd=w3c-invites-implementations-of-html-canvas-2d-context-2/feed
+</wfw:commentRss>
+<slash:comments>0</slash:comments>
+</item>
+<item>
+<title>
+First Public Working Draft: Web Annotation Protocol Published
+</title>
+<link>
+http://www.w3.org/blog/news/archives/4795?pk_campaign=feed&pk_kwd=first-public-working-draft-web-annotation-protocol-published
+</link>
+<comments>
+http://www.w3.org/blog/news/archives/4795?pk_campaign=feed&pk_kwd=first-public-working-draft-web-annotation-protocol-published#comments
+</comments>
+<pubDate>Thu, 02 Jul 2015 11:44:22 +0000</pubDate>
+<dc:creator>
+<![CDATA[ Maria Auday ]]>
+</dc:creator>
+<category>
+<![CDATA[ Home Page Stories ]]>
+</category>
+<category>
+<![CDATA[ Publication ]]>
+</category>
+<category>
+<![CDATA[ Web Design and Applications ]]>
+</category>
+<guid isPermaLink="false">http://www.w3.org/blog/news/?p=4795</guid>
+<description>
+<![CDATA[
+The Web Annotation Working Group has published a Working Draft of Web Annotation Protocol. Annotations are typically used to convey information about a resource or associations between resources. Simple examples include a comment or tag on a single web page or image, or a blog post about a news article. Learn more about the Digital [&#8230;]<img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4795%3Fpk_campaign%3Dfeed%26pk_kwd%3Dfirst-public-working-draft-web-annotation-protocol-published&amp;action_name=First+Public+Working+Draft%3A+Web+Annotation+Protocol+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" />
+]]>
+</description>
+<content:encoded>
+<![CDATA[
+<p>The <a href="http://www.w3.org/annotation/">Web Annotation Working Group</a> has published a Working Draft of <a href="http://www.w3.org/TR/2015/WD-annotation-protocol-20150702/">Web Annotation Protocol</a>. Annotations are typically used to convey information about a resource or associations between resources. Simple examples include a comment or tag on a single web page or image, or a blog post about a news article. Learn more about the <a href="http://www.w3.org/dpub/">Digital Publishing Activity</a>.</p> <p><img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4795%3Fpk_campaign%3Dfeed%26pk_kwd%3Dfirst-public-working-draft-web-annotation-protocol-published&amp;action_name=First+Public+Working+Draft%3A+Web+Annotation+Protocol+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" /></p>
+]]>
+</content:encoded>
+<wfw:commentRss>
+http://www.w3.org/blog/news/archives/4795?pk_campaign=feed&pk_kwd=first-public-working-draft-web-annotation-protocol-published/feed
+</wfw:commentRss>
+<slash:comments>0</slash:comments>
+</item>
+<item>
+<title>Linked Data Platform Paging 1.0 Note Published</title>
+<link>
+http://www.w3.org/blog/news/archives/4787?pk_campaign=feed&pk_kwd=linked-data-platform-paging-1-0-note-published
+</link>
+<comments>
+http://www.w3.org/blog/news/archives/4787?pk_campaign=feed&pk_kwd=linked-data-platform-paging-1-0-note-published#comments
+</comments>
+<pubDate>Tue, 30 Jun 2015 15:13:00 +0000</pubDate>
+<dc:creator>
+<![CDATA[ Maria Auday ]]>
+</dc:creator>
+<category>
+<![CDATA[ Publication ]]>
+</category>
+<category>
+<![CDATA[ Web Design and Applications ]]>
+</category>
+<guid isPermaLink="false">http://www.w3.org/blog/news/?p=4787</guid>
+<description>
+<![CDATA[
+The Linked Data Platform (LDP) Working Group has published a Group Note of Linked Data Platform Paging 1.0. This document describes a HTTP-based protocol for clients and servers to be able to efficiently retrieve large Linked Data Platform Resource representations by splitting up the responses into separate URL-addressable page resources. Learn more about the Data [&#8230;]<img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4787%3Fpk_campaign%3Dfeed%26pk_kwd%3Dlinked-data-platform-paging-1-0-note-published&amp;action_name=Linked+Data+Platform+Paging+1.0+Note+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" />
+]]>
+</description>
+<content:encoded>
+<![CDATA[
+<p>The <a href="http://www.w3.org/2012/ldp/">Linked Data Platform (LDP) Working Group</a> has published a Group Note of <a href="http://www.w3.org/TR/2015/NOTE-ldp-paging-20150630/">Linked Data Platform Paging 1.0</a>. This document describes a HTTP-based protocol for clients and servers to be able to efficiently retrieve large Linked Data Platform Resource representations by splitting up the responses into separate URL-addressable page resources. Learn more about the <a href="http://www.w3.org/2013/data/">Data Activity</a>.</p> <p><img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4787%3Fpk_campaign%3Dfeed%26pk_kwd%3Dlinked-data-platform-paging-1-0-note-published&amp;action_name=Linked+Data+Platform+Paging+1.0+Note+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" /></p>
+]]>
+</content:encoded>
+<wfw:commentRss>
+http://www.w3.org/blog/news/archives/4787?pk_campaign=feed&pk_kwd=linked-data-platform-paging-1-0-note-published/feed
+</wfw:commentRss>
+<slash:comments>0</slash:comments>
+</item>
+<item>
+<title>
+W3C Invites Implementations of XML Inclusions (XInclude) Version 1.1
+</title>
+<link>
+http://www.w3.org/blog/news/archives/4791?pk_campaign=feed&pk_kwd=w3c-invites-implementations-of-xml-inclusions-xinclude-version-1-1-2
+</link>
+<comments>
+http://www.w3.org/blog/news/archives/4791?pk_campaign=feed&pk_kwd=w3c-invites-implementations-of-xml-inclusions-xinclude-version-1-1-2#comments
+</comments>
+<pubDate>Tue, 30 Jun 2015 15:12:59 +0000</pubDate>
+<dc:creator>
+<![CDATA[ Maria Auday ]]>
+</dc:creator>
+<category>
+<![CDATA[ Publication ]]>
+</category>
+<category>
+<![CDATA[ Web Design and Applications ]]>
+</category>
+<guid isPermaLink="false">http://www.w3.org/blog/news/?p=4791</guid>
+<description>
+<![CDATA[
+The XML Core Working Group invites implementation of the Candidate Recommendation of XML Inclusions (XInclude) Version 1.1. This document specifies a processing model and syntax for general purpose inclusion. Inclusion is accomplished by merging a number of XML information sets into a single composite infoset. Specification of the XML documents (infosets) to be merged and [&#8230;]<img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4791%3Fpk_campaign%3Dfeed%26pk_kwd%3Dw3c-invites-implementations-of-xml-inclusions-xinclude-version-1-1-2&amp;action_name=W3C+Invites+Implementations+of+XML+Inclusions+%28XInclude%29+Version+1.1&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" />
+]]>
+</description>
+<content:encoded>
+<![CDATA[
+<p>The <a href="http://www.w3.org/XML/Core/">XML Core Working Group</a> invites implementation of the Candidate Recommendation of <a href="http://www.w3.org/TR/2015/CR-xinclude-11-20150630/">XML Inclusions (XInclude) Version 1.1</a>. This document specifies a processing model and syntax for general
+]]>
+<![CDATA[
+purpose inclusion. Inclusion is accomplished by merging a number of XML information sets into a single composite infoset. Specification of the XML documents (infosets) to be merged and control over the merging process is expressed in XML-friendly syntax (elements, attributes, URI references). Learn more about the <a href="http://www.w3.org/XML/">Extensible Markup Language (XML) Activity</a>.</p> <p><img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4791%3Fpk_campaign%3Dfeed%26pk_kwd%3Dw3c-invites-implementations-of-xml-inclusions-xinclude-version-1-1-2&amp;action_name=W3C+Invites+Implementations+of+XML+Inclusions+%28XInclude%29+Version+1.1&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" /></p>
+]]>
+</content:encoded>
+<wfw:commentRss>
+http://www.w3.org/blog/news/archives/4791?pk_campaign=feed&pk_kwd=w3c-invites-implementations-of-xml-inclusions-xinclude-version-1-1-2/feed
+</wfw:commentRss>
+<slash:comments>0</slash:comments>
+</item>
+<item>
+<title>
+Requirements for Hangul Text Layout and Typography Draft Published
+</title>
+<link>
+http://www.w3.org/blog/news/archives/4789?pk_campaign=feed&pk_kwd=requirements-for-hangul-text-layout-and-typography-draft-published-2
+</link>
+<comments>
+http://www.w3.org/blog/news/archives/4789?pk_campaign=feed&pk_kwd=requirements-for-hangul-text-layout-and-typography-draft-published-2#comments
+</comments>
+<pubDate>Tue, 30 Jun 2015 15:12:59 +0000</pubDate>
+<dc:creator>
+<![CDATA[ Maria Auday ]]>
+</dc:creator>
+<category>
+<![CDATA[ Publication ]]>
+</category>
+<category>
+<![CDATA[ Web Design and Applications ]]>
+</category>
+<guid isPermaLink="false">http://www.w3.org/blog/news/?p=4789</guid>
+<description>
+<![CDATA[
+The Internationalization Working Group has published a Working Draft of Requirements for Hangul Text Layout and Typography. This document describes requirements for general Korean language/Hangul text layout and typography realized with technologies like CSS, SVG and XSL-FO. The document is mainly based on a project to develop the international standard for Korean text layout. Learn [&#8230;]<img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4789%3Fpk_campaign%3Dfeed%26pk_kwd%3Drequirements-for-hangul-text-layout-and-typography-draft-published-2&amp;action_name=Requirements+for+Hangul+Text+Layout+and+Typography+Draft+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" />
+]]>
+</description>
+<content:encoded>
+<![CDATA[
+<p>The <a href="http://www.w3.org/International/core/">Internationalization Working Group</a> has published a Working Draft of <a href="http://www.w3.org/TR/2015/WD-klreq-20150630/">Requirements for Hangul Text Layout and Typography</a>. This document describes requirements for general Korean language/Hangul text layout and typography realized with technologies like CSS, SVG and XSL-FO. The document is mainly based on a project to develop the international standard for Korean text layout. Learn more about the <a href="http://www.w3.org/International/">Internationalization Activity</a>.</p> <p><img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4789%3Fpk_campaign%3Dfeed%26pk_kwd%3Drequirements-for-hangul-text-layout-and-typography-draft-published-2&amp;action_name=Requirements+for+Hangul+Text+Layout+and+Typography+Draft+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" /></p>
+]]>
+</content:encoded>
+<wfw:commentRss>
+http://www.w3.org/blog/news/archives/4789?pk_campaign=feed&pk_kwd=requirements-for-hangul-text-layout-and-typography-draft-published-2/feed
+</wfw:commentRss>
+<slash:comments>0</slash:comments>
+</item>
+<item>
+<title>
+Web and Digital Marketing Convergence, a W3C Workshop
+</title>
+<link>
+http://www.w3.org/blog/news/archives/4784?pk_campaign=feed&pk_kwd=web-and-digital-marketing-convergence-a-w3c-workshop
+</link>
+<comments>
+http://www.w3.org/blog/news/archives/4784?pk_campaign=feed&pk_kwd=web-and-digital-marketing-convergence-a-w3c-workshop#comments
+</comments>
+<pubDate>Thu, 25 Jun 2015 15:03:47 +0000</pubDate>
+<dc:creator>
+<![CDATA[ Coralie Mercier ]]>
+</dc:creator>
+<category>
+<![CDATA[ Browsers and Authoring Tools ]]>
+</category>
+<category>
+<![CDATA[ Web Design and Applications ]]>
+</category>
+<category>
+<![CDATA[ Web of Devices ]]>
+</category>
+<category>
+<![CDATA[ Web of Services ]]>
+</category>
+<guid isPermaLink="false">http://www.w3.org/blog/news/?p=4784</guid>
+<description>
+<![CDATA[
+W3C announced today Web and Digital Marketing Convergence, a W3C Workshop, 17-18 September 2015, in Tampa, Florida (USA). The event is hosted by Nielsen. Digital Marketing and the ecosystem surrounding it are growing at an unprecedented pace as consumers and companies take advantage of new devices, features, and content on the Web. As the Open [&#8230;]<img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4784%3Fpk_campaign%3Dfeed%26pk_kwd%3Dweb-and-digital-marketing-convergence-a-w3c-workshop&amp;action_name=Web+and+Digital+Marketing+Convergence%2C+a+W3C+Workshop&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" />
+]]>
+</description>
+<content:encoded>
+<![CDATA[
+<p>W3C announced today <a href="http://www.w3.org/2015/digital-marketing-workshop.html">Web and Digital Marketing Convergence, a W3C Workshop</a>, 17-18 September 2015, in Tampa, Florida (USA). The event is hosted by Nielsen.</p> <p>Digital Marketing and the ecosystem surrounding it are growing at an unprecedented pace as consumers and companies take advantage of new devices, features, and content on the Web. As the Open Web Platform and technologies such as HTML5 continue to expand and offer new functionalities, brands, interactive marketers, content publishers and third party providers are calling W3C&#8217;s attention to gaps and challenges, which include a lack of standards on the definition and secure execution of, for example, marketing campaigns, advertising performance, data collection, and marketing signals.</p> <p>Our goal is to start conversations with technical representatives from the broad digital marketing industry and the open web community to better understand what changes to the Open Web Platform would help improve interoperability, increase efficiencies, enable new innovations, and enhance communications. W3C membership is not required to participate. The event is open to all. All participants are required to submit a position paper by <strong>14 August 2015</strong>.</p> <p><img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4784%3Fpk_campaign%3Dfeed%26pk_kwd%3Dweb-and-digital-marketing-convergence-a-w3c-workshop&amp;action_name=Web+and+Digital+Marketing+Convergence%2C+a+W3C+Workshop&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" /></p>
+]]>
+</content:encoded>
+<wfw:commentRss>
+http://www.w3.org/blog/news/archives/4784?pk_campaign=feed&pk_kwd=web-and-digital-marketing-convergence-a-w3c-workshop/feed
+</wfw:commentRss>
+<slash:comments>0</slash:comments>
+</item>
+<item>
+<title>Service Workers Draft Published</title>
+<link>
+http://www.w3.org/blog/news/archives/4777?pk_campaign=feed&pk_kwd=service-workers-draft-published-3
+</link>
+<comments>
+http://www.w3.org/blog/news/archives/4777?pk_campaign=feed&pk_kwd=service-workers-draft-published-3#comments
+</comments>
+<pubDate>Thu, 25 Jun 2015 14:34:14 +0000</pubDate>
+<dc:creator>
+<![CDATA[ Maria Auday ]]>
+</dc:creator>
+<category>
+<![CDATA[ Publication ]]>
+</category>
+<category>
+<![CDATA[ Web Design and Applications ]]>
+</category>
+<guid isPermaLink="false">http://www.w3.org/blog/news/?p=4777</guid>
+<description>
+<![CDATA[
+The Web Applications Working Group has published a Working Draft of Service Workers. This specification describes a method that enables applications to take advantage of persistent background processing, including hooks to enable bootstrapping of web applications while offline. The core of this system is an event-driven Web Worker, which responds to events dispatched from documents [&#8230;]<img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4777%3Fpk_campaign%3Dfeed%26pk_kwd%3Dservice-workers-draft-published-3&amp;action_name=Service+Workers+Draft+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" />
+]]>
+</description>
+<content:encoded>
+<![CDATA[
+<p>The <a href="http://www.w3.org/2008/webapps/">Web Applications Working Group</a> has published a Working Draft of <a href="http://www.w3.org/TR/2015/WD-service-workers-20150625/">Service Workers</a>. This specification describes a method that enables applications to take advantage of persistent background processing, including hooks to enable bootstrapping of web applications while offline. The core of this system is an event-driven Web Worker, which responds to events dispatched from documents and other sources. A system for managing installation, versions, and upgrades is provided. The service worker is a generic entry point for event-driven background processing in the Web Platform that is extensible by other specifications. Learn more about the <a href="http://www.w3.org/2006/rwc/">Rich Web Client Activity</a>.</p> <p><img src="https://www.w3.org/analytics/piwik/piwik.php?idsite=7&amp;rec=1&amp;url=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Farchives%2F4777%3Fpk_campaign%3Dfeed%26pk_kwd%3Dservice-workers-draft-published-3&amp;action_name=Service+Workers+Draft+Published&amp;urlref=http%3A%2F%2Fwww.w3.org%2Fblog%2Fnews%2Ffeed" style="border:0;width:0;height:0" width="0" height="0" alt="" /></p>
+]]>
+</content:encoded>
+<wfw:commentRss>
+http://www.w3.org/blog/news/archives/4777?pk_campaign=feed&pk_kwd=service-workers-draft-published-3/feed
+</wfw:commentRss>
+<slash:comments>0</slash:comments>
+</item>
+<item>
