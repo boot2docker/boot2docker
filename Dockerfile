@@ -197,7 +197,7 @@ RUN cd /vmtoolsd/open-vm-tools && \
     ./configure --disable-multimon --disable-docs --disable-tests --with-gnu-ld \
                 --without-kernel-modules --without-procps --without-gtk2 \
                 --without-gtkmm --without-pam --without-x --without-icu \
-		--without-xerces --without-xmlsecurity --without-ssl && \
+                --without-xerces --without-xmlsecurity --without-ssl && \
     make LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" && \
     make DESTDIR=$ROOTFS install &&\
     /vmtoolsd/open-vm-tools/libtool --finish $ROOTFS/usr/local/lib
