@@ -15,10 +15,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #		git \
 #		lxc \
 
-COPY docker-engine*.deb /tmp/
-RUN dpkg --unpack /tmp/docker-engine*.deb \
-	&& apt-get update \
-	&& apt-get install -y --no-install-recommends -f \
+# this is how one would install a .deb from the context instead of via apt
+#COPY docker-engine*.deb /tmp/
+#RUN dpkg --unpack /tmp/docker-engine*.deb \
+#	&& apt-get update \
+#	&& apt-get install -y --no-install-recommends -f \
+#	&& rm -rf /var/lib/apt/lists/*
+
+RUN echo 'deb http://apt.dockerproject.org/repo debian-jessie main' > /etc/apt/sources.list.d/docker.list
+RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+ENV DOCKER_VERSION 1.7.1-0~jessie
+RUN apt-get update && apt-get install -y --no-install-recommends \
+		docker-engine=$DOCKER_VERSION \
 	&& rm -rf /var/lib/apt/lists/*
 
 # PURE VANITY
