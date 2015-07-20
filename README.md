@@ -6,7 +6,7 @@ small ~24MB download and boots in ~5s (YMMV).
 
 ## Features
 
-* Kernel 4.0.4 with AUFS, Docker v1.6.2 - using libcontainer
+* Kernel 4.0.7 with AUFS, Docker v1.7.1 - using libcontainer
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
@@ -118,6 +118,23 @@ ip`).
 If you want to share container ports with other computers on your LAN, you will
 need to set up [NAT adaptor based port forwarding](doc/WORKAROUNDS.md).
 
+#### Docker daemon options
+
+If you need to customize the options used to start the Docker daemon, you can
+do so by adding entries to the `/var/lib/boot2docker/profile` file on the
+persistent partition inside the Boot2Docker virtual machine. Then restart the
+daemon.
+
+The following example will enable core dumps inside containers, but you can
+specify any other options you may need.
+
+```console
+boot2docker ssh -t sudo vi /var/lib/boot2docker/profile
+# Add something like:
+#     EXTRA_ARGS="--default-ulimit core=-1"
+boot2docker restart
+```
+
 #### TLS support
 
 By default, `boot2docker` runs `docker` with TLS enabled. It auto-generates
@@ -128,12 +145,10 @@ the `DOCKER_CERT_PATH` and `DOCKER_TLS_VERIFY` environment variables.
 
 `eval "$(boot2docker shellinit)"` will also set them correctly.
 
-We strongly recommend against running Boot2Docker with an unencrypted Docker 
-socket for security reasons, but if you have tools that cannot be easily 
-switched, you can disable it by adding `DOCKER_TLS=no` to your 
-`/var/lib/boot2docker/profile` file on the persistent partition inside the
-Boot2Docker virtual machine (use 
-`boot2docker ssh sudo vi /var/lib/boot2docker/profile`).
+We strongly recommend against running Boot2Docker with an unencrypted Docker
+socket for security reasons, but if you have tools that cannot be easily
+switched, you can disable it by adding `DOCKER_TLS=no` to your
+`/var/lib/boot2docker/profile` file.
 
 #### Folder sharing
 
@@ -258,10 +273,16 @@ pass: tcuser
 
 #### Persist data
 
+Boot2docker uses [Tiny Core Linux](http://tinycorelinux.net), which runs from
+RAM and so does not persist filesystem changes by default.
+
 When you run `boot2docker init`, the `boot2docker` tool auto-creates a disk that
 will be automounted and used to persist your docker data in `/var/lib/docker`
 and `/var/lib/boot2docker`.  This virtual disk will be removed when you run
 `boot2docker delete`.  It will also persist the SSH keys of the machine.
+Changes outside of these directories will be lost after powering down or
+restarting the VM - to make permanent modifications see the
+[FAQ](doc/FAQ.md#local-customisation-with-persistent-partition).
 
 If you are not using the `boot2docker` management tool, you can create an `ext4`
 or `btrfs` formatted partition with the label `boot2docker-data` (`mkfs.ext4 -L
@@ -281,6 +302,8 @@ Goto [How to build](doc/BUILD.md) for Documentation on how to build your own
 Boot2Docker ISOs.
 
 ## Troubleshooting
+
+See the [workarounds doc](https://github.com/boot2docker/boot2docker/blob/master/doc/WORKAROUNDS.md) for solutions to known issues.
 
 #### `boot2docker up` doesn't work (OSX)
 

@@ -111,11 +111,14 @@ that doesn't exist, it will pick the first ``ext4`` partition listed by ``blkid`
 
 ## Local Customisation (with persistent partition)
 
-From Boot2Docker version 1.6.0, the `/var/lib/boot2docker/bootsync.sh` script is
-run before the Docker daemon is started.
+Changes outside of the `/var/lib/docker` and `/var/lib/boot2docker` directories
+will be lost after powering down or restarting the boot2docker VM. However, if
+you have a persistence partition (created automatically by `boot2docker init`),
+you can make customisations that are run at the end of boot initialisation by
+creating a script at ``/var/lib/boot2docker/bootlocal.sh``.
 
-If you have a persistence partition, you can make customisations that are run at
-the end of the boot initialisation in the ``/var/lib/boot2docker/bootlocal.sh`` file.
+From Boot2Docker version 1.6.0, you can also specify steps that are run before
+the Docker daemon is started, using `/var/lib/boot2docker/bootsync.sh`.
 
 You can also set variables that will be used during the boot initialisation (after
 the automount) by setting them in `/var/lib/boot2docker/profile`

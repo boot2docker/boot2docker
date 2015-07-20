@@ -9,6 +9,11 @@
 # Automount a hard drive
 /etc/rc.d/automount
 
+# Trigger the DHCP request sooner (the x64 bit userspace appears to be a second slower)
+echo "$(date) dhcp -------------------------------"
+/etc/rc.d/dhcp.sh
+echo "$(date) dhcp -------------------------------"
+
 # Mount cgroups hierarchy
 /etc/rc.d/cgroupfs-mount
 # see https://github.com/tianon/cgroupfs-mount
@@ -64,7 +69,7 @@ echo "-------------------"
 
 # Allow local bootsync.sh customisation
 if [ -e /var/lib/boot2docker/bootsync.sh ]; then
-    /var/lib/boot2docker/bootsync.sh
+    /bin/sh /var/lib/boot2docker/bootsync.sh
     echo "------------------- ran /var/lib/boot2docker/bootsync.sh"
 fi
 
@@ -73,7 +78,7 @@ fi
 
 # Allow local HD customisation
 if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
-    /var/lib/boot2docker/bootlocal.sh > /var/log/bootlocal.log 2>&1 &
+    /bin/sh /var/lib/boot2docker/bootlocal.sh > /var/log/bootlocal.log 2>&1 &
     echo "------------------- ran /var/lib/boot2docker/bootlocal.sh"
 fi
 
@@ -88,3 +93,9 @@ fi
 
 # Launch vmware-tools
 /etc/rc.d/vmtoolsd
+
+# Launch xenserver-tools
+/etc/rc.d/xedaemon
+
+# Load Parallels Tools daemon
+/etc/rc.d/prltoolsd
