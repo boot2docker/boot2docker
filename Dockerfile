@@ -117,7 +117,7 @@ RUN curl -L http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.or
 RUN cd /linux-kernel && \
     make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
     cd / && \
-    git clone http://git.code.sf.net/p/aufs/aufs-util && \
+    git clone https://github.com/Distrotech/aufs-util.git && \
     cd /aufs-util && \
     git checkout aufs4.0 && \
     CPPFLAGS="-I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
@@ -197,7 +197,7 @@ RUN cd /vmtoolsd/open-vm-tools && \
     ./configure --disable-multimon --disable-docs --disable-tests --with-gnu-ld \
                 --without-kernel-modules --without-procps --without-gtk2 \
                 --without-gtkmm --without-pam --without-x --without-icu \
-                --without-xerces --without-xmlsecurity --without-ssl && \
+		--without-xerces --without-xmlsecurity --without-ssl --without-libdnet && \
     make LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" && \
     make DESTDIR=$ROOTFS install &&\
     /vmtoolsd/open-vm-tools/libtool --finish $ROOTFS/usr/local/lib
@@ -216,14 +216,6 @@ RUN cd /vmtoolsd/open-vm-tools &&\
         make -C /linux-kernel INSTALL_MOD_PATH=$ROOTFS modules_install M=$PWD/modules/linux/$module; \
     done
 
-ENV LIBDNET libdnet-1.12
-
-RUN mkdir -p /vmtoolsd/${LIBDNET} &&\
-    curl -L https://libdnet.googlecode.com/files/${LIBDNET}.tgz \
-        | tar -xzC /vmtoolsd/${LIBDNET} --strip-components 1 &&\
-    cd /vmtoolsd/${LIBDNET} && ./configure --build=i486-pc-linux-gnu &&\
-    make &&\
-    make install && make DESTDIR=$ROOTFS install
 
 # Download and build Parallels Tools
 ENV PRL_MAJOR 11
@@ -241,9 +233,6 @@ RUN mkdir -p /prl_tools && \
     \
     find kmods/ -name \*.ko -exec cp {} $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/extra/ \;
 
-# Horrible hack again
-RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 &&\
-    cd $ROOTFS && ln -s lib lib64
 
 # Build XenServer Tools
 ENV XEN_REPO https://github.com/xenserver/xe-guest-utilities
