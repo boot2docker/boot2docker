@@ -42,8 +42,8 @@ RUN { \
 		echo 'HOME_URL="https://dockerproject.org"'; \
 	} > /etc/os-release
 
-COPY autoformat.sh /usr/local/sbin/
-COPY autoformat.init /etc/init.d/autoformat
+COPY scripts/autoformat.sh /usr/local/sbin/
+COPY inits/autoformat.init /etc/init.d/autoformat
 RUN update-rc.d autoformat defaults
 
 #RUN build-iso.sh # creates /tmp/docker.iso
