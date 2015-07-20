@@ -101,6 +101,10 @@ RUN set -e && { \
 } > /etc/inittab
 # TODO figure out a clean way to suppress the "respawning too fast" error so we can have ttyS1 back
 
+# set a default LANG (sshd reads from here)
+# this prevents warnings later
+RUN echo 'LANG=C.UTF-8' > /etc/default/locale
+
 # PURE VANITY
 RUN { echo; echo 'Docker (\\s \\m \\r) [\\l]'; echo; } > /etc/issue
 RUN . /etc/os-release && echo "$PRETTY_NAME" > /tmp/iso/version
