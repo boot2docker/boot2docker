@@ -197,7 +197,7 @@ RUN cd /vmtoolsd/open-vm-tools && \
     ./configure --disable-multimon --disable-docs --disable-tests --with-gnu-ld \
                 --without-kernel-modules --without-procps --without-gtk2 \
                 --without-gtkmm --without-pam --without-x --without-icu \
-		--without-xerces --without-xmlsecurity --without-ssl --without-libdnet && \
+		--without-xerces --without-xmlsecurity --without-ssl && \
     make LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" && \
     make DESTDIR=$ROOTFS install &&\
     /vmtoolsd/open-vm-tools/libtool --finish $ROOTFS/usr/local/lib
@@ -216,6 +216,12 @@ RUN cd /vmtoolsd/open-vm-tools &&\
         make -C /linux-kernel INSTALL_MOD_PATH=$ROOTFS modules_install M=$PWD/modules/linux/$module; \
     done
 
+ENV LIBDNET libdnet-1.12
+RUN curl -L -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/${LIBDNET}.zip &&\
+    unzip /tmp/${LIBDNET}.zip -d /vmtoolsd &&\
+    cd /vmtoolsd/libdnet-${LIBDNET} && ./configure --build=i486-pc-linux-gnu &&\
+    make &&\
+    make install && make DESTDIR=$ROOTFS install
 
 # Download and build Parallels Tools
 ENV PRL_MAJOR 11
@@ -233,6 +239,9 @@ RUN mkdir -p /prl_tools && \
     \
     find kmods/ -name \*.ko -exec cp {} $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/extra/ \;
 
+# Horrible hack again
+RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 &&\
+    cd $ROOTFS && ln -s lib lib64
 
 # Build XenServer Tools
 ENV XEN_REPO https://github.com/xenserver/xe-guest-utilities
