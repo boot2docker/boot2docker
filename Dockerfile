@@ -117,7 +117,7 @@ RUN curl -L http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.or
 RUN cd /linux-kernel && \
     make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
     cd / && \
-    git clone http://git.code.sf.net/p/aufs/aufs-util && \
+    git clone https://github.com/Distrotech/aufs-util.git && \
     cd /aufs-util && \
     git checkout aufs4.0 && \
     CPPFLAGS="-I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
@@ -216,12 +216,10 @@ RUN cd /vmtoolsd/open-vm-tools &&\
         make -C /linux-kernel INSTALL_MOD_PATH=$ROOTFS modules_install M=$PWD/modules/linux/$module; \
     done
 
-ENV LIBDNET libdnet-1.11
-
-RUN mkdir -p /vmtoolsd/${LIBDNET} &&\
-    curl -L http://sourceforge.net/projects/libdnet/files/libdnet/${LIBDNET}/${LIBDNET}.tar.gz \
-        | tar -xzC /vmtoolsd/${LIBDNET} --strip-components 1 &&\
-    cd /vmtoolsd/${LIBDNET} && ./configure --build=i486-pc-linux-gnu &&\
+ENV LIBDNET libdnet-1.12
+RUN curl -L -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/${LIBDNET}.zip &&\
+    unzip /tmp/${LIBDNET}.zip -d /vmtoolsd &&\
+    cd /vmtoolsd/libdnet-${LIBDNET} && ./configure --build=i486-pc-linux-gnu &&\
     make &&\
     make install && make DESTDIR=$ROOTFS install
 
