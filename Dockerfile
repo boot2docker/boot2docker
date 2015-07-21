@@ -119,7 +119,7 @@ RUN cd /linux-kernel && \
     cd / && \
     git clone http://git.code.sf.net/p/aufs/aufs-util && \
     cd /aufs-util && \
-    git checkout aufs4.0 && \
+    git checkout 5e0c348bd8b1898beb1e043b026bcb0e0c7b0d54 && \
     CPPFLAGS="-I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
     DESTDIR=$ROOTFS make install && \
     rm -rf /tmp/kheaders
