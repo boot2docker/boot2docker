@@ -12,4 +12,13 @@ set -e
 # Description:       Autoformat and automount at boot, if possible.
 ### END INIT INFO
 
-/usr/local/sbin/autoformat.sh
+. /lib/lsb/init-functions
+
+case "$1" in
+	start|restart|reload|force-reload)
+		exec /usr/local/sbin/autoformat.sh
+		;;
+	stop|status)
+		exit 0
+		;;
+esac

@@ -12,4 +12,13 @@ set -e
 # Description:       Generate SSH host keys at boot, if necessary.
 ### END INIT INFO
 
-/usr/local/sbin/generate-ssh-host-keys.sh
+. /lib/lsb/init-functions
+
+case "$1" in
+	start|restart|reload|force-reload)
+		exec /usr/local/sbin/generate-ssh-host-keys.sh
+		;;
+	stop|status)
+		exit 0
+		;;
+esac
