@@ -1,0 +1,11 @@
+FROM dockercore/iso
+
+RUN { \
+		echo 'VARIANT="Hyper-V"'; \
+		echo 'VARIANT_ID=hyperv'; \
+	} >> /etc/os-release
+
+# we need "hyperv-daemons" which only exists in experimental right now
+RUN echo 'deb http://httpredir.debian.org/debian experimental main' > /etc/apt/sources.list.d/experimental.list
+
+RUN apt-get update && apt-get install -y hyperv-daemons && rm -rf /var/lib/apt/lists/*

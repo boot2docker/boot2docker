@@ -10,7 +10,7 @@ base.iso: base.build
 	docker run --rm dockercore/iso:$(@:.iso=) sh -c 'build-iso.sh >&2 && cat /tmp/docker.iso' > docker-$@
 	ls -lh docker-$@
 
-all: docker.iso virtualbox.iso vmware.iso
+all: docker.iso hyperv.iso virtualbox.iso vmware.iso
 
 base.build: Dockerfile.base
 	docker build -t dockercore/iso:base -f Dockerfile.base .
