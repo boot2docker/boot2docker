@@ -88,13 +88,15 @@ usr/lib/libisoburn.so*
 usr/lib/libisofs.so*
 usr/lib/libjte.so*
 usr/lib/linux-kbuild*
+usr/lib/python*
 usr/sbin/dkms
 usr/sbin/dpkg*
 usr/sbin/policy-rc.d
 usr/share/bug
 usr/share/debhelper
-usr/share/doc
+usr/share/doc*
 usr/share/dpkg
+usr/share/gcc*
 usr/share/info
 usr/share/initramfs-tools
 usr/share/lintian
