@@ -1,4 +1,10 @@
-# Boot2Docker
+# Deprecated
+
+This project ("boot2docker (Legacy)") is deprecated in favor of ["boot2docker"](https://github.com/docker/boot2docker) (reimagined and designed to be used in combination with [Docker Machine](https://docs.docker.com/machine/)).
+
+The source and documentation here remains for reference and transition purposes only.
+
+# Boot2Docker (Legacy)
 
 Boot2Docker is a lightweight Linux distribution made specifically to run
 [Docker](https://www.docker.com/) containers. It runs completely from RAM, is a
