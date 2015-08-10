@@ -20,6 +20,9 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${SERVERKEY:="${CERTDIR}serverkey.pem"}
 : ${CERT:="${CERTDIR}cert.pem"}
 : ${KEY:="${CERTDIR}key.pem"}
+: ${ORG:=Boot2Docker}
+: ${SERVERORG:="${ORG}"}
+: ${CAORG:="${ORG}CA"} # Append 'CA'; see <http://rt.openssl.org/Ticket/History.html?use r=guest&pass=guest&id=3979>
 
 # Add /usr/local/sbin to the path.
 export PATH=${PATH}:/usr/local/sbin
@@ -41,21 +44,21 @@ start() {
         chmod 700 "$CERTDIR"
         if [ ! -f "$CACERT" ] || [ ! -f "$CAKEY" ]; then
             echo "Generating CA cert"
-            /usr/local/bin/generate_cert --cert="$CACERT" --key="$CAKEY"
+            /usr/local/bin/generate_cert --cert="$CACERT" --key="$CAKEY" --org="$CAORG"
             rm "$SERVERCERT" "$SERVERKEY" "$CERT" "$KEY" "$CERTDIR/hostnames"
         fi
 
         CERTSEXISTFOR=$(cat "$CERTDIR/hostnames" 2>/dev/null)
         if [ "$CERTHOSTNAMES" != "$CERTSEXISTFOR" ]; then
             echo "Generate server cert"
-            echo /usr/local/bin/generate_cert --host="$CERTHOSTNAMES" --ca="$CACERT" --ca-key="$CAKEY" --cert="$SERVERCERT" --key="$SERVERKEY"
-            /usr/local/bin/generate_cert --host="$CERTHOSTNAMES" --ca="$CACERT" --ca-key="$CAKEY" --cert="$SERVERCERT" --key="$SERVERKEY"
+            echo /usr/local/bin/generate_cert --host="$CERTHOSTNAMES" --ca="$CACERT" --ca-key="$CAKEY" --cert="$SERVERCERT" --key="$SERVERKEY" --org="$SERVERORG"
+            /usr/local/bin/generate_cert --host="$CERTHOSTNAMES" --ca="$CACERT" --ca-key="$CAKEY" --cert="$SERVERCERT" --key="$SERVERKEY" --org="$SERVERORG"
             echo "$CERTHOSTNAMES" > "$CERTDIR/hostnames"
         fi
 
         if [ ! -f "$CERT" ] || [ ! -f "$KEY" ]; then
             echo "Generating client cert"
-            /usr/local/bin/generate_cert --ca="$CACERT" --ca-key="$CAKEY" --cert="$CERT" --key="$KEY"
+            /usr/local/bin/generate_cert --ca="$CACERT" --ca-key="$CAKEY" --cert="$CERT" --key="$KEY" --org="$ORG"
         fi
 
         if [ "$DOCKER_TLS" == "auto" ]; then

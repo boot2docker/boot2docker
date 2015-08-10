@@ -139,7 +139,7 @@ RUN for dep in $TCZ_DEPS; do \
     done
 
 # get generate_cert
-RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.1/generate_cert-0.1-linux-386/ && \
+RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.2/generate_cert-0.2-linux-amd64 && \
     chmod +x $ROOTFS/usr/local/bin/generate_cert
 
 # Build VBox guest additions
