@@ -159,7 +159,9 @@ RUN mkdir -p /vboxguest && \
     cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/ && \
     \
     mkdir -p $ROOTFS/sbin && \
-    cp amd64/lib/VBoxGuestAdditions/mount.vboxsf $ROOTFS/sbin/
+    cp amd64/lib/VBoxGuestAdditions/mount.vboxsf amd64/sbin/VBoxService $ROOTFS/sbin/ && \
+    mkdir -p $ROOTFS/bin && \
+    cp amd64/bin/VBoxClient amd64/bin/VBoxControl $ROOTFS/bin/
 
 # Install build dependencies for VMware Tools
 RUN apt-get update && apt-get install -y \
