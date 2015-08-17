@@ -12,7 +12,7 @@ if [ -n "$NTP_SERVER" ]; then
 		fi
 	done
 	
-	ntpd -d -n -p $NTP_SERVER > /var/lib/boot2docker/log/ntpd.log 2>&1 &
+	ntpd -d -g -n -p $NTP_SERVER > /var/lib/boot2docker/log/ntpd.log 2>&1 &
 else
 	echo 'NTP_SERVER not set; skipping starting ntpd' > /var/lib/boot2docker/log/ntpd.log
 fi
