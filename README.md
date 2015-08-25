@@ -192,28 +192,6 @@ the "samba" container that refers to it by name. So, in this example, if you
 were on OS-X you now have /Volumes/data and /data in container being shared. You
 can change the paths as needed.
 
-##### Installing secure Registry certificates
-
-You can add your Registry server's public certificate (in `.pem` format) into
-the `/var/lib/boot2docker/certs/` directory, and Boot2Docker will automatically
-load it from the persistence partition at boot.
-
-You may need to add several certificates (as separate `.pem` files) to this
-directory, depending on the CA signing chain used for your certificate.
-
-##### Insecure Registry
-
-As of Docker version 1.3.1, if your registry doesn't support HTTPS, you must add it as an
-insecure registry.
-
-```console
-$ boot2docker init
-$ boot2docker up
-$ boot2docker ssh "echo $'EXTRA_ARGS=\"--insecure-registry <YOUR INSECURE HOST>\"' | sudo tee -a /var/lib/boot2docker/profile && sudo /etc/init.d/docker restart"
-```
-
-then you should be able to do a docker push/pull.
-
 ##### VirtualBox Guest Additions
 
 Alternatively, Boot2Docker includes the VirtualBox Guest Additions built in for
@@ -247,6 +225,53 @@ need to manually convert your `docker run -v /home/...:...` bind-mount host
 paths accordingly (ie, `docker run -v /Users/...:...`).  As noted in the
 previous paragraph however, this is likely to change in the future as soon as a
 more suitable/scalable solution is found and implemented.
+
+
+#### Installing secure Registry certificates
+
+You can add your Registry server's public certificate (in `.pem` format) into
+the `/var/lib/boot2docker/certs/` directory, and Boot2Docker will automatically
+load it from the persistence partition at boot.
+
+You may need to add several certificates (as separate `.pem` files) to this
+directory, depending on the CA signing chain used for your certificate.
+
+##### Insecure Registry
+
+As of Docker version 1.3.1, if your registry doesn't support HTTPS, you must add it as an
+insecure registry.
+
+```console
+$ boot2docker init
+$ boot2docker up
+$ boot2docker ssh "echo $'EXTRA_ARGS=\"--insecure-registry <YOUR INSECURE HOST>\"' | sudo tee -a /var/lib/boot2docker/profile && sudo /etc/init.d/docker restart"
+```
+
+then you should be able to do a docker push/pull.
+
+#### Running behind a VPN (Cisco AnyConnect, etc)
+
+So sometimes if you are behind a VPN, you'll get an `i/o timeout` error.
+The current work around is to forward the port in the boot2docker-vm.
+
+If you get an error like the following:
+
+```no-highlight
+Sending build context to Docker daemon
+2014/11/19 13:53:33 Post https://192.168.59.103:2376/v1.15/build?rm=1&t=your-tag: dial tcp 192.168.59.103:2376: i/o timeout
+```
+
+That means you have to forward port `2376`, which can be done like so:
+
+* Open VirtualBox
+* Open Settings > Network for your 'boot2docker-vm'
+* Select the adapter that is 'Attached To': 'NAT' and click 'Port Forwarding'.
+* Add a new rule:
+	- Protocol: TCP
+	- Host IP: 127.0.0.1
+	- Host Port: 5555
+	- Guest Port: 2376
+* Set `DOCKER_HOST` to 'tcp://127.0.0.1:5555'
 
 #### Customize
 
