@@ -225,11 +225,11 @@ RUN curl -L -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/${
 
 # Download and build Parallels Tools
 ENV PRL_MAJOR 11
-ENV PRL_VERSION 11.0.0
-ENV PRL_BUILD 30916
+ENV PRL_VERSION 11.0.1
+ENV PRL_BUILD 31277
 
 RUN mkdir -p /prl_tools && \
-    curl -L http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}-rtm/ParallelsTools-${PRL_VERSION}-${PRL_BUILD}-boot2docker.tar.gz \
+    curl -L http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}/ParallelsTools-${PRL_VERSION}-${PRL_BUILD}-boot2docker.tar.gz \
         | tar -xzC /prl_tools --strip-components 1 &&\
     cd /prl_tools &&\
     cp -Rv tools/* $ROOTFS &&\
