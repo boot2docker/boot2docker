@@ -181,13 +181,12 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Build VMware Tools
-ENV OVT_VERSION 9.10.0
+ENV OVT_VERSION 10.0.0
 
-# use fixes for post 3.19 and 4.0 kernels from https://github.com/davispuh/open-vm-tools/tree/fixed and http://git.io/vIXpn
-# rebased onto the 9.10.0 release
-ENV OVT_REPO       https://github.com/cloudnativeapps/open-vm-tools
-ENV OVT_BRANCH     stable-9.10.x-kernel4-vmhgfs-fix
-ENV OVT_COMMIT     f654bdb390dd6753985379ea7df058aa8f6294ee
+# Pulling from the main repo on the stable 10.0.x release branch.
+ENV OVT_REPO       https://github.com/vmware/open-vm-tools
+ENV OVT_BRANCH     stable-10.0.x
+ENV OVT_COMMIT     85a99f4253dddf7e47e873fec4c43c15b7d8c2bc
 
 RUN git clone -b "$OVT_BRANCH" "$OVT_REPO" /vmtoolsd \
     && cd /vmtoolsd \
@@ -204,19 +203,7 @@ RUN cd /vmtoolsd/open-vm-tools && \
     make DESTDIR=$ROOTFS install &&\
     /vmtoolsd/open-vm-tools/libtool --finish $ROOTFS/usr/local/lib
 
-# Kernel modules to build and install
-ENV VM_MODULES  vmhgfs
-
-RUN cd /vmtoolsd/open-vm-tools &&\
-    TOPDIR=$PWD &&\
-    for module in $VM_MODULES; do \
-        cd modules/linux/$module; \
-        make -C /linux-kernel modules M=$PWD VM_CCVER=$(gcc -dumpversion) HEADER_DIR="/linux-kernel/include" SRCROOT=$PWD OVT_SOURCE_DIR=$TOPDIR; \
-        cd -; \
-    done && \
-    for module in $VM_MODULES; do \
-        make -C /linux-kernel INSTALL_MOD_PATH=$ROOTFS modules_install M=$PWD/modules/linux/$module; \
-    done
+# No longer building kernel module as we're now bundling FUSE shared folders support
 
 ENV LIBDNET libdnet-1.12
 RUN curl -L -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/${LIBDNET}.zip &&\
