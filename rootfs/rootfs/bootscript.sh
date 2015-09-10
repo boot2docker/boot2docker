@@ -50,8 +50,8 @@ if grep -q '^docker:' /etc/passwd; then
     fi
 fi
 
-# Automount Shared Folders (VirtualBox, etc.)
-/etc/rc.d/automount-shares
+# Automount Shared Folders (VirtualBox, etc.); start VBox services
+/etc/rc.d/vbox
 
 # Configure SSHD
 /etc/rc.d/sshd

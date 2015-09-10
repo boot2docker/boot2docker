@@ -1,11 +1,13 @@
 #!/bin/sh
 set -e
 
-# TODO add more magic like sshfs share setup here <3
-
 # VirtualBox Guest Additions
 # - this will bail quickly and gracefully if we're not in VBox
 if modprobe vboxguest &> /dev/null && modprobe vboxsf &> /dev/null; then
+	# fire up VBoxService to do timesync, etc
+	VBoxService --disable-automount
+	# TODO some testing with VBoxService automount so we can trim down this entire hacky script
+	
 	mountOptions='defaults,iocharset=utf8'
 	if grep -q '^docker:' /etc/passwd; then
 		mountOptions="${mountOptions},uid=$(id -u docker),gid=$(id -g docker)"
