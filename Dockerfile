@@ -104,7 +104,7 @@ RUN cd $ROOTFS/lib/modules && \
     rm -rf ./*/kernel/net/wireless/*
 
 # Install libcap
-RUN curl -L http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
+RUN curl -fL http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
     cd /libcap-2.22 && \
     sed -i 's/LIBATTR := yes/LIBATTR := no/' Make.Rules && \
     make && \
@@ -128,18 +128,18 @@ RUN cd /linux-kernel && \
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
 # Download the rootfs, don't unpack it though:
-RUN curl -L -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs64.gz
+RUN curl -fL -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs64.gz
 
 # Install the TCZ dependencies
 RUN for dep in $TCZ_DEPS; do \
     echo "Download $TCL_REPO_BASE/tcz/$dep.tcz" &&\
-        curl -L -o /tmp/$dep.tcz $TCL_REPO_BASE/tcz/$dep.tcz && \
+        curl -fL -o /tmp/$dep.tcz $TCL_REPO_BASE/tcz/$dep.tcz && \
         unsquashfs -f -d $ROOTFS /tmp/$dep.tcz && \
         rm -f /tmp/$dep.tcz ;\
     done
 
 # get generate_cert
-RUN curl -L -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.2/generate_cert-0.2-linux-amd64 && \
+RUN curl -fL -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.2/generate_cert-0.2-linux-amd64 && \
     chmod +x $ROOTFS/usr/local/bin/generate_cert
 
 # Build VBox guest additions
@@ -147,7 +147,7 @@ ENV VBOX_VERSION 5.0.4
 RUN mkdir -p /vboxguest && \
     cd /vboxguest && \
     \
-    curl -L -o vboxguest.iso http://download.virtualbox.org/virtualbox/${VBOX_VERSION}/VBoxGuestAdditions_${VBOX_VERSION}.iso && \
+    curl -fL -o vboxguest.iso http://download.virtualbox.org/virtualbox/${VBOX_VERSION}/VBoxGuestAdditions_${VBOX_VERSION}.iso && \
     7z x vboxguest.iso -ir'!VBoxLinuxAdditions.run' && \
     rm vboxguest.iso && \
     \
@@ -219,7 +219,7 @@ RUN cd /vmtoolsd/open-vm-tools &&\
     done
 
 ENV LIBDNET libdnet-1.12
-RUN curl -L -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/${LIBDNET}.zip &&\
+RUN curl -fL -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/${LIBDNET}.zip &&\
     unzip /tmp/${LIBDNET}.zip -d /vmtoolsd &&\
     cd /vmtoolsd/libdnet-${LIBDNET} && ./configure --build=i486-pc-linux-gnu &&\
     make &&\
@@ -231,7 +231,7 @@ ENV PRL_VERSION 11.0.0
 ENV PRL_BUILD 30916
 
 RUN mkdir -p /prl_tools && \
-    curl -L http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}-rtm/ParallelsTools-${PRL_VERSION}-${PRL_BUILD}-boot2docker.tar.gz \
+    curl -fL http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}-rtm/ParallelsTools-${PRL_VERSION}-${PRL_BUILD}-boot2docker.tar.gz \
         | tar -xzC /prl_tools --strip-components 1 &&\
     cd /prl_tools &&\
     cp -Rv tools/* $ROOTFS &&\
@@ -264,7 +264,7 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker version that matches our boot2docker version
 # Note: `docker version` returns non-true when there is no server to ask
-RUN curl -L -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
+RUN curl -fL -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
     chmod +x $ROOTFS/usr/local/bin/docker && \
     { $ROOTFS/usr/local/bin/docker version || true; }
 

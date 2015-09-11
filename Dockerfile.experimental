@@ -4,9 +4,10 @@ MAINTAINER Sven Dowideit "SvenDowideit@docker.com"
 #DESCRIPTION use the latest experimental build of Docker
 
 #get the latest experimental docker
-RUN curl -L -o $ROOTFS/usr/local/bin/docker https://experimental.docker.com/builds/Linux/x86_64/docker-latest && \
+RUN curl -fL -o $ROOTFS/usr/local/bin/docker https://experimental.docker.com/builds/Linux/x86_64/docker-latest && \
     chmod +x $ROOTFS/usr/local/bin/docker
 
+RUN echo "" >> $ROOTFS/etc/motd
 RUN echo "  WARNING: this is an experimental.docker.com build, not a release." >> $ROOTFS/etc/motd
 RUN echo "" >> $ROOTFS/etc/motd
 
