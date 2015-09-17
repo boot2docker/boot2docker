@@ -181,19 +181,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Build VMware Tools
-ENV OVT_VERSION 10.0.0
+ENV OVT_VERSION 10.0.0-3000743
 
-# Pulling from the main repo on the stable 10.0.x release branch.
-ENV OVT_REPO       https://github.com/vmware/open-vm-tools
-ENV OVT_BRANCH     stable-10.0.x
-ENV OVT_COMMIT     85a99f4253dddf7e47e873fec4c43c15b7d8c2bc
+RUN curl --retry 10 -fsSL "https://github.com/vmware/open-vm-tools/archive/open-vm-tools-${OVT_VERSION}.tar.gz" | tar -xz --strip-components=1 -C /
 
-RUN git clone -b "$OVT_BRANCH" "$OVT_REPO" /vmtoolsd \
-    && cd /vmtoolsd \
-    && git checkout -q "$OVT_COMMIT"
-
-# Compile
-RUN cd /vmtoolsd/open-vm-tools && \
+# Compile user space components, we're no longer building kernel module as we're
+# now bundling FUSE shared folders support.
+RUN cd /open-vm-tools && \
     autoreconf -i && \
     ./configure --disable-multimon --disable-docs --disable-tests --with-gnu-ld \
                 --without-kernel-modules --without-procps --without-gtk2 \
@@ -201,16 +195,19 @@ RUN cd /vmtoolsd/open-vm-tools && \
                 --without-xerces --without-xmlsecurity --without-ssl && \
     make LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" && \
     make DESTDIR=$ROOTFS install &&\
-    /vmtoolsd/open-vm-tools/libtool --finish $ROOTFS/usr/local/lib
+    /open-vm-tools/libtool --finish $ROOTFS/usr/local/lib
 
-# No longer building kernel module as we're now bundling FUSE shared folders support
-
+# Building the Libdnet library for VMware Tools.
 ENV LIBDNET libdnet-1.12
 RUN curl -L -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/${LIBDNET}.zip &&\
     unzip /tmp/${LIBDNET}.zip -d /vmtoolsd &&\
     cd /vmtoolsd/libdnet-${LIBDNET} && ./configure --build=i486-pc-linux-gnu &&\
     make &&\
     make install && make DESTDIR=$ROOTFS install
+
+# Horrible hack again
+RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 &&\
+    cd $ROOTFS && ln -s lib lib64
 
 # Download and build Parallels Tools
 ENV PRL_MAJOR 11
@@ -227,10 +224,6 @@ RUN mkdir -p /prl_tools && \
     make -C kmods/ -f Makefile.kmods installme &&\
     \
     find kmods/ -name \*.ko -exec cp {} $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/extra/ \;
-
-# Horrible hack again
-RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 &&\
-    cd $ROOTFS && ln -s lib lib64
 
 # Build XenServer Tools
 ENV XEN_REPO https://github.com/xenserver/xe-guest-utilities
