@@ -99,3 +99,6 @@ fi
 
 # Load Parallels Tools daemon
 /etc/rc.d/prltoolsd
+
+# Launch OpenNebula
+/etc/rc.d/opennebula-context
