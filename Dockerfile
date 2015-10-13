@@ -223,7 +223,7 @@ RUN mkdir -p /prl_tools && \
     KERNEL_DIR=/linux-kernel/ KVER=$KERNEL_VERSION SRC=/linux-kernel/ PRL_FREEZE_SKIP=1 \
     make -C kmods/ -f Makefile.kmods installme &&\
     \
-    find kmods/ -name \*.ko -exec cp {} $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/extra/ \;
+    find kmods/ -name \*.ko -exec cp {} $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/ \;
 
 # Build XenServer Tools
 ENV XEN_REPO https://github.com/xenserver/xe-guest-utilities
