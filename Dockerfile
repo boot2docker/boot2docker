@@ -308,6 +308,10 @@ RUN echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
 # fix "su -"
 RUN echo root > $ROOTFS/etc/sysconfig/superuser
 
+# add some timezone files so we're explicit about being UTC
+RUN echo 'UTC' > $ROOTFS/etc/timezone \
+	&& cp -L /usr/share/zoneinfo/UTC $ROOTFS/etc/localtime
+
 # crontab
 COPY rootfs/crontab $ROOTFS/var/spool/cron/crontabs/root
 
