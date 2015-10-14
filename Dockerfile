@@ -211,8 +211,8 @@ RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 &&\
 
 # Download and build Parallels Tools
 ENV PRL_MAJOR 11
-ENV PRL_VERSION 11.0.1
-ENV PRL_BUILD 31277
+ENV PRL_VERSION 11.0.2
+ENV PRL_BUILD 31348
 
 RUN mkdir -p /prl_tools && \
     curl -fL http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}/ParallelsTools-${PRL_VERSION}-${PRL_BUILD}-boot2docker.tar.gz \
