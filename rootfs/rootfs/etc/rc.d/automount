@@ -84,7 +84,7 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
     PARTNAME=`echo "$BOOT2DOCKER_DATA" | sed 's/.*\///'`
     
     echo "fsck $BOOT2DOCKER_DATA"
-    fsck -y BOOT2DOCKER_DATA
+    fsck -y $BOOT2DOCKER_DATA
     
     echo "mount p:$PARTNAME ..."
     mkdir -p /mnt/$PARTNAME
