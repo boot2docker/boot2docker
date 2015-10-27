@@ -246,7 +246,7 @@ RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 # Note: `docker version` returns non-true when there is no server to ask
 RUN curl -fL -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
     chmod +x $ROOTFS/usr/local/bin/docker && \
-    { $ROOTFS/usr/local/bin/docker version || true; }
+    $ROOTFS/usr/local/bin/docker -v
 
 # Get the git versioning info
 COPY .git /git/.git
