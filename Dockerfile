@@ -138,10 +138,6 @@ RUN for dep in $TCZ_DEPS; do \
         rm -f /tmp/$dep.tcz ;\
     done
 
-# get generate_cert
-RUN curl -fL -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.2/generate_cert-0.2-linux-amd64 && \
-    chmod +x $ROOTFS/usr/local/bin/generate_cert
-
 # Build VBox guest additions
 ENV VBOX_VERSION 5.0.8
 RUN mkdir -p /vboxguest && \
