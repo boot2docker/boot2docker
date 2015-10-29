@@ -205,6 +205,7 @@ automatically mounted at the location specified:
 3. `c/Users` share at `/c/Users`
 4. `/c/Users` share at `/c/Users`
 5. `c:/Users` share at `/c/Users`
+6. `/home` share at `/hosthome`
 
 If some other path or share is desired, it can be mounted at run time by doing
 something like:

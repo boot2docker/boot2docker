@@ -36,10 +36,20 @@ if modprobe vboxguest &> /dev/null && modprobe vboxsf &> /dev/null; then
 	# bfirsh gets all the credit for this hacky workaround :)
 	try_mount_share /Users 'Users' \
 		|| try_mount_share /Users \
+		|| try_mount_share /hosthome 'hosthome' \
+		|| try_mount_share /hosthome \
 		|| try_mount_share /c/Users 'c/Users' \
 		|| try_mount_share /c/Users \
 		|| try_mount_share /c/Users 'c:/Users' \
 		|| true
+	# If /hosthome exists, link the user homedirs
+	if [ -d /hosthome ]
+	then
+		ls -1 /hosthome | while read d
+		do
+			ln -s "/hosthome/${d}" "/home/${d}"
+		done
+	fi
 	# TODO replace this whole hacky bit with VBoxService --only-automount
 	# (the problem with that being that we can't run VBoxService because the
 	#  32bit VBoxService won't work with the 64bit kernel modules, but the 64bit
