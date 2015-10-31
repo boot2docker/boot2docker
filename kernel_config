@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 4.1.11 Kernel Configuration
+# Linux/x86 4.1.12 Kernel Configuration
 #
 CONFIG_64BIT=y
 CONFIG_X86_64=y
@@ -1002,7 +1002,9 @@ CONFIG_IP_VS_SH_TAB_BITS=8
 #
 # IPVS application helper
 #
-# CONFIG_IP_VS_NFCT is not set
+CONFIG_IP_VS_FTP=m
+CONFIG_IP_VS_NFCT=y
+CONFIG_IP_VS_PE_SIP=m
 
 #
 # IP: Netfilter Configuration
