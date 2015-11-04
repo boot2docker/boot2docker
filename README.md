@@ -68,12 +68,12 @@ $ boot2docker download
 $ boot2docker up
 ```
 
-If your Boot2Docker virtual machine was created prior to 0.11.1-pre1, it's best
-to delete -  `boot2docker delete` and then `boot2docker init` to create a new
-VM.
+If your Boot2Docker virtual machine was created prior to 0.11.1-pre1, it's recommended that you
+delete -  `boot2docker delete` and then create a new
+VM - `boot2docker init`.
 
-The main changes are to add a `/var/lib/boot2docker/userdata.tar` file that is
-un-tarred into the `/home/docker` directory on boot. This file contains a
+The main change is the addition of a `/var/lib/boot2docker/userdata.tar` file that is
+un-tarred into the `/home/docker` directory on boot. This file contains
 `.ssh/authorized_keys` and `.ssh/authorized_keys2` files containing a public
 SSH key.
 
