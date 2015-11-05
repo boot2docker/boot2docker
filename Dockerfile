@@ -312,9 +312,6 @@ RUN echo root > $ROOTFS/etc/sysconfig/superuser
 RUN echo 'UTC' > $ROOTFS/etc/timezone \
 	&& cp -L /usr/share/zoneinfo/UTC $ROOTFS/etc/localtime
 
-# crontab
-COPY rootfs/crontab $ROOTFS/var/spool/cron/crontabs/root
-
 # Copy boot params
 COPY rootfs/isolinux /tmp/iso/boot/isolinux
 
