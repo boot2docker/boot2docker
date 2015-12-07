@@ -9,6 +9,9 @@
 # Automount a hard drive
 /etc/rc.d/automount
 
+# set the hostname
+/etc/rc.d/hostname
+
 # Trigger the DHCP request sooner (the x64 bit userspace appears to be a second slower)
 echo "$(date) dhcp -------------------------------"
 /etc/rc.d/dhcp.sh
@@ -25,9 +28,6 @@ mkdir -p /var/lib/boot2docker/log
 
 # import settings from profile (or unset them)
 test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
-
-# set the hostname
-/etc/rc.d/hostname
 
 # sync the clock
 /etc/rc.d/ntpd &
