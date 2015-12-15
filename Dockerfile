@@ -73,6 +73,7 @@ ENV TCZ_DEPS        iptables \
                     xz liblzma \
                     git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
                     nfs-utils tcp_wrappers portmap rpcbind libtirpc \
+                    rsync attr acl \
                     curl ntpclient \
                     procps glib2 libtirpc libffi fuse pcre \
                     udev-lib \
