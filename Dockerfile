@@ -17,6 +17,7 @@ RUN apt-get update && apt-get -y install  unzip \
                         isolinux \
                         automake \
                         pkg-config \
+                        ipvsadm \
                         p7zip-full
 
 # https://www.kernel.org/
@@ -77,7 +78,9 @@ ENV TCZ_DEPS        iptables \
                     procps glib2 libtirpc libffi fuse pcre \
                     udev-lib \
                     liblvm2 \
-                    parted
+                    parted \
+                    libnl \
+                    popt
 
 # Make the ROOTFS
 RUN mkdir -p $ROOTFS
@@ -292,29 +295,30 @@ RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
 
 # Make sure we have the correct bootsync
 RUN mv $ROOTFS/boot*.sh $ROOTFS/opt/ && \
-	chmod +x $ROOTFS/opt/*.sh
+    chmod +x $ROOTFS/opt/*.sh
 
 # Make sure we have the correct shutdown
 RUN mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh && \
-	chmod +x $ROOTFS/opt/shutdown.sh
+    chmod +x $ROOTFS/opt/shutdown.sh
 
 # Add serial console
 RUN echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
-	echo "/bin/login -f docker" >> $ROOTFS/usr/local/bin/autologin && \
-	chmod 755 $ROOTFS/usr/local/bin/autologin && \
-	echo 'ttyS0:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab && \
-	echo 'ttyS1:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS1 vt100' >> $ROOTFS/etc/inittab
+    echo "/bin/login -f docker" >> $ROOTFS/usr/local/bin/autologin && \
+    chmod 755 $ROOTFS/usr/local/bin/autologin && \
+    echo 'ttyS0:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS0 vt100' >> $ROOTFS/etc/inittab && \
+    echo 'ttyS1:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS1 vt100' >> $ROOTFS/etc/inittab
 
 # fix "su -"
 RUN echo root > $ROOTFS/etc/sysconfig/superuser
 
 # add some timezone files so we're explicit about being UTC
 RUN echo 'UTC' > $ROOTFS/etc/timezone \
-	&& cp -L /usr/share/zoneinfo/UTC $ROOTFS/etc/localtime
+    && cp -L /usr/share/zoneinfo/UTC $ROOTFS/etc/localtime
 
 # Copy boot params
 COPY rootfs/isolinux /tmp/iso/boot/isolinux
 
+RUN cp /sbin/ipvsadm $ROOTFS/sbin
 COPY rootfs/make_iso.sh /
 
 RUN /make_iso.sh
