@@ -171,7 +171,6 @@ RUN apt-get update && apt-get install -y \
         libdumbnet1 \
         libfuse-dev \
         libfuse2 \
-        libfuse2 \
         libglib2.0-0 \
         libglib2.0-dev \
         libmspack-dev \
