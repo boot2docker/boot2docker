@@ -76,7 +76,7 @@ ENV TCZ_DEPS        iptables \
                     rsync attr acl \
                     curl ntpclient \
                     procps glib2 libtirpc libffi fuse pcre \
-                    udev-lib \
+                    udev-lib udev-extra \
                     liblvm2 \
                     parted
 
