@@ -28,6 +28,11 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 export PATH=${PATH}:/usr/local/sbin
 
 start() {
+    if [ ! -e "/etc/docker" ]; then
+        echo "Linking /etc/docker to /var/lib/boot2docker for persistence"
+        mkdir -p "/var/lib/boot2docker/etc/docker"
+        ln -sf "/var/lib/boot2docker/etc/docker" "/etc/docker"
+    fi
     # Not enabling Docker daemon TLS by default.
     if [ "$DOCKER_TLS" != "no" ]; then
         CERTHOSTNAMES="$(hostname -s),$(hostname -i)"
