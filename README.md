@@ -10,7 +10,7 @@ small ~24MB download and boots in ~5s (YMMV).
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
-> **Note:** Boot2Docker uses port **2376**, the [registered IANA Docker SSL
+> **Note:** Boot2Docker uses port **2376**, the [registered IANA Docker TLS
 > port](http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?search=docker)
 
 ## Caveat Emptor
