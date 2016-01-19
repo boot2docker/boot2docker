@@ -135,21 +135,6 @@ boot2docker ssh -t sudo vi /var/lib/boot2docker/profile
 boot2docker restart
 ```
 
-#### TLS support
-
-By default, `boot2docker` runs `docker` with TLS enabled. It auto-generates
-certificates and stores them in `/home/docker/.docker` inside the VM. The
-`boot2docker up` command will copy them to `~/.boot2docker/certs` on the
-host machine once the VM has started, and output the correct values for
-the `DOCKER_CERT_PATH` and `DOCKER_TLS_VERIFY` environment variables.
-
-`eval "$(boot2docker shellinit)"` will also set them correctly.
-
-We strongly recommend against running Boot2Docker with an unencrypted Docker
-socket for security reasons, but if you have tools that cannot be easily
-switched, you can disable it by adding `DOCKER_TLS=no` to your
-`/var/lib/boot2docker/profile` file.
-
 #### Folder sharing
 
 Boot2Docker is essentially a remote Docker engine with a read only filesystem
