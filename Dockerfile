@@ -20,7 +20,7 @@ RUN apt-get update && apt-get -y install  unzip \
                         p7zip-full
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  4.1.17
+ENV KERNEL_VERSION  4.1.18
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
@@ -29,7 +29,7 @@ RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.
 # http://aufs.sourceforge.net/
 ENV AUFS_REPO       https://github.com/sfjro/aufs4-standalone
 ENV AUFS_BRANCH     aufs4.1.13+
-ENV AUFS_COMMIT     1aa8a143457147473edc97035a7f4b89f9d234ae
+ENV AUFS_COMMIT     326c11489fa0649462f6424ef941f4ea449d53c3
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Download AUFS and apply patches and files, then remove it
