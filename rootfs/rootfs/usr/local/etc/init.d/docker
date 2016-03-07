@@ -114,10 +114,15 @@ stop() {
 
 restart() {
     if check; then
-        stop && sleep 1 && start
-    else
-        start
+        stop
+        i=30
+        while check ; do
+            sleep 1
+            i=$(expr $i - 1)
+            [ "$i" -gt 0 ] || { echo "Failed to stop Docker dameon" ; exit 1 ; }
+        done
     fi
+    start
 }
 
 check() {
