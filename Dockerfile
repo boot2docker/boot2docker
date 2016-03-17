@@ -248,14 +248,6 @@ RUN curl -fL -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux
     chmod +x $ROOTFS/usr/local/bin/docker && \
     $ROOTFS/usr/local/bin/docker -v
 
-# Get the git versioning info
-COPY .git /git/.git
-RUN cd /git && \
-    GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) && \
-    GITSHA1=$(git rev-parse --short HEAD) && \
-    DATE=$(date) && \
-    echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
-
 # Install Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
@@ -311,6 +303,14 @@ RUN echo root > $ROOTFS/etc/sysconfig/superuser
 # add some timezone files so we're explicit about being UTC
 RUN echo 'UTC' > $ROOTFS/etc/timezone \
 	&& cp -L /usr/share/zoneinfo/UTC $ROOTFS/etc/localtime
+
+# Get the git versioning info
+COPY .git /git/.git
+RUN cd /git && \
+    GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) && \
+    GITSHA1=$(git rev-parse --short HEAD) && \
+    DATE=$(date) && \
+    echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
 
 # Copy boot params
 COPY rootfs/isolinux /tmp/iso/boot/isolinux
