@@ -49,7 +49,7 @@ if [ ! -n "$BOOT2DOCKER_DATA" ]; then
                 sleep 0.5
             done
             BOOT2DOCKER_DATA=`echo "${UNPARTITIONED_HD}1"`
-            mkfs.ext4 -L $LABEL $BOOT2DOCKER_DATA
+            mkfs.ext4 -i 8192 -L $LABEL $BOOT2DOCKER_DATA
             swapon "${UNPARTITIONED_HD}2"
         fi
 
@@ -74,7 +74,7 @@ if [ ! -n "$BOOT2DOCKER_DATA" ]; then
                     # Add the data partition
                     (echo n; echo p; echo 1; echo ; echo ; echo w) | fdisk $UNPARTITIONED_HD
                     BOOT2DOCKER_DATA=`echo "${UNPARTITIONED_HD}1"`
-                    mkfs.ext4 -L $LABEL $BOOT2DOCKER_DATA
+                    mkfs.ext4 -i 8192 -L $LABEL $BOOT2DOCKER_DATA
                     swapon "${UNPARTITIONED_HD}2"
                 else
                     echo "Disk unpartitioned but something is there... not doing anything"
