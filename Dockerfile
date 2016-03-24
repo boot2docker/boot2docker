@@ -242,11 +242,12 @@ RUN depmod -a -b $ROOTFS $KERNEL_VERSION-boot2docker
 COPY VERSION $ROOTFS/etc/version
 RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
-# Get the Docker version that matches our boot2docker version
-# Note: `docker version` returns non-true when there is no server to ask
-RUN curl -fL -o $ROOTFS/usr/local/bin/docker https://get.docker.com/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version) && \
-    chmod +x $ROOTFS/usr/local/bin/docker && \
-    $ROOTFS/usr/local/bin/docker -v
+# Get the Docker binaries with version that matches our boot2docker version.
+# TODO: Verify that binaries execute correctly? Old version ran '$ROOTFS/usr/local/bin/docker -v' to check.
+# TODO(nathanleclaire): 'test' should be 'get' in the next line for the actual releases.
+RUN curl -fSL -o /tmp/dockerbin.tgz https://test.docker.com/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version).tgz && \
+    tar zxvf /tmp/dockerbin.tgz -C $ROOTFS/ && \
+    rm /tmp/dockerbin.tgz
 
 # Install Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
