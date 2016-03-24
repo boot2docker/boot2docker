@@ -109,7 +109,11 @@ start() {
 }
 
 stop() {
-    kill $(cat /var/run/docker.pid)
+    PID=$(cat /var/run/docker.pid)
+    kill $PID
+    while kill -0 $PID &>/dev/null; do
+        sleep 0.1
+    done
 }
 
 restart() {
