@@ -243,9 +243,8 @@ COPY VERSION $ROOTFS/etc/version
 RUN cp -v $ROOTFS/etc/version /tmp/iso/version
 
 # Get the Docker binaries with version that matches our boot2docker version.
-# TODO replace "--strip-components=3" with "--strip-components=1" for 1.11.0 GA
 RUN curl -fSL -o /tmp/dockerbin.tgz https://get.docker.com/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version).tgz && \
-    tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=3 && \
+    tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=1 && \
     rm /tmp/dockerbin.tgz && \
     chroot "$ROOTFS" docker -v
 
