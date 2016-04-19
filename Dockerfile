@@ -209,6 +209,11 @@ RUN curl -fL -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/$
 RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 &&\
     cd $ROOTFS && ln -s lib lib64
 
+# TCL 7 doesn't ship with libtirpc.so.1 Dummy it up so the VMware tools work
+# again, taken from:
+# https://github.com/boot2docker/boot2docker/issues/1157#issuecomment-211647607
+RUN cd $ROOTFS/usr/local/lib && ln -s libtirpc.so libtirpc.so.1 && readlink -f libtirpc.so.1
+
 # Download and build Parallels Tools
 ENV PRL_MAJOR 11
 ENV PRL_VERSION 11.1.0
