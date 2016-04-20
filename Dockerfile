@@ -60,25 +60,7 @@ RUN jobs=$(nproc); \
 
 # The post kernel build process
 
-ENV ROOTFS          /rootfs
-ENV TCL_REPO_BASE   http://tinycorelinux.net/7.x/x86_64
-# Note that the ncurses is here explicitly so that top continues to work
-ENV TCZ_DEPS        iptables \
-                    iproute2 \
-                    openssh openssl \
-                    tar \
-                    gcc_libs \
-                    ncurses \
-                    acpid \
-                    xz liblzma \
-                    git expat2 libiconv libidn libgpg-error libgcrypt libssh2 \
-                    nfs-utils tcp_wrappers portmap rpcbind libtirpc \
-                    rsync attr acl \
-                    curl ntpclient \
-                    procps glib2 libtirpc libffi fuse pcre \
-                    udev-lib udev-extra \
-                    liblvm2 \
-                    parted
+ENV ROOTFS /rootfs
 
 # Make the ROOTFS
 RUN mkdir -p $ROOTFS
@@ -128,16 +110,42 @@ RUN cd /linux-kernel && \
 # Prepare the ISO directory with the kernel
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
+ENV TCL_REPO_BASE   http://tinycorelinux.net/7.x/x86_64
+# Note that the ncurses is here explicitly so that top continues to work
+ENV TCZ_DEPS        iptables \
+                    iproute2 \
+                    openssh openssl \
+                    tar \
+                    gcc_libs \
+                    ncurses \
+                    acpid \
+                    xz liblzma \
+                    git expat2 libgpg-error libgcrypt libssh2 \
+                    nfs-utils tcp_wrappers portmap rpcbind libtirpc \
+                    rsync attr acl \
+                    curl ntpclient \
+                    procps glib2 libtirpc libffi fuse pcre \
+                    udev-lib udev-extra \
+                    liblvm2 \
+                    parted
+
 # Download the rootfs, don't unpack it though:
 RUN curl -fL -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs64.gz
 
 # Install the TCZ dependencies
-RUN for dep in $TCZ_DEPS; do \
-    echo "Download $TCL_REPO_BASE/tcz/$dep.tcz" &&\
-        curl -fL -o /tmp/$dep.tcz $TCL_REPO_BASE/tcz/$dep.tcz && \
-        unsquashfs -f -d $ROOTFS /tmp/$dep.tcz && \
-        rm -f /tmp/$dep.tcz ;\
+RUN set -ex && \
+    for dep in $TCZ_DEPS; do \
+        echo "Download $TCL_REPO_BASE/tcz/$dep.tcz"; \
+        curl -fL -o /tmp/$dep.tcz $TCL_REPO_BASE/tcz/$dep.tcz; \
+        unsquashfs -f -d $ROOTFS /tmp/$dep.tcz; \
+        rm -f /tmp/$dep.tcz; \
     done
+
+# Install Tiny Core Linux rootfs
+RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
+
+# Apply horrible hacks
+RUN cd $ROOTFS && ln -s lib lib64
 
 # get generate_cert
 RUN curl -fL -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.2/generate_cert-0.2-linux-amd64 && \
@@ -145,7 +153,9 @@ RUN curl -fL -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowid
 
 # Build VBox guest additions
 ENV VBOX_VERSION 5.0.16
-RUN mkdir -p /vboxguest && \
+RUN set -x && \
+    \
+    mkdir -p /vboxguest && \
     cd /vboxguest && \
     \
     curl -fL -o vboxguest.iso http://download.virtualbox.org/virtualbox/${VBOX_VERSION}/VBoxGuestAdditions_${VBOX_VERSION}.iso && \
@@ -163,6 +173,12 @@ RUN mkdir -p /vboxguest && \
     cp amd64/lib/VBoxGuestAdditions/mount.vboxsf amd64/sbin/VBoxService $ROOTFS/sbin/ && \
     mkdir -p $ROOTFS/bin && \
     cp amd64/bin/VBoxClient amd64/bin/VBoxControl $ROOTFS/bin/
+
+# TODO figure out how to make this work reasonably (these tools try to read /proc/self/exe at startup, even for a simple "--version" check)
+## verify that all the above actually worked (at least producing a valid binary, so we don't repeat issue #1157)
+#RUN set -x && \
+#    chroot "$ROOTFS" VBoxControl --version && \
+#    chroot "$ROOTFS" VBoxService --version
 
 # Install build dependencies for VMware Tools
 RUN apt-get update && apt-get install -y \
@@ -199,20 +215,23 @@ RUN cd /open-vm-tools && \
 
 # Building the Libdnet library for VMware Tools.
 ENV LIBDNET libdnet-1.12
-RUN curl -fL -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/${LIBDNET}.zip &&\
-    unzip /tmp/${LIBDNET}.zip -d /vmtoolsd &&\
-    cd /vmtoolsd/libdnet-${LIBDNET} && ./configure --build=i486-pc-linux-gnu &&\
-    make &&\
+RUN curl -fL -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/${LIBDNET}.zip && \
+    unzip /tmp/${LIBDNET}.zip -d /vmtoolsd && \
+    cd /vmtoolsd/libdnet-${LIBDNET} && ./configure --build=i486-pc-linux-gnu && \
+    make && \
     make install && make DESTDIR=$ROOTFS install
 
 # Horrible hack again
-RUN cd $ROOTFS && cd usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 &&\
-    cd $ROOTFS && ln -s lib lib64
+RUN cd $ROOTFS/usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 && readlink -f libdumbnet.so.1
 
 # TCL 7 doesn't ship with libtirpc.so.1 Dummy it up so the VMware tools work
 # again, taken from:
 # https://github.com/boot2docker/boot2docker/issues/1157#issuecomment-211647607
 RUN cd $ROOTFS/usr/local/lib && ln -s libtirpc.so libtirpc.so.1 && readlink -f libtirpc.so.1
+
+# verify that all the above actually worked (at least producing a valid binary, so we don't repeat issue #1157)
+RUN LD_LIBRARY_PATH=/lib:/usr/local/lib \
+        chroot "$ROOTFS" vmhgfs-fuse --version
 
 # Download and build Parallels Tools
 ENV PRL_MAJOR 11
@@ -221,14 +240,17 @@ ENV PRL_BUILD 32202
 
 RUN mkdir -p /prl_tools && \
     curl -fL http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}/ParallelsTools-${PRL_VERSION}-${PRL_BUILD}-boot2docker.tar.gz \
-        | tar -xzC /prl_tools --strip-components 1 &&\
-    cd /prl_tools &&\
-    cp -Rv tools/* $ROOTFS &&\
+        | tar -xzC /prl_tools --strip-components 1 && \
+    cd /prl_tools && \
+    cp -Rv tools/* $ROOTFS && \
     \
     KERNEL_DIR=/linux-kernel/ KVER=$KERNEL_VERSION SRC=/linux-kernel/ PRL_FREEZE_SKIP=1 \
-    make -C kmods/ -f Makefile.kmods installme &&\
+        make -C kmods/ -f Makefile.kmods installme && \
     \
-    find kmods/ -name \*.ko -exec cp {} $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/ \;
+    find kmods/ -name '*.ko' -exec cp {} $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/ ';'
+
+# verify that all the above actually worked (at least producing a valid binary, so we don't repeat issue #1157)
+RUN chroot "$ROOTFS" prltoolsd -V
 
 # Build XenServer Tools
 ENV XEN_REPO https://github.com/xenserver/xe-guest-utilities
@@ -241,6 +263,8 @@ RUN git clone -b "$XEN_BRANCH" "$XEN_REPO" /xentools \
     && make \
     && tar xvf build/dist/*.tgz -C $ROOTFS/
 
+# TODO find a binary we can attempt running that will verify at least on the surface level that the xentools are working
+
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
 RUN depmod -a -b $ROOTFS $KERNEL_VERSION-boot2docker
 
@@ -252,9 +276,6 @@ RUN curl -fSL -o /tmp/dockerbin.tgz https://get.docker.com/builds/Linux/x86_64/d
     tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=1 && \
     rm /tmp/dockerbin.tgz && \
     chroot "$ROOTFS" docker -v
-
-# Install Tiny Core Linux rootfs
-RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
 # Copy our custom rootfs
 COPY rootfs/rootfs $ROOTFS
@@ -324,4 +345,4 @@ COPY rootfs/make_iso.sh /
 
 RUN /make_iso.sh
 
-CMD ["cat", "boot2docker.iso"]
+CMD ["sh", "-c", "[ -t 1 ] && exec bash || exec cat boot2docker.iso"]
