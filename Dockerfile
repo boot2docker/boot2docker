@@ -254,12 +254,10 @@ RUN chroot "$ROOTFS" prltoolsd -V
 
 # Build XenServer Tools
 ENV XEN_REPO https://github.com/xenserver/xe-guest-utilities
-ENV XEN_BRANCH boot2docker
-ENV XEN_COMMIT 4a9417fa61a5ca46676b7073fdb9181fe77ba56e
+ENV XEN_VERSION v6.6.80
 
-RUN git clone -b "$XEN_BRANCH" "$XEN_REPO" /xentools \
+RUN git clone -b "$XEN_VERSION" "$XEN_REPO" /xentools \
     && cd /xentools \
-    && git checkout -q "$XEN_COMMIT" \
     && make \
     && tar xvf build/dist/*.tgz -C $ROOTFS/
 
