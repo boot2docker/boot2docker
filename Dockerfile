@@ -152,7 +152,7 @@ RUN curl -fL -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowid
     chmod +x $ROOTFS/usr/local/bin/generate_cert
 
 # Build VBox guest additions
-ENV VBOX_VERSION 5.0.18
+ENV VBOX_VERSION 5.0.20
 RUN set -x && \
     \
     mkdir -p /vboxguest && \
