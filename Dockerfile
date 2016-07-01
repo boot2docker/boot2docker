@@ -20,7 +20,7 @@ RUN apt-get update && apt-get -y install  unzip \
                         p7zip-full
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  4.4.13
+ENV KERNEL_VERSION  4.4.14
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
@@ -29,7 +29,7 @@ RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.
 # http://aufs.sourceforge.net/
 ENV AUFS_REPO       https://github.com/sfjro/aufs4-standalone
 ENV AUFS_BRANCH     aufs4.4
-ENV AUFS_COMMIT     12387bde8dd9a74508636601bfd5b2a576932174
+ENV AUFS_COMMIT     ab2083cbed8619eccef23941c2c0c83357af7199
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Download AUFS and apply patches and files, then remove it
@@ -152,7 +152,7 @@ RUN curl -fL -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowid
     chmod +x $ROOTFS/usr/local/bin/generate_cert
 
 # Build VBox guest additions
-ENV VBOX_VERSION 5.0.22
+ENV VBOX_VERSION 5.0.24
 RUN set -x && \
     \
     mkdir -p /vboxguest && \
