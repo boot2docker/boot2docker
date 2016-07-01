@@ -147,7 +147,17 @@ Or, if you need to tell the Docker daemon to use a specific DNS server, add the
 following to ``/var/lib/boot2docker/profile``:
 
 ```
-EXTRA_ARGS="--dns 192.168.1.2"
+EXTRA_ARGS="$EXTRA_ARGS --dns 192.168.1.2"
+```
+
+### User namespace support
+
+Boot2Docker supports enabling `--userns-remap` on the Docker daemon, but it is not enabled by default.
+
+To enable user namespaces, add `--userns-remap=default` to the `EXTRA_ARGS` in the `/var/lib/boot2docker/profile` file.
+
+```
+EXTRA_ARGS="$EXTRA_ARGS --userns-remap=default"
 ```
 
 ## What is the development process
