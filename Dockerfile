@@ -328,6 +328,15 @@ RUN echo root > $ROOTFS/etc/sysconfig/superuser
 RUN echo 'UTC' > $ROOTFS/etc/timezone \
 	&& cp -L /usr/share/zoneinfo/UTC $ROOTFS/etc/localtime
 
+# make sure the "docker" group exists already
+RUN chroot "$ROOTFS" addgroup -S docker
+
+# set up subuid/subgid so that "--userns-remap=default" works out-of-the-box
+# (see also rootfs/rootfs/etc/sub{uid,gid})
+RUN set -x \
+	&& chroot "$ROOTFS" addgroup -S dockremap \
+	&& chroot "$ROOTFS" adduser -S -G dockremap dockremap
+
 # Get the git versioning info
 COPY .git /git/.git
 RUN cd /git && \
