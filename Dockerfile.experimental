@@ -1,15 +1,12 @@
 FROM boot2docker/boot2docker
-MAINTAINER Sven Dowideit "SvenDowideit@docker.com"
 
-#DESCRIPTION use the latest experimental build of Docker
+RUN curl -fSL -o /tmp/dockerbin.tgz https://experimental.docker.com/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version).tgz \
+	&& tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=1 \
+	&& rm /tmp/dockerbin.tgz \
+	&& chroot "$ROOTFS" docker -v \
+	&& sed -ri 's/$/-experimental/' $ROOTFS/etc/version \
+	&& cp -v "$ROOTFS/etc/version" /tmp/iso/version
 
-#get the latest experimental docker
-RUN curl -fL -o $ROOTFS/usr/local/bin/docker https://experimental.docker.com/builds/Linux/x86_64/docker-latest && \
-    chmod +x $ROOTFS/usr/local/bin/docker
-
-RUN echo "" >> $ROOTFS/etc/motd
-RUN echo "  WARNING: this is an experimental.docker.com build, not a release." >> $ROOTFS/etc/motd
-RUN echo "" >> $ROOTFS/etc/motd
+RUN { echo; echo "  WARNING: this is a build from experimental.docker.com, not a stable release."; echo; } >> "$ROOTFS/etc/motd"
 
 RUN /make_iso.sh
-CMD ["cat", "boot2docker.iso"]
