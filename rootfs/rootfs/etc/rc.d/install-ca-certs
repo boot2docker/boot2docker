@@ -5,7 +5,7 @@ BOOT2DOCKER_CERTS_DIR=/var/lib/boot2docker/certs
 CERTS_DIR=/etc/ssl/certs
 CAFILE=${CERTS_DIR}/ca-certificates.crt
 
-for cert_file in "${BOOT2DOCKER_CERTS_DIR}"/*.pem; do
+for cert_file in "${BOOT2DOCKER_CERTS_DIR}"/*.pem "${BOOT2DOCKER_CERTS_DIR}"/*.crt; do
 	cert=`basename "$cert_file"`
 	echo "installing $cert"
 
