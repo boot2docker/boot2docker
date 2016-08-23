@@ -2,7 +2,7 @@
 
 Boot2Docker is a lightweight Linux distribution made specifically to run
 [Docker](https://www.docker.com/) containers. It runs completely from RAM, is a
-small ~24MB download and boots in ~5s (YMMV).
+small ~38MB download and boots in ~5s (YMMV).
 
 ## Features
 
@@ -20,62 +20,25 @@ any kind of production workloads at this time is highly discouraged.
 
 ## Installation
 
-Installation instructions for [OS X](https://docs.docker.com/installation/mac/)
-and [Windows](https://docs.docker.com/installation/windows/) are available on
-the Docker documentation site.
+Installation should be performed via [Docker Toolbox](https://www.docker.com/products/docker-toolbox)
+which installs [Docker Machine](https://docs.docker.com/machine/overview/), 
+the Boot2Docker VM, and other necessary tools.
 
 The [ISO can be downloaded
 here](https://github.com/boot2docker/boot2docker/releases).
 
-### All in one Installers for OS X and Windows
-
-We have built installers for [OS
-X](https://github.com/boot2docker/osx-installer/releases) and
-[Windows](https://github.com/boot2docker/windows-installer/releases) which will
-install the `boot2docker` management tool, VirtualBox, and any tools needed to
-run Boot2Docker.
-
-### Installation using the `boot2docker` management tool
-
-If you have the prerequisites, or want to help develop Boot2Docker, you can also
-download the appropriate [boot2docker management
-release](https://github.com/boot2docker/boot2docker-cli/releases) and use it to
-download
-[`boot2docker.iso`](https://github.com/boot2docker/boot2docker/releases).
-
 ## How to use
 
-The `boot2docker` management tool leverages VirtualBox's `VBoxManage` to
+Boot2Docker is used via [Docker Machine](https://docs.docker.com/machine/overview/) 
+(installed as part of Docker Toolbox) which leverages VirtualBox's `VBoxManage` to
 initialise, start, stop and delete the VM right from the command line.
 
-#### Initialize
+### Migrate from `boot2docker` to Docker Machine
 
-```console
-$ boot2docker init
-```
-
-#### Start VM
-
-```console
-$ boot2docker up
-```
-
-#### Upgrade the Boot2docker VM image
-
-```console
-$ boot2docker stop
-$ boot2docker download
-$ boot2docker up
-```
-
-If your Boot2Docker virtual machine was created prior to 0.11.1-pre1, it's recommended that you
-delete -  `boot2docker delete` and then create a new
-VM - `boot2docker init`.
-
-The main change is the addition of a `/var/lib/boot2docker/userdata.tar` file that is
-un-tarred into the `/home/docker` directory on boot. This file contains
-`.ssh/authorized_keys` and `.ssh/authorized_keys2` files containing a public
-SSH key.
+If you were using the `boot2docker` management tool previously, you have a 
+pre-existing Docker `boot2docker-vm` VM on your local system. 
+To allow Docker Machine to manage this older VM, you must migrate it,
+see [Docker Machine documentation for details](https://docs.docker.com/machine/migrate-to-machine/).
 
 ## Docker Hub
 
@@ -93,31 +56,6 @@ potentially debug) what happens. Note that this is not persistent between boots
 because we're logging from before the persistence partition is mounted (and it
 may not exist at all).
 
-#### Container Port redirection
-
-The latest version of `boot2docker` sets up two network adaptors, one using NAT
-to allow the VM to download images and files from the internet, and a host only
-network that Docker container's ports will be exposed on.
-
-If you run a container with an exposed port, and then use OSX's `open` command:
-
-```console
-$ boot2docker up
-$ eval "$(boot2docker shellinit)"
-$ docker run --name nginx-test -d -p 80:80 nginx
-$ open http://$(boot2docker ip 2>/dev/null)/
-$ docker stop nginx-test
-$ docker rm nginx-test
-```
-
-The `eval "$(boot2docker shellinit)"` sets the `DOCKER_HOST` environment variable for
-this shell, then the `docker run` starts the webserver as a daemon, and `open`
-will then show the default page in your default web browser (using `boot2docker
-ip`).
-
-If you want to share container ports with other computers on your LAN, you will
-need to set up [NAT adaptor based port forwarding](doc/WORKAROUNDS.md).
-
 #### Docker daemon options
 
 If you need to customize the options used to start the Docker daemon, you can
@@ -129,26 +67,11 @@ The following example will enable core dumps inside containers, but you can
 specify any other options you may need.
 
 ```console
-boot2docker ssh -t sudo vi /var/lib/boot2docker/profile
+docker-machine ssh default -t sudo vi /var/lib/boot2docker/profile
 # Add something like:
 #     EXTRA_ARGS="--default-ulimit core=-1"
-boot2docker restart
+docker-machine restart default
 ```
-
-#### TLS support
-
-By default, `boot2docker` runs `docker` with TLS enabled. It auto-generates
-certificates and stores them in `/home/docker/.docker` inside the VM. The
-`boot2docker up` command will copy them to `~/.boot2docker/certs` on the
-host machine once the VM has started, and output the correct values for
-the `DOCKER_CERT_PATH` and `DOCKER_TLS_VERIFY` environment variables.
-
-`eval "$(boot2docker shellinit)"` will also set them correctly.
-
-We strongly recommend against running Boot2Docker with an unencrypted Docker
-socket for security reasons, but if you have tools that cannot be easily
-switched, you can disable it by adding `DOCKER_TLS=no` to your
-`/var/lib/boot2docker/profile` file.
 
 #### Folder sharing
 
@@ -167,7 +90,7 @@ $ docker run -v /data --name my-data busybox true
 $ # Share it using Samba (Windows file sharing)
 $ docker run --rm -v /usr/local/bin/docker:/docker -v /var/run/docker.sock:/docker.sock svendowideit/samba my-data
 $ # then find out the IP address of your Boot2Docker host
-$ boot2docker ip
+$ docker-machine ip default
 192.168.59.103
 ```
 
@@ -242,9 +165,7 @@ As of Docker version 1.3.1, if your registry doesn't support HTTPS, you must add
 insecure registry.
 
 ```console
-$ boot2docker init
-$ boot2docker up
-$ boot2docker ssh "echo $'EXTRA_ARGS=\"--insecure-registry <YOUR INSECURE HOST>\"' | sudo tee -a /var/lib/boot2docker/profile && sudo /etc/init.d/docker restart"
+$ docker-machine ssh default "echo $'EXTRA_ARGS=\"--insecure-registry <YOUR INSECURE HOST>\"' | sudo tee -a /var/lib/boot2docker/profile && sudo /etc/init.d/docker restart"
 ```
 
 then you should be able to do a docker push/pull.
@@ -264,7 +185,7 @@ Sending build context to Docker daemon
 That means you have to forward port `2376`, which can be done like so:
 
 * Open VirtualBox
-* Open Settings > Network for your 'boot2docker-vm'
+* Open Settings > Network for your 'default' VM
 * Select the adapter that is 'Attached To': 'NAT' and click 'Port Forwarding'.
 * Add a new rule:
 	- Protocol: TCP
@@ -273,22 +194,14 @@ That means you have to forward port `2376`, which can be done like so:
 	- Guest Port: 2376
 * Set `DOCKER_HOST` to 'tcp://127.0.0.1:5555'
 
-#### Customize
-
-The `boot2docker` management tool allows you to customise many options from both
-the command line, or by setting them in its configuration file.
-
-See `boot2docker config` for more (including the format of the configuration
-file).
-
 #### SSH into VM
 
 ```console
-$ boot2docker ssh
+$ docker-machine ssh default
 ```
 
-`boot2docker` auto logs in using the generated SSH key, but if you want to SSH
-into the machine manually (or you're not using a `boot2docker` managed VM), the
+Docker Machine auto logs in using the generated SSH key, but if you want to SSH
+into the machine manually (or you're not using a Docker Machine managed VM), the
 credentials are:
 
 ```
@@ -301,15 +214,15 @@ pass: tcuser
 Boot2docker uses [Tiny Core Linux](http://tinycorelinux.net), which runs from
 RAM and so does not persist filesystem changes by default.
 
-When you run `boot2docker init`, the `boot2docker` tool auto-creates a disk that
+When you run `docker-machine`, the tool auto-creates a disk that
 will be automounted and used to persist your docker data in `/var/lib/docker`
 and `/var/lib/boot2docker`.  This virtual disk will be removed when you run
-`boot2docker delete`.  It will also persist the SSH keys of the machine.
+`docker-machine delete default`.  It will also persist the SSH keys of the machine.
 Changes outside of these directories will be lost after powering down or
 restarting the VM - to make permanent modifications see the
 [FAQ](doc/FAQ.md#local-customisation-with-persistent-partition).
 
-If you are not using the `boot2docker` management tool, you can create an `ext4`
+If you are not using the Docker Machine management tool, you can create an `ext4`
 or `btrfs` formatted partition with the label `boot2docker-data` (`mkfs.ext4 -L
 boot2docker-data /dev/sdX5`) to your VM or host, and Boot2Docker will automount
 it on `/mnt/sdX` and then softlink `/mnt/sdX/var/lib/docker` to
@@ -329,51 +242,3 @@ Boot2Docker ISOs.
 ## Troubleshooting
 
 See the [workarounds doc](https://github.com/boot2docker/boot2docker/blob/master/doc/WORKAROUNDS.md) for solutions to known issues.
-
-#### `boot2docker up` doesn't work (OSX)
-
-Sometimes OSX will install updates that break VirtualBox and require a restart
-of the kernel extensions that boot2docker needs in order to run.  If you go to
-boot boot2docker after some updates or a system restart and you get an output
-such as the following:
-
-```console
-$ boot2docker up
-error in run: Failed to start machine "boot2docker-vm" (run again with -v for details)
-```
-
-You may need to reload the kernel extensions in order to get your system
-functioning again.
-
-In this case, try running the following script (supplied with Virtual Box):
-
-```console
-$ sudo /Library/Application\ Support/VirtualBox/LaunchDaemons/VirtualBoxStartup.sh restart
-```
-
-You should see output such as:
-
-```
-/Applications/VirtualBox.app/Contents/MacOS/VBoxAutostart => /Applications/VirtualBox.app/Contents/MacOS/VBoxAutostart-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VBoxBalloonCtrl => /Applications/VirtualBox.app/Contents/MacOS/VBoxBalloonCtrl-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VBoxDD2GC.gc => /Applications/VirtualBox.app/Contents/MacOS/VBoxDD2GC.gc-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VBoxDDGC.gc => /Applications/VirtualBox.app/Contents/MacOS/VBoxDDGC.gc-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VBoxExtPackHelperApp => /Applications/VirtualBox.app/Contents/MacOS/VBoxExtPackHelperApp-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VBoxHeadless => /Applications/VirtualBox.app/Contents/MacOS/VBoxHeadless-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VBoxManage => /Applications/VirtualBox.app/Contents/MacOS/VBoxManage-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VBoxNetAdpCtl => /Applications/VirtualBox.app/Contents/MacOS/VBoxNetAdpCtl-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VBoxNetDHCP => /Applications/VirtualBox.app/Contents/MacOS/VBoxNetDHCP-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VBoxNetNAT => /Applications/VirtualBox.app/Contents/MacOS/VBoxNetNAT-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VBoxSVC => /Applications/VirtualBox.app/Contents/MacOS/VBoxSVC-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VBoxXPCOMIPCD => /Applications/VirtualBox.app/Contents/MacOS/VBoxXPCOMIPCD-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VMMGC.gc => /Applications/VirtualBox.app/Contents/MacOS/VMMGC.gc-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VirtualBox => /Applications/VirtualBox.app/Contents/MacOS/VirtualBox-amd64
-/Applications/VirtualBox.app/Contents/MacOS/VirtualBoxVM => /Applications/VirtualBox.app/Contents/MacOS/VirtualBoxVM-amd64
-/Applications/VirtualBox.app/Contents/MacOS/vboxwebsrv => /Applications/VirtualBox.app/Contents/MacOS/vboxwebsrv-amd64
-Loading VBoxDrv.kext
-Loading VBoxUSB.kext
-Loading VBoxNetFlt.kext
-Loading VBoxNetAdp.kext
-```
-
-Now the VM should boot properly.
