@@ -229,7 +229,20 @@ more suitable/scalable solution is found and implemented.
 
 #### Installing secure Registry certificates
 
-You can add your Registry server's public certificate (in `.pem` format) into
+As discussed in the [Docker Engine documentation](https://docs.docker.com/engine/security/certificates/#/understanding-the-configuration)
+certificates should be placed at `/etc/docker/certs.d/hostname/ca.crt` 
+where `hostname` is your Registry server's hostname.
+
+```console
+docker-machine scp certfile default:ca.crt
+docker-machine ssh default
+sudo mv ~/ca.crt /etc/docker/certs.d/hostname/ca.crt
+exit
+docker-machine restart
+```
+
+Alternatively the older Boot2Docker method can be used and you can add your 
+Registry server's public certificate (in `.pem` format) into
 the `/var/lib/boot2docker/certs/` directory, and Boot2Docker will automatically
 load it from the persistence partition at boot.
 
