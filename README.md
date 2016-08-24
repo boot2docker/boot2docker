@@ -165,11 +165,11 @@ docker-machine restart
 ```
 
 Alternatively the older Boot2Docker method can be used and you can add your 
-Registry server's public certificate (in `.pem` format) into
+Registry server's public certificate (in `.pem` or `.crt` format) into
 the `/var/lib/boot2docker/certs/` directory, and Boot2Docker will automatically
 load it from the persistence partition at boot.
 
-You may need to add several certificates (as separate `.pem` files) to this
+You may need to add several certificates (as separate `.pem` or `.crt` files) to this
 directory, depending on the CA signing chain used for your certificate.
 
 ##### Insecure Registry
