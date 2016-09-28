@@ -144,6 +144,18 @@ RUN set -ex && \
 # Install Tiny Core Linux rootfs
 RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
+# Extract ca-certificates
+RUN set -x \
+#  TCL changed something such that these need to be extracted post-install
+	&& chroot "$ROOTFS" sh -xc 'ldconfig && /usr/local/tce.installed/openssl' \
+#  Docker looks for them in /etc/ssl
+	&& ln -sT ../usr/local/etc/ssl "$ROOTFS/etc/ssl" \
+#  a little testing is always prudent
+	&& cp "$ROOTFS/etc/resolv.conf" resolv.conf.bak \
+	&& cp /etc/resolv.conf "$ROOTFS/etc/resolv.conf" \
+	&& chroot "$ROOTFS" curl -fsSL 'https://www.google.com' -o /dev/null \
+	&& mv resolv.conf.bak "$ROOTFS/etc/resolv.conf"
+
 # Apply horrible hacks
 RUN cd $ROOTFS && ln -s lib lib64
 
