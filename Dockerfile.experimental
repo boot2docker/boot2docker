@@ -9,4 +9,4 @@ RUN curl -fSL -o /tmp/dockerbin.tgz https://experimental.docker.com/builds/Linux
 
 RUN { echo; echo "  WARNING: this is a build from experimental.docker.com, not a stable release."; echo; } >> "$ROOTFS/etc/motd"
 
-RUN /make_iso.sh
+RUN /tmp/make_iso.sh
