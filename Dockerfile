@@ -359,8 +359,8 @@ RUN cd /git && \
 # Copy boot params
 COPY rootfs/isolinux /tmp/iso/boot/isolinux
 
-COPY rootfs/make_iso.sh /
+COPY rootfs/make_iso.sh /tmp/make_iso.sh
 
-RUN /make_iso.sh
+RUN /tmp/make_iso.sh
 
 CMD ["sh", "-c", "[ -t 1 ] && exec bash || exec cat boot2docker.iso"]
