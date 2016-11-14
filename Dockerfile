@@ -246,12 +246,11 @@ RUN LD_LIBRARY_PATH=/lib:/usr/local/lib \
         chroot "$ROOTFS" vmhgfs-fuse --version
 
 # Download and build Parallels Tools
-ENV PRL_MAJOR 11
-ENV PRL_VERSION 11.1.0
-ENV PRL_BUILD 32202
+ENV PRL_MAJOR 12
+ENV PRL_VERSION 12.1.0-41489
 
 RUN mkdir -p /prl_tools && \
-    curl -fL http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}/ParallelsTools-${PRL_VERSION}-${PRL_BUILD}-boot2docker.tar.gz \
+    curl -fL http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}/ParallelsTools-${PRL_VERSION}-boot2docker.tar.gz \
         | tar -xzC /prl_tools --strip-components 1 && \
     cd /prl_tools && \
     cp -Rv tools/* $ROOTFS && \
