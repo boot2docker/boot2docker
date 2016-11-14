@@ -33,15 +33,8 @@ if modprobe vboxguest &> /dev/null && modprobe vboxsf &> /dev/null; then
 		return 0
 	}
 	
-	# bfirsh gets all the credit for this hacky workaround :)
-	try_mount_share /Users 'Users' \
-		|| try_mount_share /Users \
-		|| try_mount_share /c/Users 'c/Users' \
-		|| try_mount_share /c/Users \
-		|| try_mount_share /c/Users 'c:/Users' \
-		|| true
-	# TODO replace this whole hacky bit with VBoxService --only-automount
-	# (the problem with that being that we can't run VBoxService because the
-	#  32bit VBoxService won't work with the 64bit kernel modules, but the 64bit
-	#  VBoxService won't work with our 32bit userspace; good times)
+	for line in $(VBoxControl --nologo sharedfolder list -automount | tail -n+3 | cut  -d " " -f 3)
+	do
+	    try_mount_share "$line";
+	done
 fi
