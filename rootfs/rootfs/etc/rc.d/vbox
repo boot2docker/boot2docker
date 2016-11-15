@@ -19,6 +19,10 @@ if modprobe vboxguest &> /dev/null && modprobe vboxsf &> /dev/null; then
 		dir="$1"
 		name="${2:-$dir}"
 		
+		# normalize "dir" to be definitively root-relative
+		# ie, "/Users" and "Users" will both translate to "/Users" explicitly
+		dir="/${dir#/}"
+		
 		mkdir -p "$dir" 2>/dev/null
 		if ! mount -t vboxsf -o "$mountOptions" "$name" "$dir" 2>/dev/null; then
 			rmdir "$dir" 2>/dev/null || true
@@ -33,8 +37,7 @@ if modprobe vboxguest &> /dev/null && modprobe vboxsf &> /dev/null; then
 		return 0
 	}
 	
-	for line in $(VBoxControl --nologo sharedfolder list -automount | tail -n+3 | cut  -d " " -f 3)
-	do
-	    try_mount_share "$line";
+	for line in $(VBoxControl --nologo sharedfolder list -automount | tail -n+3 | cut  -d ' ' -f 3); do
+		try_mount_share "$line"
 	done
 fi
