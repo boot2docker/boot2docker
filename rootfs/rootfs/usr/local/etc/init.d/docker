@@ -1,5 +1,5 @@
 #!/bin/sh
-# docker daemon start script
+# dockerd start script
 [ $(id -u) = 0 ] || { echo 'must be root' ; exit 1; }
 
 #import settings from profile (e.g. HTTP_PROXY, HTTPS_PROXY)
@@ -104,8 +104,8 @@ start() {
     ulimit -p $DOCKER_ULIMITS
 
     echo "------------------------" >> "$DOCKER_LOGFILE"
-    echo "/usr/local/bin/docker daemon -D -g \"$DOCKER_DIR\" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> \"$DOCKER_LOGFILE\"" >> "$DOCKER_LOGFILE"
-    /usr/local/bin/docker daemon -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> "$DOCKER_LOGFILE" 2>&1 &
+    echo "/usr/local/bin/dockerd -D -g \"$DOCKER_DIR\" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> \"$DOCKER_LOGFILE\"" >> "$DOCKER_LOGFILE"
+    /usr/local/bin/dockerd -D -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> "$DOCKER_LOGFILE" 2>&1 &
 }
 
 stop() {
