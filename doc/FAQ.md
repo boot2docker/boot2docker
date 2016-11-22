@@ -172,3 +172,7 @@ There are two parts of Boot2Docker: the ISO image, and the `boot2docker` managem
 tool to set up and manage a VM. The management tool only works with VirtualBox,
 but the ISO image is designed to also be used with physical hardware. There
 are no plans to make separate ISO images for different configurations.
+
+**Can boot2docker set its environment variables automatically for me?**
+
+Boot2Docker doesn't do this, but other people have written scripts that do. [boot2docker-autoset](https://github.com/atbaker/boot2docker-autoset) is one example.
