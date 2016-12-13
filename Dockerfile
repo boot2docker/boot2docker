@@ -110,7 +110,7 @@ RUN cd /linux-kernel && \
 # Prepare the ISO directory with the kernel
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
-ENV TCL_REPO_BASE   http://tinycorelinux.net/7.x/x86_64
+ENV TCL_REPO_BASE   http://distro.ibiblio.org/tinycorelinux/7.x/x86_64
 # Note that the ncurses is here explicitly so that top continues to work
 ENV TCZ_DEPS        iptables \
                     iproute2 \
