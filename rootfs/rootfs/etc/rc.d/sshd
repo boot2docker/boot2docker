@@ -10,10 +10,10 @@ fi
 ln -s /var/lib/boot2docker/ssh /usr/local/etc/ssh
 
 if [ ! -f /usr/local/etc/ssh/ssh_config ]; then
-    mv /usr/local/etc/ssh/ssh_config_example /usr/local/etc/ssh/ssh_config
+    cp /usr/local/etc/ssh/ssh_config.orig /usr/local/etc/ssh/ssh_config
 fi
 if [ ! -f /usr/local/etc/ssh/sshd_config ]; then
-    mv /usr/local/etc/ssh/sshd_config_example /usr/local/etc/ssh/sshd_config
+    cp /usr/local/etc/ssh/sshd_config.orig /usr/local/etc/ssh/sshd_config
 fi
 
 if ! grep -q "^UseDNS no" /usr/local/etc/ssh/sshd_config; then
