@@ -1,0 +1,205 @@
+#!/bin/sh
+
+# -------------------------------------------------------------------------- #
+# Copyright 2002-2015, OpenNebula Project, OpenNebula Systems                #
+#                                                                            #
+# Licensed under the Apache License, Version 2.0 (the "License"); you may    #
+# not use this file except in compliance with the License. You may obtain    #
+# a copy of the License at                                                   #
+#                                                                            #
+# http://www.apache.org/licenses/LICENSE-2.0                                 #
+#                                                                            #
+# Unless required by applicable law or agreed to in writing, software        #
+# distributed under the License is distributed on an "AS IS" BASIS,          #
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   #
+# See the License for the specific language governing permissions and        #
+# limitations under the License.                                             #
+#--------------------------------------------------------------------------- #
+
+export_rc_vars()
+{
+    if [ -f $1 ] ; then
+        ONE_VARS=`cat $1 | egrep -e '^[a-zA-Z\-\_0-9]*=' | sed 's/=.*$//'`
+
+        . $1
+
+        for v in $ONE_VARS; do
+            export $v
+        done
+    fi
+}
+
+CONTEXT_VOLUME=$(blkid | grep -F 'LABEL="CONTEXT"' | cut -d: -f1)
+
+if [ -z "$CONTEXT_VOLUME" ]; then
+    exit 0
+fi
+
+################################################################################
+# Context found, this is an OpenNebula VM
+################################################################################
+
+CONTEXT_DIR=/mnt/context
+CONTEXT=$CONTEXT_DIR/context.sh
+
+mkdir -p $CONTEXT_DIR
+if ! mount | grep $CONTEXT_DIR >/dev/null; then
+    mount $CONTEXT_VOLUME $CONTEXT_DIR
+fi
+
+if [ -e "$CONTEXT" ]; then
+    export_rc_vars "$CONTEXT"
+else
+    # Context file not present
+    exit 0
+fi
+
+################################################################################
+# Lib
+################################################################################
+
+# Gets IP address from a given MAC
+mac2ip() {
+    mac=$1
+
+    let ip_a=0x`echo $mac | cut -d: -f 3`
+    let ip_b=0x`echo $mac | cut -d: -f 4`
+    let ip_c=0x`echo $mac | cut -d: -f 5`
+    let ip_d=0x`echo $mac | cut -d: -f 6`
+
+    ip="$ip_a.$ip_b.$ip_c.$ip_d"
+
+    echo $ip
+}
+
+# Gets the network part of an IP
+get_network() {
+    network=$(get_iface_var "NETWORK")
+
+    if [ -z "$network" ]; then
+        network="$(echo $IP | cut -d'.' -f1,2,3).0"
+    fi
+
+    echo $network
+}
+
+# Gets the network mask
+get_mask() {
+    mask=$(get_iface_var "MASK")
+
+    if [ -z "$mask" ]; then
+        mask="255.255.255.0"
+    fi
+
+    echo $mask
+}
+
+# Gets device MTU
+get_mtu() {
+    mtu=$(get_iface_var "MTU")
+
+    echo $mtu
+}
+
+is_gateway() {
+    if [ -z "$GATEWAY_IFACE_NUM" ]; then
+        true
+    else
+        [ "$IFACE_NUM" = "$GATEWAY_IFACE_NUM" ]
+    fi
+}
+
+# Gets the network gateway
+get_gateway() {
+    if is_gateway; then
+        gateway=$(get_iface_var "GATEWAY")
+
+        if [ -z "$gateway" ]; then
+            if [ "$DEV" = "eth0" ]; then
+                net_prefix=$(echo $NETWORK | cut -d'.' -f1,2,3)
+                gateway="${net_prefix}.1"
+            fi
+        fi
+
+        echo $gateway
+    fi
+}
+
+# Gets the network gateway6
+get_gateway6() {
+    if is_gateway; then
+        get_iface_var "GATEWAY6"
+    fi
+}
+
+get_ip() {
+    ip=$(get_iface_var "IP")
+
+    if [ -z "$ip" ]; then
+        ip=$(mac2ip $MAC)
+    fi
+
+    echo $ip
+}
+
+get_iface_var() {
+    var_name="${UPCASE_DEV}_$1"
+    var=$(eval "echo \"\${$var_name}\"")
+
+    echo $var
+}
+
+get_interface_mac()
+{
+    ip link show | awk '/^[0-9]+: [A-Za-z0-9]+:/ { device=$2; gsub(/:/, "",device)} /link\/ether/ { print device " " $2 }'
+}
+
+get_context_interfaces()
+{
+    env | grep -E "^ETH[0-9]+_MAC=" | sed 's/_.*$//' | sort
+}
+
+get_dev()
+{
+    list="$1"
+    mac="$2"
+
+    echo "$list" | grep "$mac" | cut -d' ' -f1 | tail -n1
+}
+
+################################################################################
+# Configure Network
+################################################################################
+
+INTERFACE_MAC=$(get_interface_mac)
+CONTEXT_INTERFACES=$(get_context_interfaces)
+GATEWAY_IFACE_NUM=$(echo "$GATEWAY_IFACE" | sed 's/^ETH//')
+
+for interface in $CONTEXT_INTERFACES; do
+    UPCASE_DEV=$interface
+    MAC=$(get_iface_var "MAC")
+    DEV=$(get_dev "$INTERFACE_MAC" "$MAC")
+    IFACE_NUM=$(echo "$UPCASE_DEV" | sed 's/^ETH//')
+
+    IP=$(get_ip)
+    NETWORK=$(get_network)
+    MASK=$(get_mask)
+    MTU=$(get_mtu)
+    GATEWAY=$(get_gateway)
+    DNS=$(get_iface_var "DNS")
+    DOMAIN=$(get_iface_var "SEARCH_DOMAIN")
+
+    subnet="$MASK" interface="$DEV" ip="$IP" router="$GATEWAY" dns="$DNS" \
+        domain="$DOMAIN" /usr/share/udhcpc/default.script bound
+done
+
+################################################################################
+# Configure Network
+################################################################################
+
+if [ -n "$SSH_PUBLIC_KEY" ]; then
+    mkdir -p /home/docker/.ssh
+    echo "$SSH_PUBLIC_KEY" >> /home/docker/.ssh/authorized_keys
+    chmod -R go-rwx /home/docker/.ssh
+    chown -R docker:staff /home/docker
+fi
