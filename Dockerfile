@@ -165,9 +165,9 @@ RUN curl -fL -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowid
 
 # Build VBox guest additions
 #   http://download.virtualbox.org/virtualbox/
-ENV VBOX_VERSION 5.1.10
+ENV VBOX_VERSION 5.1.12
 #   https://www.virtualbox.org/download/hashes/$VBOX_VERSION/SHA256SUMS
-ENV VBOX_SHA256 29fa0af66a3dd273b0c383c4adee31a52061d52f57d176b67f444698300b8c41
+ENV VBOX_SHA256 13a0265cab971ac3e31e83959a68e377c7f014f429fa3a168c86fb2399df4321
 #   (VBoxGuestAdditions_X.Y.Z.iso SHA256, for verification)
 RUN set -x && \
     \
