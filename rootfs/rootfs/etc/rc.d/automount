@@ -94,6 +94,10 @@ echo $BOOT2DOCKER_DATA
 
 if [ -n "$BOOT2DOCKER_DATA" ]; then
     PARTNAME=`echo "$BOOT2DOCKER_DATA" | sed 's/.*\///'`
+    
+    echo "fsck $BOOT2DOCKER_DATA"
+    fsck -y $BOOT2DOCKER_DATA
+    
     echo "mount p:$PARTNAME ..."
     mkdir -p /mnt/$PARTNAME
     if ! mount $BOOT2DOCKER_DATA /mnt/$PARTNAME 2>/dev/null; then
@@ -103,7 +107,7 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
         umount -f /mnt/$PARTNAME || true
         mount $BOOT2DOCKER_DATA /mnt/$PARTNAME
     fi
-
+    
     # Just in case, the links will fail if not
     umount -f /var/lib/docker || true
     rm -rf /var/lib/docker /var/lib/boot2docker

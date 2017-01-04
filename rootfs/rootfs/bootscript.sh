@@ -67,8 +67,10 @@ echo "-------------------"
 
 # Allow local bootsync.sh customisation
 if [ -e /var/lib/boot2docker/bootsync.sh ]; then
-    /bin/sh /var/lib/boot2docker/bootsync.sh
-    echo "------------------- ran /var/lib/boot2docker/bootsync.sh"
+    #copy bootsync.sh to /tmp before run ,so we can umount and fsck disk ,then remount:)
+    cp /var/lib/boot2docker/bootsync.sh /tmp/bootsync.sh
+    /bin/sh /tmp/bootsync.sh
+    echo "------------------- ran /var/lib/boot2docker/bootsync.sh "
 fi
 
 # Launch Docker
