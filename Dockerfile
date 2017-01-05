@@ -97,15 +97,18 @@ RUN curl -fL http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.o
     cp -av `pwd`/output/lib64/* $ROOTFS/usr/local/lib
 
 # Make sure the kernel headers are installed for aufs-util, and then build it
-RUN cd /linux-kernel && \
-    make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
-    cd / && \
-    git clone https://github.com/Distrotech/aufs-util.git && \
-    cd /aufs-util && \
-    git checkout 5e0c348bd8b1898beb1e043b026bcb0e0c7b0d54 && \
-    CPPFLAGS="-I/tmp/kheaders/include" CLFAGS=$CPPFLAGS LDFLAGS=$CPPFLAGS make && \
-    DESTDIR=$ROOTFS make install && \
-    rm -rf /tmp/kheaders
+ENV AUFS_UTIL_REPO    git://git.code.sf.net/p/aufs/aufs-util
+ENV AUFS_UTIL_BRANCH  aufs4.1
+ENV AUFS_UTIL_COMMIT  12eff17c0de02bd36c89c45a28aa5dc6536ef956
+RUN set -ex \
+	&& git clone -b "$AUFS_UTIL_BRANCH" "$AUFS_UTIL_REPO" /aufs-util \
+	&& git -C /aufs-util checkout --quiet "$AUFS_UTIL_COMMIT" \
+	&& make -C /linux-kernel headers_install INSTALL_HDR_PATH=/tmp/kheaders \
+	&& export CFLAGS='-I/tmp/kheaders/include' \
+	&& export CPPFLAGS="$CFLAGS" LDFLAGS="$CFLAGS" \
+	&& make -C /aufs-util \
+	&& make -C /aufs-util install DESTDIR="$ROOTFS" \
+	&& rm -r /tmp/kheaders
 
 # Prepare the ISO directory with the kernel
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
