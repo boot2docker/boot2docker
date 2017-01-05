@@ -133,16 +133,16 @@ ENV TCZ_DEPS        iptables \
 RUN curl -fL -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs64.gz
 
 # Install the TCZ dependencies
-RUN set -ex && \
-    for dep in $TCZ_DEPS; do \
-        echo "Download $TCL_REPO_BASE/tcz/$dep.tcz"; \
-        curl -fL -o /tmp/$dep.tcz $TCL_REPO_BASE/tcz/$dep.tcz; \
-        unsquashfs -f -d $ROOTFS /tmp/$dep.tcz; \
-        rm -f /tmp/$dep.tcz; \
-    done
+RUN set -ex; \
+	for dep in $TCZ_DEPS; do \
+		echo "Download $TCL_REPO_BASE/tcz/$dep.tcz"; \
+		curl -fSL -o "/tmp/$dep.tcz" "$TCL_REPO_BASE/tcz/$dep.tcz"; \
+		unsquashfs -f -d "$ROOTFS" "/tmp/$dep.tcz"; \
+		rm -f "/tmp/$dep.tcz"; \
+	done
 
 # Install Tiny Core Linux rootfs
-RUN cd $ROOTFS && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
+RUN cd "$ROOTFS" && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
 
 # Extract ca-certificates
 RUN set -x \
@@ -157,7 +157,7 @@ RUN set -x \
 	&& mv resolv.conf.bak "$ROOTFS/etc/resolv.conf"
 
 # Apply horrible hacks
-RUN cd $ROOTFS && ln -s lib lib64
+RUN ln -sT lib "$ROOTFS/lib64"
 
 # get generate_cert
 RUN curl -fL -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.2/generate_cert-0.2-linux-amd64 && \
@@ -239,31 +239,33 @@ RUN curl -fL -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/$
     make install && make DESTDIR=$ROOTFS install
 
 # Horrible hack again
-RUN cd $ROOTFS/usr/local/lib && ln -s libdnet.1 libdumbnet.so.1 && readlink -f libdumbnet.so.1
+RUN ln -sT libdnet.1 "$ROOTFS/usr/local/lib/libdumbnet.so.1" \
+	&& readlink -f "$ROOTFS/usr/local/lib/libdumbnet.so.1"
 
-# TCL 7 doesn't ship with libtirpc.so.1 Dummy it up so the VMware tools work
-# again, taken from:
+# TCL 7 doesn't ship with libtirpc.so.1 Dummy it up so the VMware tools work again, taken from:
 # https://github.com/boot2docker/boot2docker/issues/1157#issuecomment-211647607
-RUN cd $ROOTFS/usr/local/lib && ln -s libtirpc.so libtirpc.so.1 && readlink -f libtirpc.so.1
+RUN ln -sT libtirpc.so "$ROOTFS/usr/local/lib/libtirpc.so.1" \
+	&& readlink -f "$ROOTFS/usr/local/lib/libtirpc.so.1"
 
 # verify that all the above actually worked (at least producing a valid binary, so we don't repeat issue #1157)
-RUN LD_LIBRARY_PATH=/lib:/usr/local/lib \
-        chroot "$ROOTFS" vmhgfs-fuse --version
+RUN LD_LIBRARY_PATH='/lib:/usr/local/lib' \
+		chroot "$ROOTFS" vmhgfs-fuse --version
 
 # Download and build Parallels Tools
 ENV PRL_MAJOR 12
 ENV PRL_VERSION 12.1.0-41489
 
-RUN mkdir -p /prl_tools && \
-    curl -fL http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}/ParallelsTools-${PRL_VERSION}-boot2docker.tar.gz \
-        | tar -xzC /prl_tools --strip-components 1 && \
-    cd /prl_tools && \
-    cp -Rv tools/* $ROOTFS && \
-    \
-    KERNEL_DIR=/linux-kernel/ KVER=$KERNEL_VERSION SRC=/linux-kernel/ PRL_FREEZE_SKIP=1 \
-        make -C kmods/ -f Makefile.kmods installme && \
-    \
-    find kmods/ -name '*.ko' -exec cp {} $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/ ';'
+RUN set -ex \
+	&& mkdir -p /prl_tools \
+	&& curl -fSL "http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}/ParallelsTools-${PRL_VERSION}-boot2docker.tar.gz" \
+		| tar -xzC /prl_tools --strip-components 1 \
+	&& cd /prl_tools \
+	&& cp -Rv tools/* $ROOTFS \
+	\
+	&& KERNEL_DIR=/linux-kernel/ KVER="$KERNEL_VERSION" SRC=/linux-kernel/ PRL_FREEZE_SKIP=1 \
+		make -C kmods/ -f Makefile.kmods installme \
+	\
+	&& find kmods/ -name '*.ko' -exec cp {} "$ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/" ';'
 
 # verify that all the above actually worked (at least producing a valid binary, so we don't repeat issue #1157)
 RUN chroot "$ROOTFS" prltoolsd -V
@@ -272,63 +274,52 @@ RUN chroot "$ROOTFS" prltoolsd -V
 ENV XEN_REPO https://github.com/xenserver/xe-guest-utilities
 ENV XEN_VERSION v6.6.80
 
-RUN git clone -b "$XEN_VERSION" "$XEN_REPO" /xentools \
-    && cd /xentools \
-    && make \
-    && tar xvf build/dist/*.tgz -C $ROOTFS/
+RUN set -ex \
+	&& git clone -b "$XEN_VERSION" "$XEN_REPO" /xentools \
+	&& make -C /xentools \
+	&& tar xvf /xentools/build/dist/*.tgz -C "$ROOTFS"
 
 # TODO find a binary we can attempt running that will verify at least on the surface level that the xentools are working
 
+# Build the Hyper-V KVP Daemon
+RUN set -ex \
+	&& make -C /linux-kernel headers_install \
+	&& cd /linux-kernel/tools/hv \
+	&& sed -i 's!\(^CFLAGS = .*\)!\1 -I/tmp/kheaders/include!' Makefile \
+	&& make hv_kvp_daemon \
+	&& cp hv_kvp_daemon $ROOTFS/usr/sbin \
+	&& rm -rf /tmp/kheaders
+
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
-RUN depmod -a -b $ROOTFS $KERNEL_VERSION-boot2docker
+RUN depmod -a -b "$ROOTFS" "$KERNEL_VERSION-boot2docker"
 
 COPY VERSION $ROOTFS/etc/version
-RUN cp -v $ROOTFS/etc/version /tmp/iso/version
+RUN cp -v "$ROOTFS/etc/version" /tmp/iso/version
 
 # Get the Docker binaries with version that matches our boot2docker version.
-RUN curl -fSL -o /tmp/dockerbin.tgz https://get.docker.com/builds/Linux/x86_64/docker-$(cat $ROOTFS/etc/version).tgz && \
-    tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=1 && \
-    rm /tmp/dockerbin.tgz && \
-    chroot "$ROOTFS" docker -v
+RUN set -ex \
+	&& curl -fSL -o /tmp/dockerbin.tgz "https://get.docker.com/builds/Linux/x86_64/docker-$(cat "$ROOTFS/etc/version").tgz" \
+	&& tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=1 \
+	&& rm /tmp/dockerbin.tgz \
+	&& chroot "$ROOTFS" docker -v
 
 # Copy our custom rootfs
 COPY rootfs/rootfs $ROOTFS
 
 # setup acpi config dir &
 # tcl6's sshd is compiled without `/usr/local/sbin` in the path
-# Boot2Docker and Docker Machine need `ip`, so I'm linking it in here
-RUN cd $ROOTFS \
-    && ln -s /usr/local/etc/acpi etc/ \
-    && ln -s /usr/local/sbin/ip usr/sbin/
+# Boot2Docker and Docker Machine need `ip`, so link it elsewhere
+RUN ln -svT /usr/local/etc/acpi "$ROOTFS/etc/acpi" \
+	&& ln -svT /usr/local/sbin/ip "$ROOTFS/usr/sbin/ip"
 
-# Build the Hyper-V KVP Daemon
-RUN cd /linux-kernel && \
-    make INSTALL_HDR_PATH=/tmp/kheaders headers_install && \
-    cd /linux-kernel/tools/hv && \
-    sed -i 's!\(^CFLAGS = .*\)!\1 -I/tmp/kheaders/include!' Makefile && \
-    make hv_kvp_daemon && \
-    cp hv_kvp_daemon $ROOTFS/usr/sbin && \
-    rm -rf /tmp/kheaders
-
-# These steps can only be run once, so can't be in make_iso.sh (which can be run in chained Dockerfiles)
+# These steps should only be run once, so can't be in make_iso.sh (which can be run in chained Dockerfiles)
 # see https://github.com/boot2docker/boot2docker/blob/master/doc/BUILD.md
 
 # Make sure init scripts are executable
-RUN find $ROOTFS/etc/rc.d/ $ROOTFS/usr/local/etc/init.d/ -exec chmod +x '{}' ';'
+RUN find "$ROOTFS/etc/rc.d/" "$ROOTFS/usr/local/etc/init.d/" -type f -exec chmod --changes +x '{}' +
 
 # move dhcp.sh out of init.d as we're triggering it manually so its ready a bit faster
-RUN mv $ROOTFS/etc/init.d/dhcp.sh $ROOTFS/etc/rc.d/
-
-# Change MOTD
-RUN mv $ROOTFS/usr/local/etc/motd $ROOTFS/etc/motd
-
-# Make sure we have the correct bootsync
-RUN mv $ROOTFS/boot*.sh $ROOTFS/opt/ && \
-	chmod +x $ROOTFS/opt/*.sh
-
-# Make sure we have the correct shutdown
-RUN mv $ROOTFS/shutdown.sh $ROOTFS/opt/shutdown.sh && \
-	chmod +x $ROOTFS/opt/shutdown.sh
+RUN mv -v "$ROOTFS/etc/init.d/dhcp.sh" "$ROOTFS/etc/rc.d/"
 
 # Add serial console
 RUN echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
@@ -338,11 +329,11 @@ RUN echo "#!/bin/sh" > $ROOTFS/usr/local/bin/autologin && \
 	echo 'ttyS1:2345:respawn:/sbin/getty -l /usr/local/bin/autologin 9600 ttyS1 vt100' >> $ROOTFS/etc/inittab
 
 # fix "su -"
-RUN echo root > $ROOTFS/etc/sysconfig/superuser
+RUN echo root > "$ROOTFS/etc/sysconfig/superuser"
 
 # add some timezone files so we're explicit about being UTC
-RUN echo 'UTC' > $ROOTFS/etc/timezone \
-	&& cp -L /usr/share/zoneinfo/UTC $ROOTFS/etc/localtime
+RUN echo 'UTC' > "$ROOTFS/etc/timezone" \
+	&& cp -vL /usr/share/zoneinfo/UTC "$ROOTFS/etc/localtime"
 
 # make sure the "docker" group exists already
 RUN chroot "$ROOTFS" addgroup -S docker
@@ -355,11 +346,12 @@ RUN set -x \
 
 # Get the git versioning info
 COPY .git /git/.git
-RUN cd /git && \
-    GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD) && \
-    GITSHA1=$(git rev-parse --short HEAD) && \
-    DATE=$(date) && \
-    echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" > $ROOTFS/etc/boot2docker
+RUN set -ex \
+	&& GIT_BRANCH="$(git -C /git rev-parse --abbrev-ref HEAD)" \
+	&& GITSHA1="$(git -C /git rev-parse --short HEAD)" \
+	&& DATE="$(date)" \
+	&& echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" \
+		| tee "$ROOTFS/etc/boot2docker"
 
 # Copy boot params
 COPY rootfs/isolinux /tmp/iso/boot/isolinux
