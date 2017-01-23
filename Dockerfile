@@ -256,7 +256,7 @@ RUN LD_LIBRARY_PATH='/lib:/usr/local/lib' \
 
 # Download and build Parallels Tools
 ENV PRL_MAJOR 12
-ENV PRL_VERSION 12.1.0-41489
+ENV PRL_VERSION 12.1.3-41532
 
 RUN set -ex \
 	&& mkdir -p /prl_tools \
