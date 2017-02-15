@@ -102,6 +102,9 @@ start() {
     # Increasing the number of open files and processes by docker
     ulimit -n $DOCKER_ULIMITS
     ulimit -p $DOCKER_ULIMITS
+    
+    # Allow large core files by default
+    EXTRA_ARGS="$EXTRA_ARGS --default-ulimit core=-1"
 
     echo "------------------------" >> "$DOCKER_LOGFILE"
     echo "/usr/local/bin/dockerd -D -g \"$DOCKER_DIR\" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> \"$DOCKER_LOGFILE\"" >> "$DOCKER_LOGFILE"
