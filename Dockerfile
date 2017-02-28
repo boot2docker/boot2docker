@@ -299,9 +299,11 @@ RUN depmod -a -b "$ROOTFS" "$KERNEL_VERSION-boot2docker"
 COPY VERSION $ROOTFS/etc/version
 RUN cp -v "$ROOTFS/etc/version" /tmp/iso/version
 
+ENV DOCKER_CHANNEL edge
+
 # Get the Docker binaries with version that matches our boot2docker version.
 RUN set -ex \
-	&& curl -fSL -o /tmp/dockerbin.tgz "https://get.docker.com/builds/Linux/x86_64/docker-$(cat "$ROOTFS/etc/version").tgz" \
+	&& curl -fSL -o /tmp/dockerbin.tgz "https://download.docker.com/linux/static/$DOCKER_CHANNEL/x86_64/docker-$(cat "$ROOTFS/etc/version").tgz" \
 	&& tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=1 \
 	&& rm /tmp/dockerbin.tgz \
 	&& chroot "$ROOTFS" docker -v
