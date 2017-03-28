@@ -299,7 +299,7 @@ RUN depmod -a -b "$ROOTFS" "$KERNEL_VERSION-boot2docker"
 COPY VERSION $ROOTFS/etc/version
 RUN cp -v "$ROOTFS/etc/version" /tmp/iso/version
 
-ENV DOCKER_CHANNEL edge
+ENV DOCKER_CHANNEL stable
 
 # Get the Docker binaries with version that matches our boot2docker version.
 RUN set -ex \
