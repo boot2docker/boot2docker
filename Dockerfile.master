@@ -1,0 +1,31 @@
+FROM boot2docker/boot2docker
+
+# "17.05.0-dev"
+ARG DOCKER_VERSION
+# "592c553c4acf3b77d96b6234298ec0e1e41112fb86bd497ab7f4d8635209aabe"
+ARG DOCKER_SHA256
+
+RUN set -ex; \
+	if [ -z "$DOCKER_VERSION" ]; then \
+		DOCKER_VERSION="$(curl -fsSL 'https://master.dockerproject.org/version')"; \
+	fi; \
+	url="https://master.dockerproject.org/linux/amd64/docker-${DOCKER_VERSION}.tgz"; \
+	curl -fSL -o /tmp/dockerbin.tgz "$url"; \
+	if [ -z "$DOCKER_SHA256" ]; then \
+		DOCKER_SHA256="$(curl -fsSL "${url}.sha256")"; \
+		DOCKER_SHA256="$(echo "$DOCKER_SHA256" | cut -d' ' -f1)"; \
+	fi; \
+	echo "$DOCKER_SHA256 */tmp/dockerbin.tgz" | sha256sum -c -; \
+	tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=1; \
+	rm /tmp/dockerbin.tgz; \
+	chroot "$ROOTFS" docker -v
+
+RUN set -ex; \
+	"$ROOTFS/usr/local/bin/docker" -v \
+		| sed -r 's/.* version ([^ ,]+).*/\1/' \
+		| tee "$ROOTFS/etc/version"; \
+	cp -v "$ROOTFS/etc/version" /tmp/iso/version
+
+RUN { echo; echo "  WARNING: this is a build from master.dockerproject.org, not a stable release."; echo; } >> "$ROOTFS/etc/motd"
+
+RUN /tmp/make_iso.sh
