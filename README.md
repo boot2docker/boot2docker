@@ -6,7 +6,7 @@ small ~38MB download and boots in ~5s (YMMV).
 
 ## Features
 
-* Kernel 4.4.70 with AUFS, Docker v17.03.1-ce - using libcontainer
+* Kernel 4.4.70 with AUFS, Docker v17.03.2-ce-rc1 - using libcontainer
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
