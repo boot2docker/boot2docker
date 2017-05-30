@@ -302,11 +302,16 @@ RUN cp -v "$ROOTFS/etc/version" /tmp/iso/version
 ENV DOCKER_CHANNEL stable
 
 # Get the Docker binaries with version that matches our boot2docker version.
-RUN set -ex \
-	&& curl -fSL -o /tmp/dockerbin.tgz "https://download.docker.com/linux/static/$DOCKER_CHANNEL/x86_64/docker-$(cat "$ROOTFS/etc/version").tgz" \
-	&& tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=1 \
-	&& rm /tmp/dockerbin.tgz \
-	&& chroot "$ROOTFS" docker -v
+RUN set -ex; \
+	version="$(cat "$ROOTFS/etc/version")"; \
+	if [ "${version%-rc*}" != "$version" ]; then \
+# all the -rc* releases go in the "test" channel
+		DOCKER_CHANNEL='test'; \
+	fi; \
+	curl -fSL -o /tmp/dockerbin.tgz "https://download.docker.com/linux/static/$DOCKER_CHANNEL/x86_64/docker-$version.tgz"; \
+	tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=1; \
+	rm /tmp/dockerbin.tgz; \
+	chroot "$ROOTFS" docker -v
 
 # Copy our custom rootfs
 COPY rootfs/rootfs $ROOTFS
