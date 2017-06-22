@@ -130,7 +130,7 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
         ln -s /mnt/$PARTNAME/var/lib/boot2docker /var/lib/boot2docker
     fi
 
-    # Make sure /tmp is on the disk too too
+    # Make sure /tmp is on the disk too
     rm -rf /mnt/$PARTNAME/tmp || true
     mv /tmp /mnt/$PARTNAME/tmp
     ln -fs /mnt/$PARTNAME/tmp /tmp
