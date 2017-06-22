@@ -96,6 +96,14 @@ RUN curl -fL http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.o
     mkdir -p $ROOTFS/usr/local/lib && \
     cp -av `pwd`/output/lib64/* $ROOTFS/usr/local/lib
 
+# Install mdadm, allow RAID devices to be auto-mounted and probed for persistance.
+RUN curl -fL https://www.kernel.org/pub/linux/utils/raid/mdadm/mdadm-4.0.tar.xz | tar -C / -xJ && \
+    cd /mdadm-4.0 && \
+    sed -i 's;IMPORT{builtin}="blkid";IMPORT{program}="/sbin/blkid -o udev -p $devnode";g' udev-md-raid-arrays.rules && \
+    sed -i 's; install-man;;g' Makefile && \
+    make && \
+    make install DESTDIR=$ROOTFS
+
 # Make sure the kernel headers are installed for aufs-util, and then build it
 ENV AUFS_UTIL_REPO    git://git.code.sf.net/p/aufs/aufs-util
 ENV AUFS_UTIL_BRANCH  aufs4.1
