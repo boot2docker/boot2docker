@@ -114,6 +114,7 @@ RUN set -ex \
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
 ENV TCL_REPO_BASE   http://distro.ibiblio.org/tinycorelinux/7.x/x86_64
+ENV TCL_REPO_FALLBACK              http://tinycorelinux.net/7.x/x86_64
 # Note that the ncurses is here explicitly so that top continues to work
 ENV TCZ_DEPS        iptables \
                     iproute2 \
@@ -133,13 +134,16 @@ ENV TCZ_DEPS        iptables \
                     parted
 
 # Download the rootfs, don't unpack it though:
-RUN curl -fL -o /tcl_rootfs.gz $TCL_REPO_BASE/release/distribution_files/rootfs64.gz
+RUN set -ex; \
+	curl -fL -o /tcl_rootfs.gz "$TCL_REPO_BASE/release/distribution_files/rootfs64.gz" \
+		|| curl -fL -o /tcl_rootfs.gz "$TCL_REPO_FALLBACK/release/distribution_files/rootfs64.gz"
 
 # Install the TCZ dependencies
 RUN set -ex; \
 	for dep in $TCZ_DEPS; do \
 		echo "Download $TCL_REPO_BASE/tcz/$dep.tcz"; \
-		curl -fSL -o "/tmp/$dep.tcz" "$TCL_REPO_BASE/tcz/$dep.tcz"; \
+		curl -fL -o "/tmp/$dep.tcz" "$TCL_REPO_BASE/tcz/$dep.tcz" \
+			|| curl -fL -o "/tmp/$dep.tcz" "$TCL_REPO_FALLBACK/tcz/$dep.tcz"; \
 		unsquashfs -f -d "$ROOTFS" "/tmp/$dep.tcz"; \
 		rm -f "/tmp/$dep.tcz"; \
 	done
