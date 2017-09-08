@@ -1,15 +1,31 @@
 language: bash
-
 sudo: required
-services:
-  - docker
 
+cache:
+  bundler: true
+  directories:
+  - $HOME/docker
+before_cache:
+- if [  ! "${NOT_CACHE_IMG_AFTER_BUILD}" = "true"  ] ; then   mkdir -p $HOME/docker && docker images   --filter='dangling=false' --format '{{.Repository}}:{{.Tag}}' | grep -v none | xargs -n 1 -I {x} -t sh -c 'docker save {x} | gzip -2 > $HOME/docker/$(echo {x} | md5sum | awk "{print \$1}" ).tar.gz' ; echo ok ;fi
+- bash -c " ls -lA $HOME/docker/ "
+before_install:
+- if [ ! "${NOT_LOAD_CACHE_BEFORE_BUILD}" = "true"  ] ; then  if [[ -d $HOME/docker ]]; then  imglist=$(find  $HOME/docker/ -name "*.tar.gz"); echo "$imglist"; echo "${imglist}" | xargs -t -I {file} sh -c "zcat {file} | docker load";  fi ;  bash -c "docker images -a --filter='dangling=false'" ; fi
+
+services:
+- docker
 script:
-  - docker build -t boot2docker/boot2docker .
-  - docker run --rm boot2docker/boot2docker > boot2docker.iso
+- docker build --rm --cache-from boot2docker/boot2docker  -t boot2docker/boot2docker .
+- docker run --rm boot2docker/boot2docker > ${TRAVIS_BUILD_DIR}/boot2docker.iso
+
 
 after_script:
-  - docker images
-  - ls -l *.iso
-
-# vim:set et ts=2 sw=2:
+- bash -c "docker images -a --filter='dangling=false'"
+- ls -l ${TRAVIS_BUILD_DIR}/ && echo "${TRAVIS_BUILD_DIR}"
+deploy:
+- provider: releases
+  api_key: ${github_api_key}
+  file: boot2docker.iso
+  skip_cleanup: true
+  dry-run: true
+  on:
+    tags: true
