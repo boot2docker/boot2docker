@@ -16,16 +16,17 @@ services:
 script:
 - docker build --rm --cache-from boot2docker/boot2docker  -t boot2docker/boot2docker .
 - docker run --rm boot2docker/boot2docker > ${TRAVIS_BUILD_DIR}/boot2docker.iso
-
-
+- if [ -z "${DEPLOY_ISO_TO_GITHUB}" ] ; then  export DEPLOY_ISO_TO_GITHUB=false ; fi
 after_script:
-- bash -c "docker images -a --filter='dangling=false'"
-- ls -l ${TRAVIS_BUILD_DIR}/ && echo "${TRAVIS_BUILD_DIR}"
+  - docker images
+  - ls -l *.iso
+
 deploy:
 - provider: releases
   api_key: ${github_api_key}
   file: boot2docker.iso
   skip_cleanup: true
-  dry-run: true
   on:
     tags: true
+    condition: $DEPLOY_ISO_TO_GITHUB = true
+# vim:set et ts=2 sw=2:
