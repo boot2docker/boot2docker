@@ -88,4 +88,6 @@ RUN set -x && \
 
 RUN sed -e 's|superuser|superuser -a -z "$SUDO_USER"|' -i "$ROOTFS/root/.profile"
 
+COPY boot2docker.png "$ROOTFS/usr/local/share/pixmaps/logo.png"
+
 RUN /tmp/make_iso.sh
