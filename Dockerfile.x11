@@ -91,6 +91,9 @@ RUN sed -e 's|superuser|superuser -a -z "$SUDO_USER"|' -i "$ROOTFS/root/.profile
 COPY boot2docker.png "$ROOTFS/usr/local/share/pixmaps/logo.png"
 
 RUN set -x && \
+    ( echo 'test -n "$DISPLAY" || DISPLAY=:0'; echo 'export DISPLAY' ) >> "$ROOTFS/etc/skel/.profile"
+
+RUN set -x && \
     sed -e '/^#X11Forwarding/a X11Forwarding yes' -i "$ROOTFS/usr/local/etc/ssh/sshd_config.orig"; \
     sed -e '/^#X11UseLocalhost/a X11UseLocalhost no' -i "$ROOTFS/usr/local/etc/ssh/sshd_config.orig"
 
