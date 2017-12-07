@@ -172,9 +172,9 @@ RUN curl -fL -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowid
 
 # Build VBox guest additions
 #   http://download.virtualbox.org/virtualbox/
-ENV VBOX_VERSION 5.1.28
+ENV VBOX_VERSION 5.2.2
 #   https://www.virtualbox.org/download/hashes/$VBOX_VERSION/SHA256SUMS
-ENV VBOX_SHA256 66824ee3a0373da62b15f6687a68e2305d7e62d700e538cf32705227bb38c46d
+ENV VBOX_SHA256 8317a0479a94877829b20a19df8a7c09187b31eecb3f1ed9d2b8cb8681a81bb8
 #   (VBoxGuestAdditions_X.Y.Z.iso SHA256, for verification)
 RUN set -x && \
     \
@@ -190,11 +190,14 @@ RUN set -x && \
     mkdir amd64 && tar -C amd64 -xjf VBoxGuestAdditions-amd64.tar.bz2 && \
     rm VBoxGuestAdditions*.tar.bz2 && \
     \
-    KERN_DIR=/linux-kernel/ make -C amd64/src/vboxguest-${VBOX_VERSION} && \
+    make -C amd64/src/vboxguest-${VBOX_VERSION} \
+        KERN_DIR=/linux-kernel \
+        KERN_VER="$KERNEL_VERSION" \
+    && \
     cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/ && \
     \
     mkdir -p $ROOTFS/sbin && \
-    cp amd64/lib/VBoxGuestAdditions/mount.vboxsf amd64/sbin/VBoxService $ROOTFS/sbin/ && \
+    cp amd64/other/mount.vboxsf amd64/sbin/VBoxService $ROOTFS/sbin/ && \
     mkdir -p $ROOTFS/bin && \
     cp amd64/bin/VBoxClient amd64/bin/VBoxControl $ROOTFS/bin/
 
