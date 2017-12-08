@@ -7,6 +7,19 @@ MAGIC="boot2docker, please format-me"
 # very happy. Thus, you can come along if you feel like a room without a roof.
 BOOT2DOCKER_DATA=`blkid -o device -l -t LABEL=$LABEL`
 echo $BOOT2DOCKER_DATA
+
+# loop check the  `boot2docker-data` partition for some reason disk need some delay
+for p1 in $(seq 1 5)
+do
+ if [  -n "$BOOT2DOCKER_DATA" ]; then
+    echo "found $LABEL  $BOOT2DOCKER_DATA at $p1 check";
+    break;
+ fi
+ echo "$LABEL not found at $p1 check"
+ sleep 1;
+ BOOT2DOCKER_DATA=`blkid -o device -l -t LABEL=$LABEL`
+done
+
 if [ ! -n "$BOOT2DOCKER_DATA" ]; then
     echo "Is the disk unpartitioned?, test for the 'boot2docker format-me' string"
     
