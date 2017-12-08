@@ -139,7 +139,11 @@ $ mount -t vboxsf -o uid=1000,gid=50 your-other-share-name /some/mount/location
 It is also important to note that in the future, the plan is to have any share
 which is created in VirtualBox with the "automount" flag turned on be mounted
 during boot at the directory of the share name (ie, a share named `home/jsmith`
-would be automounted at `/home/jsmith`).
+would be automounted at `/home/jsmith`). Currently this can be achieved by running
+`jrotter/boot2docker-automounter` container:
+```console
+$ docker run -d --restart=always --privileged -v /proc:/hproc --name automounter jrotter/boot2docker-automounter
+```
 
 In case it isn't already clear, the Linux host support here is currently hazy.
 You can share your `/home` or `/home/jsmith` directory as `Users` or one of the
