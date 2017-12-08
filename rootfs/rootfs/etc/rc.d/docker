@@ -1,3 +1,24 @@
 #!/bin/sh
 
+# dhcp.sh runs udhcpc async, so it exits before network is up
+wait4Server() {
+	/etc/init.d/dhcp.sh
+	SERVER=$1 ; NOPING=$2 ; CNT=0
+	if [ "$NOPING" == "1" ] ; then
+		until ifconfig eth0 | grep -q Bcast
+		do
+			[ $((CNT++)) -gt 60 ] && break || sleep 1
+		done
+		sleep 1
+	else
+		until ping -c 1 $SERVER >/dev/null 2>&1     
+		do
+			[ $((CNT++)) -gt 60 ] && break || sleep 1
+		done
+	fi
+	DHCP_RAN=1
+}
+
+wait4Server 10.0.2.3 1
+
 /usr/local/etc/init.d/docker start
