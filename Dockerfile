@@ -103,8 +103,8 @@ RUN curl -fL http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.o
 
 # Make sure the kernel headers are installed for aufs-util, and then build it
 ENV AUFS_UTIL_REPO    git://git.code.sf.net/p/aufs/aufs-util
-ENV AUFS_UTIL_BRANCH  aufs4.1
-ENV AUFS_UTIL_COMMIT  bb75870054af06f3e76353de06a4894e9ccb0c5a
+ENV AUFS_UTIL_BRANCH  aufs4.4
+ENV AUFS_UTIL_COMMIT  9702d49c9d1b5daac9b21e440c3e2b96d37916d6
 RUN set -ex \
 	&& git clone -b "$AUFS_UTIL_BRANCH" "$AUFS_UTIL_REPO" /aufs-util \
 	&& git -C /aufs-util checkout --quiet "$AUFS_UTIL_COMMIT" \
