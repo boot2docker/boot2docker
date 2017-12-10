@@ -1,23 +1,28 @@
-FROM debian:jessie
+FROM debian:stretch-slim
 
-RUN apt-get update && apt-get -y install  unzip \
-                        xz-utils \
-                        curl \
-                        bc \
-                        git \
-                        build-essential \
-                        golang \
-                        cpio \
-                        gcc libc6 libc6-dev \
-                        kmod \
-                        squashfs-tools \
-                        genisoimage \
-                        xorriso \
-                        syslinux \
-                        isolinux \
-                        automake \
-                        pkg-config \
-                        p7zip-full
+RUN set -eux; \
+	apt-get update; \
+	apt-get -y install \
+		automake \
+		bc \
+		build-essential \
+		cpio \
+		curl \
+		gcc libc6 libc6-dev \
+		genisoimage \
+		git \
+		golang \
+		isolinux \
+		kmod \
+		p7zip-full \
+		pkg-config \
+		squashfs-tools \
+		syslinux \
+		unzip \
+		xorriso \
+		xz-utils \
+	; \
+	rm -rf /var/lib/apt/lists/*
 
 # https://www.kernel.org/
 ENV KERNEL_VERSION  4.4.104
