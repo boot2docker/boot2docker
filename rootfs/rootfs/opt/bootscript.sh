@@ -38,7 +38,7 @@ test -f "/var/lib/boot2docker/profile" && . "/var/lib/boot2docker/profile"
 # TODO: move this (and the docker user creation&pwd out to its own over-rideable?))
 if grep -q '^docker:' /etc/passwd; then
     # if we have the docker user, let's add it do the docker group
-    /bin/addgroup docker docker
+    addgroup docker docker
 
     #preload data from boot2docker-cli
     if [ -e "/var/lib/boot2docker/userdata.tar" ]; then

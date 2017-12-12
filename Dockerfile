@@ -118,12 +118,12 @@ RUN set -ex \
 # Prepare the ISO directory with the kernel
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
 
-ENV TCL_REPO_BASE   http://distro.ibiblio.org/tinycorelinux/7.x/x86_64
-ENV TCL_REPO_FALLBACK              http://tinycorelinux.net/7.x/x86_64
+ENV TCL_REPO_BASE   http://distro.ibiblio.org/tinycorelinux/8.x/x86_64
+ENV TCL_REPO_FALLBACK              http://tinycorelinux.net/8.x/x86_64
 # Note that the ncurses is here explicitly so that top continues to work
 ENV TCZ_DEPS        iptables \
                     iproute2 \
-                    openssh openssl \
+                    openssh openssl ca-certificates \
                     tar \
                     gcc_libs \
                     ncurses \
@@ -159,7 +159,11 @@ RUN cd "$ROOTFS" && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-fi
 # Extract ca-certificates
 RUN set -x \
 #  TCL changed something such that these need to be extracted post-install
-	&& chroot "$ROOTFS" sh -xc 'ldconfig && /usr/local/tce.installed/openssl' \
+	&& chroot "$ROOTFS" sh -xc ' \
+		ldconfig \
+		&& /usr/local/tce.installed/openssl \
+		&& /usr/local/tce.installed/ca-certificates \
+	' \
 #  Docker looks for them in /etc/ssl
 	&& ln -sT ../usr/local/etc/ssl "$ROOTFS/etc/ssl" \
 #  a little testing is always prudent
