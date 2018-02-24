@@ -271,8 +271,8 @@ RUN LD_LIBRARY_PATH='/lib:/usr/local/lib' \
 		chroot "$ROOTFS" vmhgfs-fuse --version
 
 # Download and build Parallels Tools
-ENV PRL_MAJOR 12
-ENV PRL_VERSION 12.1.3-41532
+ENV PRL_MAJOR 13
+ENV PRL_VERSION 13.3.0-43321
 
 RUN set -ex \
 	&& mkdir -p /prl_tools \
