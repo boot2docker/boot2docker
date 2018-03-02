@@ -2,11 +2,16 @@
 
 Boot2Docker is a lightweight Linux distribution made specifically to run
 [Docker](https://www.docker.com/) containers. It runs completely from RAM, is a
-small ~38MB download and boots in ~5s (YMMV).
+~45MB download and boots quickly.
+
+## Important Note
+
+Boot2Docker is officialy in **maintenance mode** -- it is recommended that users transition from Boot2Docker over to [Docker for Mac](https://www.docker.com/docker-mac) or [Docker for Windows](https://www.docker.com/docker-windows) instead.
 
 ## Features
 
-* Kernel 4.4.116 with AUFS, Docker v18.03.0-ce-rc1 - using libcontainer
+* Kernel 4.4.116 (with AUFS), Docker v18.03.0-ce-rc1
+* VM guest additions (VirtualBox, Parallels, VMware, XenServer)
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
 
@@ -15,12 +20,12 @@ small ~38MB download and boots in ~5s (YMMV).
 
 ## Caveat Emptor
 
-Boot2Docker is currently designed and tuned for development.  Using it for
-any kind of production workloads at this time is highly discouraged.
+Boot2Docker is currently designed and tuned for development.  **Using it for
+any kind of production workloads at this time is highly discouraged.**
 
 ## Installation
 
-Installation should be performed via [Docker Toolbox](https://www.docker.com/products/docker-toolbox)
+Installation should be performed via [Docker Toolbox](https://docs.docker.com/toolbox/)
 which installs [Docker Machine](https://docs.docker.com/machine/overview/), 
 the Boot2Docker VM, and other necessary tools.
 
@@ -39,11 +44,6 @@ If you were using the `boot2docker` management tool previously, you have a
 pre-existing Docker `boot2docker-vm` VM on your local system. 
 To allow Docker Machine to manage this older VM, you must migrate it,
 see [Docker Machine documentation for details](https://docs.docker.com/machine/migrate-to-machine/).
-
-## Docker Hub
-
-To save and share container images, automate workflows, and more sign-up for a
-free [Docker Hub account](https://hub.docker.com).
 
 ## More information
 
@@ -72,83 +72,6 @@ docker-machine ssh default -t sudo vi /var/lib/boot2docker/profile
 #     EXTRA_ARGS="--default-ulimit core=-1"
 docker-machine restart default
 ```
-
-#### Folder sharing
-
-Boot2Docker is essentially a remote Docker engine with a read only filesystem
-(other than Docker images, containers and volumes). The most scalable and
-portable way to share disk space between your local desktop and a Docker
-container is by creating a volume container and then sharing that to where it's
-needed.
-
-One well tested approach is to use a file sharing container like
-`svendowideit/samba`:
-
-```console
-$ # Make a volume container (only need to do this once)
-$ docker run -v /data --name my-data busybox true
-$ # Share it using Samba (Windows file sharing)
-$ docker run --rm -v /usr/local/bin/docker:/docker -v /var/run/docker.sock:/docker.sock svendowideit/samba my-data
-$ # then find out the IP address of your Boot2Docker host
-$ docker-machine ip default
-192.168.59.103
-```
-
-Connect to the shared folder using Finder (OS X):
-
-	Connect to cifs://192.168.59.103/data
-	Once mounted, will appear as /Volumes/data
-
-Or on Windows, use Explorer to Connect to:
-
-	\\192.168.59.103\data
-
-You can then use your data container from any container you like:
-
-```console
-$ docker run -it --volumes-from my-data ubuntu
-```
-
-You will find the "data" volume mounted as "/data" in that container. Note that
-"my-data" is the name of volume container, this is shared via the "network" by
-the "samba" container that refers to it by name. So, in this example, if you
-were on OS-X you now have /Volumes/data and /data in container being shared. You
-can change the paths as needed.
-
-##### VirtualBox Guest Additions
-
-Alternatively, Boot2Docker includes the VirtualBox Guest Additions built in for
-the express purpose of using VirtualBox folder sharing.
-
-The first of the following share names that exists (if any) will be
-automatically mounted at the location specified:
-
-1. `Users` share at `/Users`
-2. `/Users` share at `/Users`
-3. `c/Users` share at `/c/Users`
-4. `/c/Users` share at `/c/Users`
-5. `c:/Users` share at `/c/Users`
-
-If some other path or share is desired, it can be mounted at run time by doing
-something like:
-
-```console
-$ mount -t vboxsf -o uid=1000,gid=50 your-other-share-name /some/mount/location
-```
-
-It is also important to note that in the future, the plan is to have any share
-which is created in VirtualBox with the "automount" flag turned on be mounted
-during boot at the directory of the share name (ie, a share named `home/jsmith`
-would be automounted at `/home/jsmith`).
-
-In case it isn't already clear, the Linux host support here is currently hazy.
-You can share your `/home` or `/home/jsmith` directory as `Users` or one of the
-other supported automount locations listed above, but note that you will then
-need to manually convert your `docker run -v /home/...:...` bind-mount host
-paths accordingly (ie, `docker run -v /Users/...:...`).  As noted in the
-previous paragraph however, this is likely to change in the future as soon as a
-more suitable/scalable solution is found and implemented.
-
 
 #### Installing secure Registry certificates
 
@@ -236,21 +159,10 @@ restarting the VM - to make permanent modifications see the
 [FAQ](doc/FAQ.md#local-customisation-with-persistent-partition).
 
 If you are not using the Docker Machine management tool, you can create an `ext4`
-or `btrfs` formatted partition with the label `boot2docker-data` (`mkfs.ext4 -L
+formatted partition with the label `boot2docker-data` (`mkfs.ext4 -L
 boot2docker-data /dev/sdX5`) to your VM or host, and Boot2Docker will automount
 it on `/mnt/sdX` and then softlink `/mnt/sdX/var/lib/docker` to
 `/var/lib/docker`.
-
-#### Install on any device
-
-To 'install' the ISO onto an SD card, USB-Stick or even empty hard disk, you can
-use `dd if=boot2docker.iso of=/dev/sdX`.  This will create the small boot
-partition, and install an MBR.
-
-#### Build your own Boot2Docker ISO
-
-Goto [How to build](doc/BUILD.md) for Documentation on how to build your own
-Boot2Docker ISOs.
 
 ## Troubleshooting
 
