@@ -28,7 +28,7 @@ RUN set -eux; \
 ENV KERNEL_VERSION  4.9.86
 
 # Fetch the kernel sources
-RUN curl --retry 10 https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
+RUN curl -L --retry 10 https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
     mv /linux-$KERNEL_VERSION /linux-kernel
 
 # http://aufs.sourceforge.net/
