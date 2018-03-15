@@ -38,7 +38,7 @@ ENV AUFS_COMMIT     dee45f626d6bc0fcf83df647be53b68fc3df6fb7
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Download AUFS and apply patches and files, then remove it
-RUN git clone -b "$AUFS_BRANCH" "$AUFS_REPO" /aufs-standalone && \
+RUN git clone --single-branch -b "$AUFS_BRANCH" "$AUFS_REPO" /aufs-standalone && \
     cd /aufs-standalone && \
     git checkout -q "$AUFS_COMMIT" && \
     cd /linux-kernel && \
@@ -106,7 +106,7 @@ ENV AUFS_UTIL_REPO    https://git.code.sf.net/p/aufs/aufs-util
 ENV AUFS_UTIL_BRANCH  aufs4.9
 ENV AUFS_UTIL_COMMIT  22e1cd13270f6e29a8d2d1af03dfeceecf515a89
 RUN set -ex \
-	&& git clone -b "$AUFS_UTIL_BRANCH" "$AUFS_UTIL_REPO" /aufs-util \
+	&& git clone --single-branch -b "$AUFS_UTIL_BRANCH" "$AUFS_UTIL_REPO" /aufs-util \
 	&& git -C /aufs-util checkout --quiet "$AUFS_UTIL_COMMIT" \
 	&& make -C /linux-kernel headers_install INSTALL_HDR_PATH=/tmp/kheaders \
 	&& export CFLAGS='-I/tmp/kheaders/include' \
@@ -299,7 +299,7 @@ ENV XEN_REPO https://github.com/xenserver/xe-guest-utilities
 ENV XEN_VERSION v6.6.80
 
 RUN set -ex \
-	&& git clone -b "$XEN_VERSION" "$XEN_REPO" /xentools \
+	&& git clone --single-branch -b "$XEN_VERSION" "$XEN_REPO" /xentools \
 	&& make -C /xentools \
 	&& tar xvf /xentools/build/dist/*.tgz -C "$ROOTFS"
 
