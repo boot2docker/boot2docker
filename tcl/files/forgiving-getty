@@ -1,0 +1,44 @@
+#!/bin/sh
+set -e
+
+self="$(basename "$0")"
+usage() {
+	cat <<-EOUSAGE
+		usage: $self <tty> <getty-args>
+		   ie: $self tty1 -nl /sbin/autologin 38400
+		       $self ttyS1 -nl /sbin/autologin 9600
+	EOUSAGE
+}
+
+tty="$1"
+if ! shift || [ -z "$tty" ]; then
+	usage >&2
+	exit 1
+fi
+
+# https://github.com/systemd/systemd/blob/6a47fd894d601f7e8e88dec4cb35dfb7d7c15eff/src/getty-generator/getty-generator.c#L94-L116
+verify_tty() {
+	local dev="/dev/$1"
+	# can we read the given TTY file at all?
+	test -r "$dev" || return 1
+	# we can! let's open it to file descriptor 42
+	# (random file descriptor not likely to be in use already)
+	exec 42<"$dev" || return 1
+	local ret=1
+	# now that we've got it open, let's use "test" to check whether it's a TTY
+	# (we can't test a file directly, which is why we opened it first)
+	if test -t 42; then
+		ret=0
+	fi
+	# finally, close our file descriptor (no longer necessary to keep open)
+	exec 42<&- || return 1
+	return "$ret"
+}
+
+while true; do
+	if verify_tty "$tty"; then
+		getty -n -l /usr/local/sbin/autologin 0 "$tty"
+	else
+		sleep 10
+	fi
+done

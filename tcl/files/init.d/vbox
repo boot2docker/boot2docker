@@ -1,0 +1,57 @@
+#!/bin/sh
+set -e
+
+if [ "$(id -u)" != 0 ]; then
+	echo >&2 "error: must be root to invoke $0"
+	exit 1
+fi
+
+start() {
+	# VirtualBox Guest Additions
+	# - this will bail quickly and gracefully if we're not in VBox
+	if modprobe vboxguest > /dev/null 2>&1 && modprobe vboxsf > /dev/null 2>&1; then
+		# fire up VBoxService to do timesync, etc
+		VBoxService --disable-automount
+		# TODO some testing with VBoxService automount so we can potentially trim down this hacky script
+
+		dockerUid="$(id -u docker)"
+		dockerGid="$(id -g docker)"
+		mountOptions="defaults,iocharset=utf8,uid=$dockerUid,gid=$dockerGid"
+
+		# try mounting "$name" (which defaults to "$dir") at "$dir",
+		# but quietly clean up empty directories if it fails
+		try_mount_share() {
+			dir="$1"
+			name="${2:-$dir}"
+
+			# normalize "dir" to be definitively root-relative
+			# ie, "/Users" and "Users" will both translate to "/Users" explicitly
+			dir="/${dir#/}"
+
+			echo "Attempting mount of '$name' to '$dir' (vboxsf)"
+
+			mkdir -p "$dir" 2>/dev/null
+			if ! mount -t vboxsf -o "$mountOptions" "$name" "$dir" 2>/dev/null; then
+				rmdir "$dir" 2>/dev/null || true
+				while [ "$(dirname "$dir")" != "$dir" ]; do
+					dir="$(dirname "$dir")"
+					rmdir "$dir" 2>/dev/null || break
+				done
+
+				return 1
+			fi
+
+			return 0
+		}
+
+		shares="$(VBoxControl --nologo sharedfolder list -automount | tail -n+3 | cut  -d ' ' -f 3)"
+		for line in $shares; do
+			try_mount_share "$line"
+		done
+	fi
+}
+
+case "$1" in
+	start) "$1" ;;
+	*) echo "Usage $0 {start}"; exit 1 ;;
+esac
