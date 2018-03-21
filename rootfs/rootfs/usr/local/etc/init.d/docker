@@ -103,6 +103,10 @@ start() {
     ulimit -n $DOCKER_ULIMITS
     ulimit -p $DOCKER_ULIMITS
 
+    # docker-machine provision executes start only on docker service.
+    # We need to trigger reconfiguration on transparent proxy.
+    /usr/local/etc/init.d/transparent_proxy restart
+
     echo "------------------------" >> "$DOCKER_LOGFILE"
     echo "/usr/local/bin/dockerd -g \"$DOCKER_DIR\" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> \"$DOCKER_LOGFILE\"" >> "$DOCKER_LOGFILE"
     /usr/local/bin/dockerd -g "$DOCKER_DIR" -H unix:// $DOCKER_HOST $EXTRA_ARGS >> "$DOCKER_LOGFILE" 2>&1 &

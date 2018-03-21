@@ -164,6 +164,45 @@ boot2docker-data /dev/sdX5`) to your VM or host, and Boot2Docker will automount
 it on `/mnt/sdX` and then softlink `/mnt/sdX/var/lib/docker` to
 `/var/lib/docker`.
 
+#### Running behind HTTP(s) proxy
+
+Running Docker in the environment with HTTP(S) proxy, which is still common in the corporate networks,
+is hard because you have to provide the proxy address and authentication in multiple places.
+
+Internet access is needed for example for:
+
+* pulling images from Docker Hub
+* downloading packages while building Docker images
+* containers communication to the Internet
+
+Setting `http_proxy` and `https_proxy` environment variables is usually not sufficient - not all programs support it.
+To address this problem Boot2docker is capable of redirecting HTTP and HTTPS traffic to the proxy transparently,
+but it requires some additional Docker Machine setup.
+
+In the nutshell, either provide HTTP(S) proxy url via `--engine-env TRANSPARENT_HTTP_PROXY=user:password@proxy-host.com`
+when creating a new Docker Machine or in `~/.docker/machine/machines/{machineName}/config.json` for existing machines.
+
+This solution uses `iptables` and [redsocks](https://github.com/darkk/redsocks) to redirect tcp traffic
+to [cntlm](http://cntlm.sourceforge.net).
+
+The table below lists available configuration options.
+
+| Environmental variable | Description |
+| ---------------------- | ----------- |
+| TRANSPARENT_HTTP_PROXY | The proxy host and optional user credentials e.g. `user:password@proxy-host.com`. When the proxy doesn't require authentication `user:password@` can be omitted. Remember that special characters in the user and password must be URL encoded. |
+| TRANSPARENT_HTTP_PROXY_DOMAIN | `NTLM` domain used by `cntlm` together with user credentials |
+| TRANSPARENT_NO_PROXY | Comma separated list of non-proxied host addresses. For example: `localhost,127.0.0.*,10.*, 192.168.*,*.domain.com` |
+| TRANSPARENT_HTTP_PROXY_PORTS | Comma separate list of TCP ports mapping. Port can be either an exact value (e.g. 80) or ports range (e.g. 8080:8089), both ends inclusive. By default, traffic from ports 80 and 443 is proxied. For example: `80,443,8080:8089` |
+
+Proxy can be easily disabled (e.g. when you are connected to open network at home) by removing `TRANSPARENT_HTTP_PROXY` variable from `~/.docker/machine/machines/{machineName}/config.json` file.
+
+Each configuration change requires `docker-machine provision {machineName}` to be invoked.
+
+Because it is quite common to have `cntlm` installed on the host machine, it can be reused by setting
+`TRANSPARENT_HTTP_PROXY=10.0.2.2:3128` (`10.0.2.2` host machine ip address when accessed from Docker Machine, `3128`
+default `cntlm` port). Similarly, when there is a HTTP(S) proxy on the network which doesn't require authentication,
+set `TRANSPARENT_HTTP_PROXY=<proxy-address:port>`.
+
 ## Troubleshooting
 
 See the [workarounds doc](https://github.com/boot2docker/boot2docker/blob/master/doc/WORKAROUNDS.md) for solutions to known issues.
