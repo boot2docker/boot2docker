@@ -281,11 +281,6 @@ RUN set -ex \
 	&& cd /prl_tools \
 	&& cp -Rv tools/* $ROOTFS \
 	\
-	# Kludge to fix fsync on directory in prl_fs:
-	#   https://github.com/Parallels/docker-machine-parallels/issues/71
-	# Should be removed when fixed in official Parallels Tools.
-	&& sed -E -i 's/(^\t.llseek\t\t= generic_file_llseek,$)/\1\n\t.fsync = noop_fsync,/' \
-		kmods/prl_fs/SharedFolders/Guest/Linux/prl_fs/file.c \
 	&& KERNEL_DIR=/linux-kernel/ KVER="$KERNEL_VERSION" SRC=/linux-kernel/ PRL_FREEZE_SKIP=1 \
 		make -C kmods/ -f Makefile.kmods installme \
 	\
