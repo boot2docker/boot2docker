@@ -25,7 +25,7 @@ RUN set -eux; \
 	rm -rf /var/lib/apt/lists/*
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  4.9.89
+ENV KERNEL_VERSION  4.9.92
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://cdn.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
