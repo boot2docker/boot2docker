@@ -10,7 +10,7 @@ Boot2Docker is officialy in **maintenance mode** -- it is recommended that users
 
 ## Features
 
-* Kernel 4.9.93 (with AUFS), Docker v18.04.0-ce-rc2
+* Kernel 4.9.93 (with AUFS), Docker v18.04.0-ce
 * VM guest additions (VirtualBox, Parallels, VMware, XenServer)
 * Container persistence via disk automount on `/var/lib/docker`
 * SSH keys persistence via disk automount
