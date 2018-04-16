@@ -1,0 +1,7 @@
+#!/bin/sh
+
+SYSTYPE=$(cat /sys/class/dmi/id/sys_vendor | grep -ic qemu)
+
+if [ "$SYSTYPE" -gt 0 ]; then
+    /usr/local/bin/qemu-ga --daemonize -m virtio-serial -p /dev/virtio-ports/org.qemu.guest_agent.0
+fi

@@ -309,6 +309,20 @@ RUN set -ex \
 	&& cp hv_kvp_daemon $ROOTFS/usr/sbin \
 	&& rm -rf /tmp/kheaders
 
+# Install QEMU Guest Agent
+# (extracting binary only)
+ENV QEMUGA_DEPS qemu
+# changed in TC 9 into qemu-common
+RUN set -ex; \
+	for dep in $QEMUGA_DEPS; do \
+		echo "Download $TCL_REPO_BASE/tcz/$dep.tcz"; \
+		curl -fL -o "/tmp/$dep.tcz" "$TCL_REPO_BASE/tcz/$dep.tcz" \
+			|| curl -fL -o "/tmp/$dep.tcz" "$TCL_REPO_FALLBACK/tcz/$dep.tcz"; \
+		unsquashfs -f -d "$ROOTFS" "/tmp/$dep.tcz" /usr/local/bin/qemu-ga; \
+		rm -f "/tmp/$dep.tcz"; \
+	done
+
+
 # Make sure that all the modules we might have added are recognized (especially VBox guest additions)
 RUN depmod -a -b "$ROOTFS" "$KERNEL_VERSION-boot2docker"
 
