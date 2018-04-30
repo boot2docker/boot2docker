@@ -65,6 +65,9 @@ date
 ip a
 echo "-------------------"
 
+# Launch transparent proxy
+/etc/rc.d/transparent_proxy
+
 # Allow local bootsync.sh customisation
 if [ -e /var/lib/boot2docker/bootsync.sh ]; then
     /bin/sh /var/lib/boot2docker/bootsync.sh

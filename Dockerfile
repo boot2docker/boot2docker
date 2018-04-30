@@ -14,6 +14,7 @@ RUN set -eux; \
 		golang \
 		isolinux \
 		kmod \
+		libssl1.0-dev libevent-dev=2.0.21-stable-3 \
 		p7zip-full \
 		pkg-config \
 		squashfs-tools \
@@ -100,6 +101,34 @@ RUN curl -fL http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.o
     make prefix=`pwd`/output install && \
     mkdir -p $ROOTFS/usr/local/lib && \
     cp -av `pwd`/output/lib64/* $ROOTFS/usr/local/lib
+
+# Install cntlm
+RUN curl -fL http://http.debian.net/debian/pool/main/c/cntlm/cntlm_0.92.3.orig.tar.gz | tar -C / -xz && \
+    cd /cntlm-0.92.3 && \
+    mkdir -p output && \
+    sed -i 's/DESTDIR=/DESTDIR=`pwd`\/output/' Makefile && \
+    ./configure --prefix=`pwd`/output && \
+    make && \
+    make install && \
+    mkdir -p $ROOTFS/usr/local/sbin && \
+    cp -av `pwd`/output/usr/sbin/cntlm $ROOTFS/usr/local/sbin/cntlm
+
+# Install libevent
+RUN curl -fL http://http.debian.net/debian/pool/main/libe/libevent/libevent_2.0.21-stable.orig.tar.gz | tar -C / -xz && \
+    cd /libevent-2.0.21-stable && \
+    mkdir -p output && \
+    ./configure --prefix=`pwd`/output && \
+    make && \
+    make install && \
+    mkdir -p $ROOTFS/lib && \
+    cp -av `pwd`/output/lib/*.so* $ROOTFS/lib
+
+# Install redsocks
+RUN curl -fL http://http.debian.net/debian/pool/main/r/redsocks/redsocks_0.5.orig.tar.gz | tar -C / -xz && \
+    cd /redsocks-release-0.5 && \
+    make && \
+    mkdir -p $ROOTFS/usr/local/sbin && \
+    cp -av `pwd`/redsocks $ROOTFS/usr/local/sbin/redsocks
 
 # Make sure the kernel headers are installed for aufs-util, and then build it
 ENV AUFS_UTIL_REPO    https://git.code.sf.net/p/aufs/aufs-util

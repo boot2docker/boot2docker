@@ -1,0 +1,173 @@
+#!/bin/sh
+# transparent proxy start script
+
+[ $(id -u) = 0 ] || { echo 'must be root' ; exit 1; }
+
+# import settings from profile
+test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
+
+start() {
+  [ -z "${TRANSPARENT_HTTP_PROXY}" ] && exit 1
+  check && echo "Transparent proxy is already running" && exit 1
+  stop > /dev/null 2>&1
+
+  echo "Starting transparent proxy"
+
+  configure_and_start_cntlm
+  configure_and_start_redsocks
+  configure_ip_tables
+}
+
+stop() {
+  echo "Stopping transparent proxy"
+  clear_ip_tables
+  
+  PID=$(cat /var/run/redsocks.pid)
+  if [ -n "${PID}" ]; then
+    kill $PID
+    while kill -0 $PID &>/dev/null; do
+      sleep 0.1
+    done
+  fi
+
+  PID=$(cat /var/run/cntlm.pid)
+  if [ -n "${PID}" ]; then
+    kill $PID
+    while kill -0 $PID &>/dev/null; do
+      sleep 0.1
+    done
+  fi
+}
+
+restart() {
+  if check; then
+    stop
+    i=30
+    while check ; do
+      sleep 1
+      i=$(expr $i - 1)
+      [ "$i" -gt 0 ] || { echo "Failed to stop transparent proxy" ; exit 1 ; }
+    done
+  fi
+  start
+}
+
+status() {
+  if check; then
+    echo 'Transparent proxy is running'
+    exit 0
+  else
+    echo 'Transparent proxy is not running'
+    exit 1
+  fi
+}
+
+check() {
+  [ -f /var/run/redsocks.pid ] && ps -A -o pid | grep "^\s*$(cat /var/run/redsocks.pid)$" > /dev/null 2>&1 && \
+  [ -f /var/run/cntlm.pid ] && ps -A -o pid | grep "^\s*$(cat /var/run/cntlm.pid)$" > /dev/null 2>&1
+}
+
+configure_and_start_cntlm() {
+  SCHEMELESS_HTTP_PROXY_URL=$(echo "${TRANSPARENT_HTTP_PROXY}" | awk '{ IGNORECASE = 1; sub(/^http[s]?:\/\//, "", $0); print $0 }')
+  case "${SCHEMELESS_HTTP_PROXY_URL}" in
+  *@*) # proxy with credentials
+    PROXY_URL=$(echo "${SCHEMELESS_HTTP_PROXY_URL}" | cut -d '@' -f2)
+    PROXY_CREDENTIALS=$(echo "${SCHEMELESS_HTTP_PROXY_URL}" | cut -d '@' -f1)
+    PROXY_USER=$(echo "${PROXY_CREDENTIALS}" | cut -d ':' -f1)
+    PROXY_PASSWORD=$(echo "${PROXY_CREDENTIALS}" | cut -d ':' -f2)
+    CNTLM_PASS=$(url_decode "${PROXY_PASSWORD}" | cntlm -u "${PROXY_USER}" -d "${TRANSPARENT_HTTP_PROXY_DOMAIN}" -H | grep -v Password:)
+    cat << EOF > /etc/cntlm.conf
+Username        ${PROXY_USER}
+Domain          ${TRANSPARENT_HTTP_PROXY_DOMAIN}
+
+${CNTLM_PASS}
+
+Proxy ${PROXY_URL}
+NoProxy	${TRANSPARENT_NO_PROXY}
+Listen	3128
+Gateway	yes
+Auth    NTLM
+EOF
+  ;;
+  *) # proxy without credentials
+    cat << EOF > /etc/cntlm.conf
+Proxy ${SCHEMELESS_HTTP_PROXY_URL}
+NoProxy	${TRANSPARENT_NO_PROXY}
+Listen	3128
+Gateway	yes
+EOF
+  ;;
+  esac
+
+  cntlm -c /etc/cntlm.conf -P /var/run/cntlm.pid > /var/lib/boot2docker/log/cntlm.log 2>&1
+}
+
+url_decode() {
+    URL_ENCODED="${1//+/ }"
+    printf '%b' "${URL_ENCODED//%/\\x}"
+}
+
+configure_and_start_redsocks() {
+  cat << EOF > /etc/redsocks.conf
+base {
+  log_debug = off;
+  log_info = off;
+  log = "file:/var/lib/boot2docker/log/redsocks.log";
+  daemon = on;
+  user = root;
+  group = root;
+  redirector = iptables;
+}
+
+redsocks {
+  local_ip = 0.0.0.0;
+  local_port = 3129;
+  ip = 127.0.0.1;
+  port = 3128;
+  type = "http-connect";
+}
+EOF
+
+  redsocks -c /etc/redsocks.conf -p /var/run/redsocks.pid
+}
+
+configure_ip_tables() {
+  PROXY_HOST=$(echo "${TRANSPARENT_HTTP_PROXY}" | sed -e "s/\([^/]*\/\/\)\?\([^@]*@\)\?\([^:/]*\).*/\3/")
+  iptables -w -t nat -N PROXY
+  iptables -w -t nat -A PROXY -d 0.0.0.0/8 -j RETURN
+  iptables -w -t nat -A PROXY -d 10.0.0.0/8 -j RETURN
+  iptables -w -t nat -A PROXY -d 127.0.0.0/8 -j RETURN
+  iptables -w -t nat -A PROXY -d 172.16.0.0/12 -j RETURN
+  iptables -w -t nat -A PROXY -d 192.168.0.0/16 -j RETURN
+
+  for ip in $(nslookup $PROXY_HOST 2>/dev/null | awk '/Name:/,EOF' | awk '/^Address [0-9]+: / { print $3 }')
+  do
+    iptables -w -t nat -A PROXY -d $ip -j RETURN
+  done
+
+  : ${TRANSPARENT_HTTP_PROXY_PORTS:='80,443'}
+  OLD_IFS=${IFS}
+  export IFS=","
+  for p in ${TRANSPARENT_HTTP_PROXY_PORTS}; do
+    iptables -w -t nat -A PROXY -p tcp --dport "${p}" -j REDIRECT --to-ports 3129
+  done
+  export IFS=${OLD_IFS}
+
+  iptables -w -t nat -A PROXY -j RETURN
+
+  iptables -w -t nat -A OUTPUT -p tcp -j PROXY
+}
+
+clear_ip_tables() {
+  iptables -w -t nat -D OUTPUT -p tcp -j PROXY
+  iptables -w -t nat -F PROXY
+  iptables -w -t nat -X PROXY
+}
+
+case $1 in
+  start) start;;
+  stop) stop;;
+  restart) restart;;
+  status) status;;
+  *) echo "Usage $0 {start|stop|restart|status}"; exit 1
+esac
