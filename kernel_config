@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 4.9.92 Kernel Configuration
+# Linux/x86 4.9.93 Kernel Configuration
 #
 CONFIG_64BIT=y
 CONFIG_X86_64=y
@@ -1321,7 +1321,7 @@ CONFIG_NET_MPLS_GSO=m
 # CONFIG_MPLS_ROUTING is not set
 # CONFIG_HSR is not set
 # CONFIG_NET_SWITCHDEV is not set
-# CONFIG_NET_L3_MASTER_DEV is not set
+CONFIG_NET_L3_MASTER_DEV=y
 # CONFIG_NET_NCSI is not set
 CONFIG_RPS=y
 CONFIG_RFS_ACCEL=y
@@ -2110,6 +2110,7 @@ CONFIG_DUMMY=y
 # CONFIG_NET_TEAM is not set
 CONFIG_MACVLAN=m
 CONFIG_MACVTAP=m
+CONFIG_IPVLAN=m
 CONFIG_VXLAN=m
 # CONFIG_GENEVE is not set
 # CONFIG_GTP is not set
@@ -2122,6 +2123,7 @@ CONFIG_TUN=y
 CONFIG_VETH=m
 CONFIG_VIRTIO_NET=y
 # CONFIG_NLMON is not set
+# CONFIG_NET_VRF is not set
 CONFIG_SUNGEM_PHY=m
 # CONFIG_ARCNET is not set
 
