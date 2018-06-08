@@ -20,8 +20,8 @@ Boot2Docker is officialy in **maintenance mode** -- it is recommended that users
 
 ## Caveat Emptor
 
-Boot2Docker is currently designed and tuned for development.  **Using it for
-any kind of production workloads at this time is highly discouraged.**
+Boot2Docker is designed and tuned for development.
+**Using it for any kind of production workloads is highly discouraged.**
 
 ## Installation
 
