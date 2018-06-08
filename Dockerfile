@@ -14,6 +14,7 @@ RUN set -eux; \
 		golang \
 		isolinux \
 		kmod \
+		libelf-dev \
 		p7zip-full \
 		pkg-config \
 		squashfs-tools \
@@ -25,7 +26,7 @@ RUN set -eux; \
 	rm -rf /var/lib/apt/lists/*
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  4.9.93
+ENV KERNEL_VERSION  4.14.46
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://cdn.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
@@ -33,8 +34,8 @@ RUN curl --retry 10 https://cdn.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.
 
 # http://aufs.sourceforge.net/
 ENV AUFS_REPO       https://github.com/sfjro/aufs4-standalone
-ENV AUFS_BRANCH     aufs4.9
-ENV AUFS_COMMIT     b5eed3ecdd1deaacd0bce1d3a524b1542407c40d
+ENV AUFS_BRANCH     aufs4.14
+ENV AUFS_COMMIT     b6d4fac971fb30f8f1cc8e5bc350c895ff127003
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Download AUFS and apply patches and files, then remove it
@@ -75,7 +76,7 @@ RUN mkdir -p /tmp/iso/boot
 
 # Install the kernel modules in $ROOTFS
 RUN cd /linux-kernel && \
-    make INSTALL_MOD_PATH=$ROOTFS modules_install firmware_install
+    make INSTALL_MOD_PATH=$ROOTFS modules_install
 
 # Remove useless kernel modules, based on unclejack/debian2docker
 RUN cd $ROOTFS/lib/modules && \
