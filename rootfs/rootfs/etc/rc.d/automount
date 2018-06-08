@@ -10,14 +10,15 @@ echo $BOOT2DOCKER_DATA
 if [ ! -n "$BOOT2DOCKER_DATA" ]; then
     echo "Is the disk unpartitioned?, test for the 'boot2docker format-me' string"
     
+    # FIXME! this doesn't handle multiple disks
+
     # Is the disk unpartitioned?, test for the 'boot2docker format-me' string
     UNPARTITIONED_HD=`fdisk -l | grep "doesn't contain a valid partition table" | head -n 1 | sed 's/Disk \(.*\) doesn.*/\1/'`
 
     if [ -n "$UNPARTITIONED_HD" ]; then
         # Test for our magic string (it means that the disk was made by ./boot2docker init)
-        HEADER=`dd if=$UNPARTITIONED_HD bs=1 count=${#MAGIC} 2>/dev/null`
-
-        if [ "$HEADER" = "$MAGIC" ]; then
+        echo "$MAGIC" | cmp -s -n ${#MAGIC} - $UNPARTITIONED_HD
+        if [ $? -eq 0 ]; then
             # save the preload userdata.tar file
             dd if=$UNPARTITIONED_HD of=/userdata.tar bs=1 count=4096 2>/dev/null
             # Create the partition, format it and then mount it
