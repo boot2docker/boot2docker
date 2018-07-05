@@ -233,9 +233,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Build VMware Tools
-ENV OVT_VERSION 10.0.0-3000743
+ENV OVT_VERSION stable-10.2.5
 
-RUN curl --retry 10 -fsSL "https://github.com/vmware/open-vm-tools/archive/open-vm-tools-${OVT_VERSION}.tar.gz" | tar -xz --strip-components=1 -C /
+RUN curl --retry 10 -fsSL "https://github.com/vmware/open-vm-tools/archive/${OVT_VERSION}.tar.gz" | tar -xz --strip-components=1 -C /
 
 # Compile user space components, we're no longer building kernel module as we're
 # now bundling FUSE shared folders support.
