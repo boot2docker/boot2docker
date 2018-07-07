@@ -21,20 +21,21 @@ RUN set -eux; \
 		unzip \
 		xorriso \
 		xz-utils \
+		bison flex libelf-dev \
 	; \
 	rm -rf /var/lib/apt/lists/*
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  4.9.93
+ENV KERNEL_VERSION  4.14.54
 
 # Fetch the kernel sources
-RUN curl --retry 10 https://cdn.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
+RUN curl -fL --retry 10 "https://www.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz" | tar -C / -xJ && \
     mv /linux-$KERNEL_VERSION /linux-kernel
 
 # http://aufs.sourceforge.net/
 ENV AUFS_REPO       https://github.com/sfjro/aufs4-standalone
-ENV AUFS_BRANCH     aufs4.9
-ENV AUFS_COMMIT     b5eed3ecdd1deaacd0bce1d3a524b1542407c40d
+ENV AUFS_BRANCH     aufs4.14
+ENV AUFS_COMMIT     a0ff7f363fc8d0abd7cf62f73a854cbfc6f3bc8b
 # we use AUFS_COMMIT to get stronger repeatability guarantees
 
 # Download AUFS and apply patches and files, then remove it
@@ -59,7 +60,7 @@ COPY kernel_config /linux-kernel/.config
 
 RUN jobs=$(nproc); \
     cd /linux-kernel && \
-    make -j ${jobs} oldconfig && \
+    make -j ${jobs} olddefconfig && \
     make -j ${jobs} bzImage && \
     make -j ${jobs} modules
 
@@ -75,7 +76,7 @@ RUN mkdir -p /tmp/iso/boot
 
 # Install the kernel modules in $ROOTFS
 RUN cd /linux-kernel && \
-    make INSTALL_MOD_PATH=$ROOTFS modules_install firmware_install
+    make INSTALL_MOD_PATH=$ROOTFS modules_install
 
 # Remove useless kernel modules, based on unclejack/debian2docker
 RUN cd $ROOTFS/lib/modules && \
@@ -103,11 +104,12 @@ RUN curl -fL http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.o
 
 # Make sure the kernel headers are installed for aufs-util, and then build it
 ENV AUFS_UTIL_REPO    https://git.code.sf.net/p/aufs/aufs-util
-ENV AUFS_UTIL_BRANCH  aufs4.9
-ENV AUFS_UTIL_COMMIT  568636e5c45006b1e6e0c4b704401610a02c0089
+ENV AUFS_UTIL_BRANCH  aufs4.x-rcN
+ENV AUFS_UTIL_COMMIT  893a1330855d310b05936e22634f2d6318d00a36
 RUN set -ex \
 	&& git clone --single-branch -b "$AUFS_UTIL_BRANCH" "$AUFS_UTIL_REPO" /aufs-util \
 	&& git -C /aufs-util checkout --quiet "$AUFS_UTIL_COMMIT" \
+	&& sed -i 's#return -1;#return 0;#g' /aufs-util/ver.c \
 	&& make -C /linux-kernel headers_install INSTALL_HDR_PATH=/tmp/kheaders \
 	&& export CFLAGS='-I/tmp/kheaders/include' \
 	&& export CPPFLAGS="$CFLAGS" LDFLAGS="$CFLAGS" \
@@ -181,9 +183,9 @@ RUN curl -fL -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowid
 
 # Build VBox guest additions
 #   http://download.virtualbox.org/virtualbox/
-ENV VBOX_VERSION 5.2.2
+ENV VBOX_VERSION 5.2.14
 #   https://www.virtualbox.org/download/hashes/$VBOX_VERSION/SHA256SUMS
-ENV VBOX_SHA256 8317a0479a94877829b20a19df8a7c09187b31eecb3f1ed9d2b8cb8681a81bb8
+ENV VBOX_SHA256 e149ff0876242204fe924763f9272f691242d6a6ad4538a128fb7dba770781de
 #   (VBoxGuestAdditions_X.Y.Z.iso SHA256, for verification)
 RUN set -x && \
     \
@@ -208,7 +210,7 @@ RUN set -x && \
     mkdir -p $ROOTFS/sbin && \
     cp amd64/other/mount.vboxsf amd64/sbin/VBoxService $ROOTFS/sbin/ && \
     mkdir -p $ROOTFS/bin && \
-    cp amd64/bin/VBoxClient amd64/bin/VBoxControl $ROOTFS/bin/
+    cp amd64/bin/VBoxClient amd64/bin/VBoxControl $ROOTFS/bin
 
 # TODO figure out how to make this work reasonably (these tools try to read /proc/self/exe at startup, even for a simple "--version" check)
 ## verify that all the above actually worked (at least producing a valid binary, so we don't repeat issue #1157)
@@ -233,9 +235,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Build VMware Tools
-ENV OVT_VERSION 10.0.0-3000743
+ENV OVT_VERSION 10.2.5-8068406
 
-RUN curl --retry 10 -fsSL "https://github.com/vmware/open-vm-tools/archive/open-vm-tools-${OVT_VERSION}.tar.gz" | tar -xz --strip-components=1 -C /
+RUN mkdir -p /open-vm-tools && \
+ curl --retry 10 -fsSL "https://github.com/vmware/open-vm-tools/releases/download/stable-$( echo $OVT_VERSION | awk -F'-' '{print $1}')/open-vm-tools-${OVT_VERSION}.tar.gz" | tar -xz --strip-components=1 -C /open-vm-tools
 
 # Compile user space components, we're no longer building kernel module as we're
 # now bundling FUSE shared folders support.
@@ -272,7 +275,7 @@ RUN LD_LIBRARY_PATH='/lib:/usr/local/lib' \
 
 # Download and build Parallels Tools
 ENV PRL_MAJOR 13
-ENV PRL_VERSION 13.3.0-43321
+ENV PRL_VERSION 13.3.2-43368
 
 RUN set -ex \
 	&& mkdir -p /prl_tools \
@@ -291,7 +294,7 @@ RUN chroot "$ROOTFS" prltoolsd -V
 
 # Build XenServer Tools
 ENV XEN_REPO https://github.com/xenserver/xe-guest-utilities
-ENV XEN_VERSION v6.6.80
+ENV XEN_VERSION v7.10.0
 
 RUN set -ex \
 	&& git clone --single-branch -b "$XEN_VERSION" "$XEN_REPO" /xentools \
