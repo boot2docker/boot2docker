@@ -1,0 +1,136 @@
+HOW TO EXPERIMENT WITH SOFTWARE RAID-1 ARRAYS IN BOOT2DOCKER
+USING LOCAL DEVICE IMAGE FILES AND QEMU
+
+stephan+boot2docker-raid(a)@asklandd.dk
+
+
+
+1.	PULL IT
+
+git clone git@github.com:stephan-henningsen/boot2docker-raid.git
+
+cd boot2docker-raid
+
+
+
+2.  BUILD ISO
+
+docker build -t boot2docker-raid-iso-factory . && \
+docker run --rm boot2docker-raid-iso-factory > boot2docker-raid.iso
+
+
+
+3.  CREATE DISK IMAGE FILES FOR RAID ARRAY
+
+for x in a b; do
+    dd if=/dev/zero of=raid-disk-$x.img bs=1M count=128
+done
+
+
+
+4.  BOOT INTO QEMU WITH DISK IMAGES FOR RAID ARRAY
+
+qemu-system-x86_64 --enable-kvm -m 1024 \
+    --redir tcp:40022::22 --redir tcp:40080::30080 \
+    -cdrom boot2docker-raid.iso -boot d \
+    -hda raid-disk-a.img \
+    -hdb raid-disk-b.img &
+
+# This will perform the ususal plain, initial boot; it won't mount
+# any RAID, and it will generate ssh keys and client certificate.
+
+
+
+5.	SSH INTO QEMU
+
+# user: docker
+# password: tcuser
+
+ssh-keygen -f ~/.ssh/known_hosts -R [localhost]:40022 && \
+ssh -p 40022 docker@localhost
+
+
+
+6.  PARTITION RAID DEVICES AND ASSEMBLE RAID ARRAY, WITHIN QEMU
+
+# Doing the partitioning, assembly and formatting within QEMU is
+# actually slightly easier than doing it locally where you'd have to
+# mount as loopback devices with an offset.  Within QEMU it's
+# arguably safer too; when scripting partitioning and mkfs, there's
+# always the risk of fscking up your computer.
+
+swap_size=16M # Note there will be one of these swap partition pr. device, not in raid1.
+raid_devices="/dev/sda /dev/sdb"
+raid_partitions=""
+swap_partitions=""
+for device in $raid_devices; do
+    x=$(echo $device | sed -e "s/^.*\(.\)$/\1/") # Get last char of device name, i.e. 'a' or 'b'.
+	# Populate devices with partition table
+    sudo parted --align optimal ${device} --script -- \
+            mklabel gpt \
+            mkpart raid-data-$x ext4 1M -${swap_size} \
+            mkpart swap-$x linux-swap -${swap_size} -1M \
+            set 1 raid on \
+            align-check opt 1 \
+            align-check opt 2 \
+            print free
+    raid_partitions="${raid_partitions} ${device}1"
+
+    sudo mkswap ${device}2
+    swap_partitions="${swap_partitions} ${device}2"
+done
+sudo partprobe ${raid_devices}
+
+sudo mdadm --create --verbose /dev/md44 --name=data --level=raid1 --metadata=1.2 --raid-devices=2 ${raid_partitions}
+
+# This didn't work out very well for me. What it should do, is make
+# boot2docker label, partition and format the partitions itself, but
+# it appears to be using old fdisk which might be causing problems.
+# In any case, fdisk won't work for partitions >2GB.
+#echo "boot2docker, please format-me" > /dev/md44
+
+# Instead, format the parition yourself:
+
+sudo mkfs.ext4 -L boot2docker-data /dev/md44
+
+mkdir mnt-raid
+sudo mount /dev/md44 mnt-raid
+sudo touch ./mnt-raid/"Hello, I'm your RAID! =)"
+sudo ls -l ./mnt-raid
+
+cat /proc/mdstat
+sudo mdadm -D /dev/md44
+raid_uuid=$(blkid /dev/md44 -o export | grep ^UUID | cut -d = -f 2)
+echo RAID UUID is: ${raid_uuid}
+
+sudo swapon -a
+cat /proc/swaps
+free
+
+
+
+7.  REBOOT INTO QEMU TO CONFIRM RAID WAS MOUNTED FOR PERSISTENCE
+
+sudo reboot
+
+# This time it also will perform a plain initial boot, only now it will mount the RAID.
+# It will still generate ssh keys, client certificate, etc. but this time it will be persisted.
+# Since boot2docker how has persistence, you can copy your ssh id to it for easier ssh logins:
+
+ssh-keygen -f ~/.ssh/known_hosts -R [localhost]:40022 && \
+ssh -p 40022 docker@localhost
+
+grep md  /var/log/boot2docker.log
+mount | grep /dev/md
+cat /proc/mdstat 
+
+[ -f /mnt/md*/"Hello, I'm your RAID! =)" ] && echo "RAID auto-mounted successfully! =)" || echo "RAID not mounted =("
+
+
+
+8.  CONFIRM THAT SWAP WAS ENABLED
+
+cat /proc/swaps
+free 
+
+[ $(free | grep ^Swap: | awk '{print $2;}') > 0 ] && echo "Swap enabled successfully! =)" || echo "Swap not enabled =("

@@ -3,6 +3,12 @@ echo "automount ...";
 LABEL=boot2docker-data
 MAGIC="boot2docker, please format-me"
 
+# Assemble any RAID array(s) present as these may also be used for the auto-mounted data partition.
+mdadm --assemble --scan
+
+# Mount any swap partitions found.
+swapon -a
+
 # If there is a partition with `boot2docker-data` as its label, use it and be
 # very happy. Thus, you can come along if you feel like a room without a roof.
 BOOT2DOCKER_DATA=`blkid -o device -l -t LABEL=$LABEL`
@@ -124,7 +130,7 @@ if [ -n "$BOOT2DOCKER_DATA" ]; then
         ln -s /mnt/$PARTNAME/var/lib/boot2docker /var/lib/boot2docker
     fi
 
-    # Make sure /tmp is on the disk too too
+    # Make sure /tmp is on the disk too
     rm -rf /mnt/$PARTNAME/tmp || true
     mv /tmp /mnt/$PARTNAME/tmp
     ln -fs /mnt/$PARTNAME/tmp /tmp
