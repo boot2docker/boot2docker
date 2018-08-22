@@ -25,35 +25,11 @@ RUN set -eux; \
 	rm -rf /var/lib/apt/lists/*
 
 # https://www.kernel.org/
-ENV KERNEL_VERSION  4.9.93
+ENV KERNEL_VERSION  4.9.123
 
 # Fetch the kernel sources
 RUN curl --retry 10 https://cdn.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
     mv /linux-$KERNEL_VERSION /linux-kernel
-
-# http://aufs.sourceforge.net/
-ENV AUFS_REPO       https://github.com/sfjro/aufs4-standalone
-ENV AUFS_BRANCH     aufs4.9
-ENV AUFS_COMMIT     b5eed3ecdd1deaacd0bce1d3a524b1542407c40d
-# we use AUFS_COMMIT to get stronger repeatability guarantees
-
-# Download AUFS and apply patches and files, then remove it
-RUN git clone --single-branch -b "$AUFS_BRANCH" "$AUFS_REPO" /aufs-standalone && \
-    cd /aufs-standalone && \
-    git checkout -q "$AUFS_COMMIT" && \
-    cd /linux-kernel && \
-    cp -r /aufs-standalone/Documentation /linux-kernel && \
-    cp -r /aufs-standalone/fs /linux-kernel && \
-    cp -r /aufs-standalone/include/uapi/linux/aufs_type.h /linux-kernel/include/uapi/linux/ && \
-    set -e && for patch in \
-        /aufs-standalone/aufs*-kbuild.patch \
-        /aufs-standalone/aufs*-base.patch \
-        /aufs-standalone/aufs*-mmap.patch \
-        /aufs-standalone/aufs*-standalone.patch \
-        /aufs-standalone/aufs*-loopback.patch \
-    ; do \
-        patch -p1 < "$patch"; \
-    done
 
 COPY kernel_config /linux-kernel/.config
 
@@ -100,20 +76,6 @@ RUN curl -fL http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.o
     make prefix=`pwd`/output install && \
     mkdir -p $ROOTFS/usr/local/lib && \
     cp -av `pwd`/output/lib64/* $ROOTFS/usr/local/lib
-
-# Make sure the kernel headers are installed for aufs-util, and then build it
-ENV AUFS_UTIL_REPO    https://git.code.sf.net/p/aufs/aufs-util
-ENV AUFS_UTIL_BRANCH  aufs4.9
-ENV AUFS_UTIL_COMMIT  568636e5c45006b1e6e0c4b704401610a02c0089
-RUN set -ex \
-	&& git clone --single-branch -b "$AUFS_UTIL_BRANCH" "$AUFS_UTIL_REPO" /aufs-util \
-	&& git -C /aufs-util checkout --quiet "$AUFS_UTIL_COMMIT" \
-	&& make -C /linux-kernel headers_install INSTALL_HDR_PATH=/tmp/kheaders \
-	&& export CFLAGS='-I/tmp/kheaders/include' \
-	&& export CPPFLAGS="$CFLAGS" LDFLAGS="$CFLAGS" \
-	&& make -C /aufs-util \
-	&& make -C /aufs-util install DESTDIR="$ROOTFS" \
-	&& rm -r /tmp/kheaders
 
 # Prepare the ISO directory with the kernel
 RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
