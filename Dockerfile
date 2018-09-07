@@ -282,10 +282,10 @@ ENV DOCKER_CHANNEL edge
 # Get the Docker binaries with version that matches our boot2docker version.
 RUN set -ex; \
 	version="$(cat "$ROOTFS/etc/version")"; \
-	if [ "${version%-rc*}" != "$version" ]; then \
-# all the -rc* releases go in the "test" channel
-		DOCKER_CHANNEL='test'; \
-	fi; \
+	case "$version" in \
+# all the pre-releases go in the "test" channel
+		*-rc* | *-beta* | *-tp* ) DOCKER_CHANNEL='test' ;; \
+	esac; \
 	curl -fSL -o /tmp/dockerbin.tgz "https://download.docker.com/linux/static/$DOCKER_CHANNEL/x86_64/docker-$version.tgz"; \
 	tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=1; \
 	rm /tmp/dockerbin.tgz; \
