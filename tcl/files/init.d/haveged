@@ -1,0 +1,41 @@
+#!/bin/sh
+set -e
+
+# https://lkml.org/lkml/2018/4/12/711
+# https://github.com/boot2docker/boot2docker/pull/1322
+
+if [ "$(id -u)" != 0 ]; then
+	echo >&2 "error: must be root to invoke $0"
+	exit 1
+fi
+
+# https://github.com/jirka-h/haveged/blob/1.9.4/init.d/sysv.lsb
+
+PIDFILE='/var/run/haveged.pid'
+
+start() {
+	# https://github.com/jirka-h/haveged/blob/1.9.4/init.d/sysv.lsb#L41
+	haveged -w 1024 -v 1 -p "$PIDFILE"
+}
+
+stop() {
+	if [ -e "$PIDFILE" ]; then
+		pid="$(cat "$PIDFILE")"
+		kill "$pid"
+	fi
+}
+
+# only start the daemon if it's determined that we probably need to
+conditional() {
+	currentEntropy="$(cat /proc/sys/kernel/random/entropy_avail)"
+	# given the default poolsize of 4096, 120 is ~3% of the total pool
+	if [ "$currentEntropy" -lt 120 ]; then
+		# TODO detect whether we're in a VM? maybe not that important really
+		start
+	fi
+}
+
+case "$1" in
+	start|stop|conditional) "$1" ;;
+	*) echo "Usage $0 {start|stop|conditional}"; exit 1 ;;
+esac

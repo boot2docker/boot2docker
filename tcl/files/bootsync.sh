@@ -69,6 +69,10 @@ done
 
 /usr/local/etc/init.d/acpid start
 
+# https://github.com/boot2docker/boot2docker/pull/1322
+/etc/init.d/haveged conditional
+# (if the system doesn't have enough entropy, "dockerd" hangs without any output until it get a sufficient amount)
+
 if [ -e /var/lib/boot2docker/bootsync.sh ]; then
 	sh /var/lib/boot2docker/bootsync.sh
 fi

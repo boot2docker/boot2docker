@@ -327,6 +327,20 @@ RUN echo 'for i in /usr/local/etc/profile.d/*.sh ; do if [ -r "$i" ]; then . $i;
 # install kernel headers so we can use them for building xen-utils, etc
 RUN make -C /usr/src/linux INSTALL_HDR_PATH=/usr/local headers_install
 
+# https://lkml.org/lkml/2018/4/12/711 (https://github.com/boot2docker/boot2docker/pull/1322)
+# https://github.com/jirka-h/haveged/releases
+ENV HAVEGED_VERSION 1.9.4
+RUN wget -O /haveged.tgz "https://github.com/jirka-h/haveged/archive/${HAVEGED_VERSION}.tar.gz"; \
+	mkdir /usr/src/haveged; \
+	tar --extract --file /haveged.tgz --directory /usr/src/haveged --strip-components 1; \
+	rm /haveged.tgz
+# https://debbugs.gnu.org/11064 (libtool eats "-static", gcc doesn't mind getting "--static" even more than once)
+RUN ( cd /usr/src/haveged && ./configure LDFLAGS='-static --static' ); \
+	make -C /usr/src/haveged/src -j "$(nproc)" haveged; \
+	cp -v /usr/src/haveged/src/haveged usr/local/sbin/; \
+	strip usr/local/sbin/haveged; \
+	tcl-chroot haveged --run 1
+
 # http://download.virtualbox.org/virtualbox/
 # updated via "update.sh"
 ENV VBOX_VERSION 5.2.18
