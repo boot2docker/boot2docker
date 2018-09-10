@@ -21,7 +21,7 @@ mirrors=(
 )
 
 # https://www.kernel.org/
-kernelBase='4.9'
+kernelBase='4.14'
 
 # avoid issues with slow Git HTTP interactions (*cough* sourceforge *cough*)
 export GIT_HTTP_LOW_SPEED_LIMIT='100'
@@ -38,11 +38,14 @@ seds=(
 )
 
 fetch() {
-	local mirror
-	for mirror in "${mirrors[@]}"; do
-		if wget -qO- "$mirror/$major/$1"; then
-			return 0
-		fi
+	local file
+	for file; do
+		local mirror
+		for mirror in "${mirrors[@]}"; do
+			if wget -qO- "$mirror/$major/$file"; then
+				return 0
+			fi
+		done
 	done
 	return 1
 }
@@ -50,7 +53,12 @@ fetch() {
 arch='x86_64'
 rootfs='rootfs64.gz'
 
-rootfsMd5="$(fetch "$arch/archive/$version/distribution_files/$rootfs.md5.txt")"
+rootfsMd5="$(
+# 9.x doesn't seem to use ".../archive/X.Y.Z/..." in the same way as 8.x :(
+	fetch \
+		"$arch/archive/$version/distribution_files/$rootfs.md5.txt" \
+		"$arch/release/distribution_files/$rootfs.md5.txt"
+)"
 rootfsMd5="${rootfsMd5%% *}"
 seds+=(
 	-e 's/^ENV TCL_ROOTFS.*/ENV TCL_ROOTFS="'"$rootfs"'" TCL_ROOTFS_MD5="'"$rootfsMd5"'"/'

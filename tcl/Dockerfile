@@ -14,6 +14,7 @@ RUN apt-get update; \
 		golang-go \
 		kmod \
 		libc6-dev \
+		libelf-dev \
 		make \
 		p7zip-full \
 		patch \
@@ -174,7 +175,7 @@ ENV LINUX_GPG_KEYS \
 		647F28654894E3BD457199BE38DBBDC86092693E
 
 # updated via "update.sh"
-ENV LINUX_VERSION 4.9.126
+ENV LINUX_VERSION 4.14.69
 
 RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.xz"; \
 	wget -O /linux.tar.asc "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.sign"; \
@@ -201,6 +202,7 @@ RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERS
 		gpg --fingerprint "$key"; \
 	done; \
 	gpg --batch --verify /linux.tar.asc /linux.tar; \
+	gpgconf --kill all; \
 	rm -rf "$GNUPGHOME"; \
 	\
 # extract
@@ -290,7 +292,7 @@ RUN setConfs="$(grep -vEh '^[#-]' /kernel-config.d/* | sort -u)"; \
 	[ -z "$ret" ] || exit "$ret"
 
 RUN make -C /usr/src/linux -j "$(nproc)" bzImage modules; \
-	make -C /usr/src/linux INSTALL_MOD_PATH="$PWD" modules_install firmware_install
+	make -C /usr/src/linux INSTALL_MOD_PATH="$PWD" modules_install
 RUN mkdir -p /tmp/iso/boot; \
 	cp -vLT /usr/src/linux/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz
 
