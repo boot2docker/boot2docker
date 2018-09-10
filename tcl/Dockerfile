@@ -399,14 +399,14 @@ RUN wget -O usr/local/sbin/cgroupfs-mount "https://github.com/tianon/cgroupfs-mo
 	chmod +x usr/local/sbin/cgroupfs-mount; \
 	tcl-chroot cgroupfs-mount
 
-ENV DOCKER_VERSION 18.04.0-ce-rc2
+ENV DOCKER_VERSION 18.09.0-ce-beta1
 
 # Get the Docker binaries with version that matches our boot2docker version.
 RUN DOCKER_CHANNEL='edge'; \
-	if [ "${DOCKER_VERSION%-rc*}" != "$DOCKER_VERSION" ]; then \
-# all the -rc* releases go in the "test" channel
-		DOCKER_CHANNEL='test'; \
-	fi; \
+	case "$DOCKER_VERSION" in \
+# all the pre-releases go in the "test" channel
+		*-rc* | *-beta* | *-tp* ) DOCKER_CHANNEL='test' ;; \
+	esac; \
 	\
 	wget -O /docker.tgz "https://download.docker.com/linux/static/$DOCKER_CHANNEL/x86_64/docker-$DOCKER_VERSION.tgz"; \
 	tar -zxvf /docker.tgz -C "usr/local/bin" --strip-components=1; \
