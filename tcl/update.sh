@@ -20,6 +20,7 @@ mirrors=(
 	http://repo.tinycorelinux.net
 )
 
+# https://www.kernel.org/
 kernelBase='4.9'
 
 # avoid issues with slow Git HTTP interactions (*cough* sourceforge *cough*)

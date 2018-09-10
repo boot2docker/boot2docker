@@ -12,6 +12,7 @@ RUN apt-get update; \
 		git \
 		gnupg dirmngr \
 		golang-go \
+		kmod \
 		libc6-dev \
 		make \
 		p7zip-full \
@@ -173,7 +174,7 @@ ENV LINUX_GPG_KEYS \
 		647F28654894E3BD457199BE38DBBDC86092693E
 
 # updated via "update.sh"
-ENV LINUX_VERSION 4.9.93
+ENV LINUX_VERSION 4.9.126
 
 RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.xz"; \
 	wget -O /linux.tar.asc "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.sign"; \
@@ -326,9 +327,9 @@ RUN make -C /usr/src/linux INSTALL_HDR_PATH=/usr/local headers_install
 
 # http://download.virtualbox.org/virtualbox/
 # updated via "update.sh"
-ENV VBOX_VERSION 5.2.8
+ENV VBOX_VERSION 5.2.18
 # https://www.virtualbox.org/download/hashes/$VBOX_VERSION/SHA256SUMS
-ENV VBOX_SHA256 80b6b4a6c6789fd5957d07562dd2bdd89dd2abd99cb588e15b784ed89b680813
+ENV VBOX_SHA256 f98b6ad7093ee0b27d26dea565b197a5f33fdac93c4b67e73824ce889d6c964c
 # (VBoxGuestAdditions_X.Y.Z.iso SHA256, for verification)
 
 RUN wget -O /vbox.iso "https://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso"; \
