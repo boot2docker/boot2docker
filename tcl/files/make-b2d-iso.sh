@@ -33,10 +33,6 @@ mkdir -p /tmp/stats
 
 	echo "- Linux [v$LINUX_VERSION](https://cdn.kernel.org/pub/linux/kernel/v4.x/ChangeLog-$LINUX_VERSION)"
 
-	aufsVersion="$(awk '$1 == "#define" && $2 == "AUFS_VERSION" { gsub(/^"|"$/, "", $3); print $3 }' /usr/src/aufs/include/uapi/linux/aufs_type.h)"
-	aufsUtilVersion="$(awk '$1 == "#define" && $2 == "AuRelease" { gsub(/^"|"$/, "", $3); print $3 }' /usr/src/aufs-util/au_util.h)"
-	echo "- AUFS [v$aufsVersion](https://github.com/sfjro/aufs4-standalone/commit/$AUFS_COMMIT), utilities [$AUFS_UTIL_BRANCH-$aufsUtilVersion](https://sourceforge.net/p/aufs/aufs-util/ci/$AUFS_UTIL_COMMIT)"
-
 	echo "- Parallels Tools v$PARALLELS_VERSION" # TODO link?
 
 	ovtVersion="$(tcl-chroot vmtoolsd --version | grep -oE 'version [^ ]+' | cut -d' ' -f2)"

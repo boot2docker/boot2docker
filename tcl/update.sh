@@ -91,27 +91,6 @@ seds+=(
 	-e 's!^(ENV LINUX_VERSION).*!\1 '"$kernelVersion"'!'
 )
 
-aufsBranch="aufs$kernelBase"
-aufsCommit="$(
-	git ls-remote 'https://github.com/sfjro/aufs4-standalone.git' "refs/heads/$aufsBranch" \
-		| cut -d$'\t' -f1
-)"
-seds+=(
-	-e 's!^(ENV AUFS_BRANCH).*!\1 '"$aufsBranch"'!'
-	-e 's!^(ENV AUFS_COMMIT).*!\1 '"$aufsCommit"'!'
-)
-aufsUtilBranch="$aufsBranch"
-aufsUtilCommit="$(
-	{
-		git ls-remote 'https://git.code.sf.net/p/aufs/aufs-util' "refs/heads/$aufsUtilBranch" \
-			|| git ls-remote 'https://github.com/tianon/aufs-util.git' "refs/heads/$aufsUtilBranch"
-	} | cut -d$'\t' -f1
-)"
-seds+=(
-	-e 's!^(ENV AUFS_UTIL_BRANCH).*!\1 '"$aufsUtilBranch"'!'
-	-e 's!^(ENV AUFS_UTIL_COMMIT).*!\1 '"$aufsUtilCommit"'!'
-)
-
 vboxVersion="$(wget -qO- 'https://download.virtualbox.org/virtualbox/LATEST-STABLE.TXT')"
 vboxSha256="$(
 	{

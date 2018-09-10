@@ -1,5 +1,4 @@
 # adapted mostly from https://github.com/docker/docker/blob/0c1006f1abc1af7aa6b9847754370d054dfa6c68/contrib/check-config.sh
-CONFIG_AUFS_FS=m
 CONFIG_BLK_CGROUP=y
 CONFIG_BLK_DEV_DM=m
 CONFIG_BLK_DEV_THROTTLING=y

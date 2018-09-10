@@ -208,38 +208,6 @@ RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERS
 	ln -sT "linux-$LINUX_VERSION" /usr/src/linux; \
 	[ -d /usr/src/linux ]
 
-# http://aufs.sourceforge.net
-# https://github.com/sfjro/aufs4-standalone/branches/active
-# updated via "update.sh"
-ENV AUFS_BRANCH aufs4.9
-ENV AUFS_COMMIT b5eed3ecdd1deaacd0bce1d3a524b1542407c40d
-# (we use an explicit commit to get stronger repeatability guarantees)
-
-RUN wget -O /aufs.tgz "https://github.com/sfjro/aufs4-standalone/archive/$AUFS_COMMIT.tar.gz"; \
-	mkdir /usr/src/aufs; \
-	tar --extract --file /aufs.tgz --directory /usr/src/aufs --strip-components 1; \
-	rm /aufs.tgz
-
-# https://github.com/sfjro/aufs4-standalone/tree/aufs4.9#readme
-# ("Configuration and Compilation" -- build option "1.")
-RUN for file in \
-		Documentation \
-		fs \
-		include/uapi/linux/aufs_type.h \
-	; do \
-		cp -vr "/usr/src/aufs/$file" "$(dirname "/usr/src/linux/$file")"; \
-	done; \
-	for patch in \
-		aufs4-kbuild.patch \
-		aufs4-base.patch \
-		aufs4-mmap.patch \
-		aufs4-standalone.patch \
-		\
-		aufs4-loopback.patch \
-	; do \
-		patch --directory /usr/src/linux --input "/usr/src/aufs/$patch" --strip 1; \
-	done
-
 RUN { \
 		echo '#!/usr/bin/env bash'; \
 		echo 'set -Eeuo pipefail'; \
@@ -353,24 +321,8 @@ RUN echo 'for i in /usr/local/etc/profile.d/*.sh ; do if [ -r "$i" ]; then . $i;
 # make sure the Docker group exists and we're part of it
 	tcl-chroot sh -eux -c 'addgroup -S docker && addgroup docker docker'
 
-# install kernel headers so we can use them for building aufs-util, etc
+# install kernel headers so we can use them for building xen-utils, etc
 RUN make -C /usr/src/linux INSTALL_HDR_PATH=/usr/local headers_install
-
-# https://sourceforge.net/p/aufs/aufs-util/ref/master/branches/
-# updated via "update.sh"
-ENV AUFS_UTIL_BRANCH aufs4.9
-ENV AUFS_UTIL_COMMIT 568636e5c45006b1e6e0c4b704401610a02c0089
-# (we use an explicit commit to get stronger repeatability guarantees)
-
-# SF.net provides snapshot archives, but .zip only (https://sourceforge.net/code-snapshots/git/a/au/aufs/aufs-util.git/aufs-aufs-util-$AUFS_UTIL_COMMIT.zip)
-# ALSO, it requires you go through the web interface and "request" that they generate a snapshot
-# ... so we'll just use "git" instead to keep it simple
-RUN git clone --single-branch -b "$AUFS_UTIL_BRANCH" 'https://git.code.sf.net/p/aufs/aufs-util' /usr/src/aufs-util \
-# git.code.sf.net has issues so often that tianon maintains an aufs-util mirror
-		|| git clone --single-branch -b "$AUFS_UTIL_BRANCH" 'https://github.com/tianon/aufs-util.git' /usr/src/aufs-util; \
-	git -C /usr/src/aufs-util checkout "$AUFS_UTIL_COMMIT"
-RUN make -C /usr/src/aufs-util -j "$(nproc)"; \
-	make -C /usr/src/aufs-util install DESTDIR="$PWD"
 
 # http://download.virtualbox.org/virtualbox/
 # updated via "update.sh"
