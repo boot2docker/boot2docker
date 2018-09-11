@@ -167,6 +167,11 @@ start() {
 		fi
 	fi
 
+	if [ "$DOCKER_STORAGE" = 'aufs' ]; then
+		echo >&2 "warning: '$DOCKER_STORAGE' is not a supported storage driver for this boot2docker install -- ignoring request!"
+		echo >&2 " - see https://github.com/boot2docker/boot2docker/issues/1326 for more details"
+		DOCKER_STORAGE='auto'
+	fi
 	if [ -n "$DOCKER_STORAGE" ] && [ "$DOCKER_STORAGE" != 'auto' ]; then
 		EXTRA_ARGS="$EXTRA_ARGS --storage-driver $DOCKER_STORAGE"
 	fi
