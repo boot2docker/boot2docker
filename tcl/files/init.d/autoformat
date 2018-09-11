@@ -186,6 +186,7 @@ start() {
 
 	if [ -z "$swapDevice" ]; then
 		echo >&2 "warning: unable to find a partition with the swap label ($swapLabel) or TYPE=swap (so Docker will likely complain about swap)"
+		echo >&2 " - this could also mean TCL already mounted it! (see 'free' or '/proc/swaps')"
 	fi
 }
 
