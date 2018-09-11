@@ -10,7 +10,7 @@ if modprobe vboxguest &> /dev/null && modprobe vboxsf &> /dev/null; then
 	
 	mountOptions='defaults,iocharset=utf8'
 	if grep -q '^docker:' /etc/passwd; then
-		mountOptions="${mountOptions},uid=$(id -u docker),gid=$(id -g docker)"
+		mountOptions="${mountOptions},uid=$(id -u docker),gid=$(id -g docker),fmode=600,dmode=700"
 	fi
 	
 	# try mounting "$name" (which defaults to "$dir") at "$dir",
