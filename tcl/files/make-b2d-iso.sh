@@ -33,6 +33,8 @@ mkdir -p /tmp/stats
 
 	echo "- Linux [v$LINUX_VERSION](https://cdn.kernel.org/pub/linux/kernel/v4.x/ChangeLog-$LINUX_VERSION)"
 
+	echo "- Tiny Core Linux [v$TCL_VERSION](http://forum.tinycorelinux.net/index.php?board=31.0)"
+
 	echo "- Parallels Tools v$PARALLELS_VERSION" # TODO link?
 
 	ovtVersion="$(tcl-chroot vmtoolsd --version | grep -oE 'version [^ ]+' | cut -d' ' -f2)"

@@ -45,8 +45,11 @@ COPY files/tce-load.patch /
 
 RUN for mirror in $TCL_MIRRORS; do \
 		if \
-			wget -O /rootfs.gz "$mirror/$TCL_MAJOR/x86_64/archive/$TCL_VERSION/distribution_files/$TCL_ROOTFS" \
-			&& echo "$TCL_ROOTFS_MD5 */rootfs.gz" | md5sum -c - \
+			{ \
+				wget -O /rootfs.gz "$mirror/$TCL_MAJOR/x86_64/archive/$TCL_VERSION/distribution_files/$TCL_ROOTFS" \
+# 9.x doesn't seem to use ".../archive/X.Y.Z/..." in the same way as 8.x :(
+					|| wget -O /rootfs.gz "$mirror/$TCL_MAJOR/x86_64/release/distribution_files/$TCL_ROOTFS" \
+			; } && echo "$TCL_ROOTFS_MD5 */rootfs.gz" | md5sum -c - \
 		; then \
 			break; \
 		fi; \
