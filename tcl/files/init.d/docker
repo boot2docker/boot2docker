@@ -12,7 +12,13 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${DOCKER_STORAGE:=auto}
 : ${DOCKER_DIR:=/var/lib/docker}
 
+
 # before setting defaults, let's check what was in /var/lib/boot2docker/profile
+if [ -e '/var/lib/boot2docker/userdata.tar' ] && [ ! -e '/var/lib/boot2docker/profile' ]; then
+	# if userdata.tar exists and profile doesn't (yet), we must be using docker-machine, which expects to check that the daemon is up and running _before_ it configures TLS (?????)
+	DOCKER_REMOTE=yes
+	# https://github.com/docker/machine/blob/19035310d4ba1b58056aae427ea669d1db5fc618/libmachine/provision/boot2docker.go#L242-L246
+fi
 if { [ -n "$DOCKER_TLS" ] || [ -n "$DOCKER_HOST" ]; } && [ -z "$DOCKER_REMOTE" ]; then
 	# if /var/lib/boot2docker/profile sets either of DOCKER_TLS or DOCKER_HOST but not DOCKER_REMOTE, so let's assume the user intended for DOCKER_REMOTE=yes (backwards compat / Docker Machine compat)
 	DOCKER_REMOTE=yes
