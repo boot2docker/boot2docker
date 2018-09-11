@@ -489,10 +489,17 @@ RUN awk -F: ' \
 
 # ssh config prep
 RUN [ ! -f usr/local/etc/sshd_config ]; \
-	sed -r 's/^#(UseDNS[[:space:]])/\1/' \
+	sed -r \
+		-e 's/^#(UseDNS[[:space:]])/\1/' \
+		-e 's/^#(PermitUserEnvironment)[[:space:]].*$/\1 yes/' \
 		usr/local/etc/ssh/sshd_config.orig \
 		> usr/local/etc/ssh/sshd_config; \
 	grep '^UseDNS no$' usr/local/etc/ssh/sshd_config; \
+# "This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
+# (and there are several important binaries in /usr/local/sbin that "docker-machine" needs to invoke like "ip" and "iptables")
+	grep '^PermitUserEnvironment yes$' usr/local/etc/ssh/sshd_config; \
+	mkdir -p home/docker/.ssh; \
+	echo 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' > home/docker/.ssh/environment; \
 # acpid prep (looks in the wrong path for /etc/acpi)
 	ln -sT ../usr/local/etc/acpi etc/acpi; \
 	[ -z "$(ls -A etc/acpi/events)" ]; \
