@@ -93,3 +93,6 @@ fi
 
 # Load Parallels Tools daemon
 /etc/rc.d/prltoolsd
+
+# Load QEMU Guest agent
+/etc/rc.d/qemu-guest-agent
