@@ -14,8 +14,12 @@ fi
 PIDFILE='/var/run/haveged.pid'
 
 start() {
+	mkdir -p /var/lib/boot2docker/log
+
+	echo 'Starting haveged'
+
 	# https://github.com/jirka-h/haveged/blob/1.9.4/init.d/sysv.lsb#L41
-	haveged -w 1024 -v 1 -p "$PIDFILE"
+	haveged -w 1024 -v 1 -p "$PIDFILE" >> /var/lib/boot2docker/log/haveged.log
 }
 
 stop() {
