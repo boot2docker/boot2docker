@@ -25,6 +25,7 @@ start() {
 stop() {
 	if [ -e "$PIDFILE" ]; then
 		pid="$(cat "$PIDFILE")"
+		echo "Stopping haveged ($pid)"
 		kill "$pid"
 	fi
 }
