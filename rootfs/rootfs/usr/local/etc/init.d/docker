@@ -85,6 +85,11 @@ start() {
 
     mkdir -p "$DOCKER_DIR"
 
+    if [ "$DOCKER_STORAGE" = 'aufs' ]; then
+        echo >&2 "warning: '$DOCKER_STORAGE' is not a supported storage driver for this boot2docker install -- ignoring request!"
+        echo >&2 " - see https://github.com/boot2docker/boot2docker/issues/1326 for more details"
+        DOCKER_STORAGE='auto'
+    fi
     if [ "$DOCKER_STORAGE" = 'auto' ]; then
         # if /var/lib/docker is on BTRFS, let's use the native btrfs driver
         # (AUFS on top of BTRFS does very bad things)
