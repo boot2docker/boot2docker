@@ -63,6 +63,11 @@ RUN for mirror in $TCL_MIRRORS; do \
 	rm /rootfs.gz; \
 	\
 	{ \
+		echo '# https://1.1.1.1/'; \
+		echo 'nameserver 1.1.1.1'; \
+		echo 'nameserver 1.0.0.1'; \
+		echo; \
+		echo '# https://developers.google.com/speed/public-dns/'; \
 		echo 'nameserver 8.8.8.8'; \
 		echo 'nameserver 8.8.4.4'; \
 	} > etc/resolv.conf; \
