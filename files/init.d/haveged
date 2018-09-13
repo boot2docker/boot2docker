@@ -12,22 +12,42 @@ fi
 # https://github.com/jirka-h/haveged/blob/1.9.4/init.d/sysv.lsb
 
 PIDFILE='/var/run/haveged.pid'
+pid() {
+	if [ -s "$PIDFILE" ]; then
+		local pid
+		pid="$(cat "$PIDFILE")"
+		if ps "$pid" > /dev/null 2>&1; then
+			echo "$pid"
+			return 0
+		fi
+	fi
+	return 1
+}
 
 start() {
-	mkdir -p /var/lib/boot2docker/log
+	if pid="$(pid)"; then
+		echo >&2 "error: haveged is already running ($pid)"
+		exit 1
+	fi
 
 	echo 'Starting haveged'
 
+	mkdir -p /var/lib/boot2docker/log
+
 	# https://github.com/jirka-h/haveged/blob/1.9.4/init.d/sysv.lsb#L41
-	haveged -w 1024 -v 1 -p "$PIDFILE" >> /var/lib/boot2docker/log/haveged.log 2>&1
+	haveged -w 1024 -v 1 -p "$PIDFILE"
 }
 
 stop() {
-	if [ -e "$PIDFILE" ]; then
-		pid="$(cat "$PIDFILE")"
+	if pid="$(pid)"; then
 		echo "Stopping haveged ($pid)"
 		kill "$pid"
 	fi
+}
+
+restart() {
+	stop
+	start
 }
 
 # only start the daemon if it's determined that we probably need to
@@ -41,6 +61,6 @@ conditional() {
 }
 
 case "$1" in
-	start|stop|conditional) "$1" ;;
-	*) echo "Usage $0 {start|stop|conditional}"; exit 1 ;;
+	start|stop|restart|conditional) "$1" ;;
+	*) echo "Usage $0 {start|stop|restart|conditional}"; exit 1 ;;
 esac

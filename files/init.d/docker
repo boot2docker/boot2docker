@@ -49,8 +49,24 @@ USERUIDGID="$(awk -F: '$1 == "docker" { print $3 ":" $4; exit }' /etc/passwd)"
 USERCFG="$USERHOME/.docker"
 
 PIDFILE='/var/run/docker.pid'
+pid() {
+	if [ -s "$PIDFILE" ]; then
+		local pid
+		pid="$(cat "$PIDFILE")"
+		if ps "$pid" > /dev/null 2>&1; then
+			echo "$pid"
+			return 0
+		fi
+	fi
+	return 1
+}
 
 start() {
+	if pid="$(pid)"; then
+		echo >&2 "error: Docker daemon is already running ($pid)"
+		exit 1
+	fi
+
 	if [ ! -e /etc/docker ]; then
 		echo 'Linking /etc/docker to /var/lib/boot2docker for persistence'
 		mkdir -p /var/lib/boot2docker/etc/docker
@@ -187,18 +203,13 @@ start() {
 	dockerd --data-root "$DOCKER_DIR" -H unix:// $EXTRA_ARGS --pidfile "$PIDFILE" >> /var/lib/boot2docker/log/docker.log 2>&1 &
 }
 
-check() {
-	[ -f "$PIDFILE" ] && ps -A -o pid | grep -q "^\s*$(cat "$PIDFILE")$" 2> /dev/null
-}
-
 stop() {
-	if check; then
-		pid=$(cat "$PIDFILE")
+	if pid="$(pid)"; then
 		echo "Stopping dockerd ($pid)"
-		kill $pid
+		kill "$pid"
 
 		i=30
-		while check; do
+		while pid > /dev/null; do
 			sleep 1
 			i=$(expr $i - 1)
 			if [ "$i" -le 0 ]; then
@@ -215,16 +226,15 @@ restart() {
 }
 
 reload() {
-	if ! check; then
+	if ! pid="$(pid)"; then
 		echo >&2 'error: Docker daemon is not running'
 		exit 1
 	fi
-	pid="$(cat "$PIDFILE")"
-	kill -s HUP $pid
+	kill -s HUP "$pid"
 }
 
 status() {
-	if check; then
+	if pid > /dev/null; then
 		echo 'Docker daemon is running'
 		exit 0
 	else
