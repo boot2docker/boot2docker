@@ -38,16 +38,9 @@ Boot2Docker is used via [Docker Machine](https://docs.docker.com/machine/overvie
 (installed as part of Docker Toolbox) which leverages VirtualBox's `VBoxManage` to
 initialise, start, stop and delete the VM right from the command line.
 
-### Migrate from `boot2docker` to Docker Machine
-
-If you were using the `boot2docker` management tool previously, you have a 
-pre-existing Docker `boot2docker-vm` VM on your local system. 
-To allow Docker Machine to manage this older VM, you must migrate it,
-see [Docker Machine documentation for details](https://docs.docker.com/machine/migrate-to-machine/).
-
 ## More information
 
-See [Frequently asked questions](doc/FAQ.md) for more details.
+See [Frequently asked questions](FAQ.md) for more details.
 
 #### Boot script log
 
@@ -155,15 +148,10 @@ will be automounted and used to persist your docker data in `/var/lib/docker`
 and `/var/lib/boot2docker`.  This virtual disk will be removed when you run
 `docker-machine delete default`.  It will also persist the SSH keys of the machine.
 Changes outside of these directories will be lost after powering down or
-restarting the VM - to make permanent modifications see the
-[FAQ](doc/FAQ.md#local-customisation-with-persistent-partition).
+restarting the VM.
 
 If you are not using the Docker Machine management tool, you can create an `ext4`
 formatted partition with the label `boot2docker-data` (`mkfs.ext4 -L
 boot2docker-data /dev/sdX5`) to your VM or host, and Boot2Docker will automount
 it on `/mnt/sdX` and then softlink `/mnt/sdX/var/lib/docker` to
 `/var/lib/docker`.
-
-## Troubleshooting
-
-See the [workarounds doc](https://github.com/boot2docker/boot2docker/blob/master/doc/WORKAROUNDS.md) for solutions to known issues.
