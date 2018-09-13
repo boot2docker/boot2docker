@@ -112,7 +112,7 @@ seds+=(
 	-e 's!^(ENV VBOX_SHA256).*!\1 '"$vboxSha256"'!'
 )
 
-# TODO PARALLELS_VERSION ??
+# PARALLELS_VERSION: https://github.com/boot2docker/boot2docker/pull/1332#issuecomment-420273330
 
 xenVersion="$(
 	git ls-remote --tags 'https://github.com/xenserver/xe-guest-utilities.git' \
