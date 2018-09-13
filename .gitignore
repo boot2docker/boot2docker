@@ -1,12 +1,7 @@
-# OS or Editor folders
-.DS_Store
-Thumbs.db
-.cache
-.project
-.settings
-.tmproj
-*.esproj
-nbproject
-*.sublime-project
-*.sublime-workspace
 *.iso
+*.md
+*.qcow2
+*.sh
+.dockerignore
+.git
+Dockerfile
