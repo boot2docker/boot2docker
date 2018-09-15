@@ -1,5 +1,7 @@
 # Boot2Docker
 
+[![Build Status](https://travis-ci.org/boot2docker/boot2docker.svg?branch=master)](https://travis-ci.org/boot2docker/boot2docker)
+
 Boot2Docker is a lightweight Linux distribution made specifically to run
 [Docker](https://www.docker.com/) containers. It runs completely from RAM, is a
 ~45MB download and boots quickly.
