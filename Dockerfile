@@ -1,351 +1,554 @@
 FROM debian:stretch-slim
 
-RUN set -eux; \
-	apt-get update; \
-	apt-get -y install \
-		automake \
+SHELL ["/bin/bash", "-Eeuo", "pipefail", "-xc"]
+
+RUN apt-get update; \
+	apt-get install -y --no-install-recommends \
+		bash-completion \
 		bc \
-		build-essential \
+		ca-certificates \
 		cpio \
-		curl \
-		gcc libc6 libc6-dev \
-		genisoimage \
+		gcc \
 		git \
-		golang \
-		isolinux \
+		gnupg dirmngr \
+		golang-go \
 		kmod \
+		libc6-dev \
+		libelf-dev \
+		make \
 		p7zip-full \
-		pkg-config \
+		patch \
 		squashfs-tools \
-		syslinux \
-		unzip \
+		wget \
 		xorriso \
 		xz-utils \
 	; \
 	rm -rf /var/lib/apt/lists/*
 
-# https://www.kernel.org/
-ENV KERNEL_VERSION  4.9.123
+# cleaner wget output
+RUN echo 'progress = dot:giga' >> ~/.wgetrc; \
+# color prompt (better debugging/devel)
+	cp /etc/skel/.bashrc ~/
 
-# Fetch the kernel sources
-RUN curl --retry 10 https://cdn.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/linux-$KERNEL_VERSION.tar.xz | tar -C / -xJ && \
-    mv /linux-$KERNEL_VERSION /linux-kernel
+WORKDIR /rootfs
 
-COPY kernel_config /linux-kernel/.config
+# updated via "update.sh"
+ENV TCL_MIRRORS http://distro.ibiblio.org/tinycorelinux http://repo.tinycorelinux.net
+ENV TCL_MAJOR 8.x
+ENV TCL_VERSION 8.2.1
 
-RUN jobs=$(nproc); \
-    cd /linux-kernel && \
-    make -j ${jobs} oldconfig && \
-    make -j ${jobs} bzImage && \
-    make -j ${jobs} modules
+# http://distro.ibiblio.org/tinycorelinux/8.x/x86_64/archive/8.2.1/distribution_files/rootfs64.gz.md5.txt
+# updated via "update.sh"
+ENV TCL_ROOTFS="rootfs64.gz" TCL_ROOTFS_MD5="b4991d3c07b88649b61616f86f2f079f"
 
-# The post kernel build process
+COPY files/tce-load.patch /
 
-ENV ROOTFS /rootfs
-
-# Make the ROOTFS
-RUN mkdir -p $ROOTFS
-
-# Prepare the build directory (/tmp/iso)
-RUN mkdir -p /tmp/iso/boot
-
-# Install the kernel modules in $ROOTFS
-RUN cd /linux-kernel && \
-    make INSTALL_MOD_PATH=$ROOTFS modules_install firmware_install
-
-# Remove useless kernel modules, based on unclejack/debian2docker
-RUN cd $ROOTFS/lib/modules && \
-    rm -rf ./*/kernel/sound/* && \
-    rm -rf ./*/kernel/drivers/gpu/* && \
-    rm -rf ./*/kernel/drivers/infiniband/* && \
-    rm -rf ./*/kernel/drivers/isdn/* && \
-    rm -rf ./*/kernel/drivers/media/* && \
-    rm -rf ./*/kernel/drivers/staging/lustre/* && \
-    rm -rf ./*/kernel/drivers/staging/comedi/* && \
-    rm -rf ./*/kernel/fs/ocfs2/* && \
-    rm -rf ./*/kernel/net/bluetooth/* && \
-    rm -rf ./*/kernel/net/mac80211/* && \
-    rm -rf ./*/kernel/net/wireless/*
-
-# Install libcap
-RUN curl -fL http://http.debian.net/debian/pool/main/libc/libcap2/libcap2_2.22.orig.tar.gz | tar -C / -xz && \
-    cd /libcap-2.22 && \
-    sed -i 's/LIBATTR := yes/LIBATTR := no/' Make.Rules && \
-    make && \
-    mkdir -p output && \
-    make prefix=`pwd`/output install && \
-    mkdir -p $ROOTFS/usr/local/lib && \
-    cp -av `pwd`/output/lib64/* $ROOTFS/usr/local/lib
-
-# Prepare the ISO directory with the kernel
-RUN cp -v /linux-kernel/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz64
-
-ENV TCL_REPO_BASE   http://distro.ibiblio.org/tinycorelinux/8.x/x86_64
-ENV TCL_REPO_FALLBACK              http://tinycorelinux.net/8.x/x86_64
-# Note that the ncurses is here explicitly so that top continues to work
-ENV TCZ_DEPS        iptables \
-                    iproute2 \
-                    openssh openssl ca-certificates \
-                    tar \
-                    gcc_libs \
-                    ncurses \
-                    acpid \
-                    xz liblzma \
-                    git expat2 libgpg-error libgcrypt libssh2 \
-                    nfs-utils tcp_wrappers portmap rpcbind libtirpc \
-                    rsync attr acl \
-                    curl ntpclient \
-                    procps glib2 libtirpc libffi fuse pcre \
-                    udev-lib udev-extra \
-                    liblvm2 \
-                    parted
-
-# Download the rootfs, don't unpack it though:
-RUN set -ex; \
-	curl -fL -o /tcl_rootfs.gz "$TCL_REPO_BASE/release/distribution_files/rootfs64.gz" \
-		|| curl -fL -o /tcl_rootfs.gz "$TCL_REPO_FALLBACK/release/distribution_files/rootfs64.gz"
-
-# Install the TCZ dependencies
-RUN set -ex; \
-	for dep in $TCZ_DEPS; do \
-		echo "Download $TCL_REPO_BASE/tcz/$dep.tcz"; \
-		curl -fL -o "/tmp/$dep.tcz" "$TCL_REPO_BASE/tcz/$dep.tcz" \
-			|| curl -fL -o "/tmp/$dep.tcz" "$TCL_REPO_FALLBACK/tcz/$dep.tcz"; \
-		unsquashfs -f -d "$ROOTFS" "/tmp/$dep.tcz"; \
-		rm -f "/tmp/$dep.tcz"; \
-	done
-
-# Install Tiny Core Linux rootfs
-RUN cd "$ROOTFS" && zcat /tcl_rootfs.gz | cpio -f -i -H newc -d --no-absolute-filenames
-
-# Extract ca-certificates
-RUN set -x \
-#  TCL changed something such that these need to be extracted post-install
-	&& chroot "$ROOTFS" sh -xc ' \
-		ldconfig \
-		&& /usr/local/tce.installed/openssl \
-		&& /usr/local/tce.installed/ca-certificates \
-	' \
-#  Docker looks for them in /etc/ssl
-	&& ln -sT ../usr/local/etc/ssl "$ROOTFS/etc/ssl" \
-#  a little testing is always prudent
-	&& cp "$ROOTFS/etc/resolv.conf" resolv.conf.bak \
-	&& cp /etc/resolv.conf "$ROOTFS/etc/resolv.conf" \
-	&& chroot "$ROOTFS" curl -fsSL 'https://www.google.com' -o /dev/null \
-	&& mv resolv.conf.bak "$ROOTFS/etc/resolv.conf"
-
-# Apply horrible hacks
-RUN ln -sT lib "$ROOTFS/lib64"
-
-# get generate_cert
-RUN curl -fL -o $ROOTFS/usr/local/bin/generate_cert https://github.com/SvenDowideit/generate_cert/releases/download/0.2/generate_cert-0.2-linux-amd64 && \
-    chmod +x $ROOTFS/usr/local/bin/generate_cert
-
-# Build VBox guest additions
-#   http://download.virtualbox.org/virtualbox/
-ENV VBOX_VERSION 5.2.2
-#   https://www.virtualbox.org/download/hashes/$VBOX_VERSION/SHA256SUMS
-ENV VBOX_SHA256 8317a0479a94877829b20a19df8a7c09187b31eecb3f1ed9d2b8cb8681a81bb8
-#   (VBoxGuestAdditions_X.Y.Z.iso SHA256, for verification)
-RUN set -x && \
-    \
-    mkdir -p /vboxguest && \
-    cd /vboxguest && \
-    \
-    curl -fL -o vboxguest.iso http://download.virtualbox.org/virtualbox/${VBOX_VERSION}/VBoxGuestAdditions_${VBOX_VERSION}.iso && \
-    echo "${VBOX_SHA256} *vboxguest.iso" | sha256sum -c - && \
-    7z x vboxguest.iso -ir'!VBoxLinuxAdditions.run' && \
-    rm vboxguest.iso && \
-    \
-    sh VBoxLinuxAdditions.run --noexec --target . && \
-    mkdir amd64 && tar -C amd64 -xjf VBoxGuestAdditions-amd64.tar.bz2 && \
-    rm VBoxGuestAdditions*.tar.bz2 && \
-    \
-    make -C amd64/src/vboxguest-${VBOX_VERSION} \
-        KERN_DIR=/linux-kernel \
-        KERN_VER="$KERNEL_VERSION" \
-    && \
-    cp amd64/src/vboxguest-${VBOX_VERSION}/*.ko $ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/ && \
-    \
-    mkdir -p $ROOTFS/sbin && \
-    cp amd64/other/mount.vboxsf amd64/sbin/VBoxService $ROOTFS/sbin/ && \
-    mkdir -p $ROOTFS/bin && \
-    cp amd64/bin/VBoxClient amd64/bin/VBoxControl $ROOTFS/bin/
-
-# TODO figure out how to make this work reasonably (these tools try to read /proc/self/exe at startup, even for a simple "--version" check)
-## verify that all the above actually worked (at least producing a valid binary, so we don't repeat issue #1157)
-#RUN set -x && \
-#    chroot "$ROOTFS" VBoxControl --version && \
-#    chroot "$ROOTFS" VBoxService --version
-
-# Install build dependencies for VMware Tools
-RUN apt-get update && apt-get install -y \
-        autoconf \
-        libdumbnet-dev \
-        libdumbnet1 \
-        libfuse-dev \
-        libfuse2 \
-        libglib2.0-0 \
-        libglib2.0-dev \
-        libmspack-dev \
-        libssl-dev \
-        libtirpc-dev \
-        libtirpc1 \
-        libtool \
-    && rm -rf /var/lib/apt/lists/*
-
-# Build VMware Tools
-ENV OVT_VERSION stable-10.2.5
-
-RUN curl --retry 10 -fsSL "https://github.com/vmware/open-vm-tools/archive/${OVT_VERSION}.tar.gz" | tar -xz --strip-components=1 -C /
-
-# Compile user space components, we're no longer building kernel module as we're
-# now bundling FUSE shared folders support.
-RUN cd /open-vm-tools && \
-    autoreconf -i && \
-    ./configure --disable-multimon --disable-docs --disable-tests --with-gnu-ld \
-                --without-kernel-modules --without-procps --without-gtk2 \
-                --without-gtkmm --without-pam --without-x --without-icu \
-                --without-xerces --without-xmlsecurity --without-ssl && \
-    make LIBS="-ltirpc" CFLAGS="-Wno-implicit-function-declaration" && \
-    make DESTDIR=$ROOTFS install &&\
-    /open-vm-tools/libtool --finish $ROOTFS/usr/local/lib
-
-# Building the Libdnet library for VMware Tools.
-ENV LIBDNET libdnet-1.12
-RUN curl -fL -o /tmp/${LIBDNET}.zip https://github.com/dugsong/libdnet/archive/${LIBDNET}.zip && \
-    unzip /tmp/${LIBDNET}.zip -d /vmtoolsd && \
-    cd /vmtoolsd/libdnet-${LIBDNET} && ./configure --build=i486-pc-linux-gnu && \
-    make && \
-    make install && make DESTDIR=$ROOTFS install
-
-# Horrible hack again
-RUN ln -sT libdnet.1 "$ROOTFS/usr/local/lib/libdumbnet.so.1" \
-	&& readlink -f "$ROOTFS/usr/local/lib/libdumbnet.so.1"
-
-# TCL 7 doesn't ship with libtirpc.so.1 Dummy it up so the VMware tools work again, taken from:
-# https://github.com/boot2docker/boot2docker/issues/1157#issuecomment-211647607
-RUN ln -sT libtirpc.so "$ROOTFS/usr/local/lib/libtirpc.so.1" \
-	&& readlink -f "$ROOTFS/usr/local/lib/libtirpc.so.1"
-
-# verify that all the above actually worked (at least producing a valid binary, so we don't repeat issue #1157)
-RUN LD_LIBRARY_PATH='/lib:/usr/local/lib' \
-		chroot "$ROOTFS" vmhgfs-fuse --version
-
-# Download and build Parallels Tools
-ENV PRL_MAJOR 13
-ENV PRL_VERSION 13.3.0-43321
-
-RUN set -ex \
-	&& mkdir -p /prl_tools \
-	&& curl -fSL "http://download.parallels.com/desktop/v${PRL_MAJOR}/${PRL_VERSION}/ParallelsTools-${PRL_VERSION}-boot2docker.tar.gz" \
-		| tar -xzC /prl_tools --strip-components 1 \
-	&& cd /prl_tools \
-	&& cp -Rv tools/* $ROOTFS \
+RUN for mirror in $TCL_MIRRORS; do \
+		if \
+			{ \
+				wget -O /rootfs.gz "$mirror/$TCL_MAJOR/x86_64/archive/$TCL_VERSION/distribution_files/$TCL_ROOTFS" \
+# 9.x doesn't seem to use ".../archive/X.Y.Z/..." in the same way as 8.x :(
+					|| wget -O /rootfs.gz "$mirror/$TCL_MAJOR/x86_64/release/distribution_files/$TCL_ROOTFS" \
+			; } && echo "$TCL_ROOTFS_MD5 */rootfs.gz" | md5sum -c - \
+		; then \
+			break; \
+		fi; \
+	done; \
+	echo "$TCL_ROOTFS_MD5 */rootfs.gz" | md5sum -c -; \
+	zcat /rootfs.gz | cpio \
+		--extract \
+		--make-directories \
+		--no-absolute-filenames \
+	; \
+	rm /rootfs.gz; \
 	\
-	&& KERNEL_DIR=/linux-kernel/ KVER="$KERNEL_VERSION" SRC=/linux-kernel/ PRL_FREEZE_SKIP=1 \
-		make -C kmods/ -f Makefile.kmods installme \
+	{ \
+		echo '# https://1.1.1.1/'; \
+		echo 'nameserver 1.1.1.1'; \
+		echo 'nameserver 1.0.0.1'; \
+		echo; \
+		echo '# https://developers.google.com/speed/public-dns/'; \
+		echo 'nameserver 8.8.8.8'; \
+		echo 'nameserver 8.8.4.4'; \
+	} > etc/resolv.conf; \
+	{ \
+		echo '#!/usr/bin/env bash'; \
+		echo 'set -Eeuo pipefail'; \
+		echo "cd '$PWD'"; \
+		echo 'cp -T etc/resolv.conf etc/resolv.conf.bak'; \
+		echo 'cp -T /etc/resolv.conf etc/resolv.conf'; \
+		echo 'cp -T /proc/cpuinfo proc/cpuinfo 2>/dev/null || :'; \
+		echo 'trap "mv -T etc/resolv.conf.bak etc/resolv.conf || :; rm proc/cpuinfo 2>/dev/null || :" EXIT'; \
+		echo 'env -i PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" TERM="$TERM" chroot '"'$PWD'"' "$@"'; \
+	} > /usr/local/bin/tcl-chroot; \
+	chmod +x /usr/local/bin/tcl-chroot
+
+# add new "docker" user (and replace "tc" user usage with "docker")
+RUN tcl-chroot adduser \
+		-h /home/docker \
+		-g 'Docker' \
+		-s /bin/sh \
+		-G staff \
+		-D \
+		-u 1000 \
+		docker \
+	; \
+	echo 'docker:tcuser' | tcl-chroot chpasswd; \
+	echo 'docker ALL = NOPASSWD: ALL' >> etc/sudoers; \
+	sed -i 's/USER="tc"/USER="docker"/g' etc/init.d/tc-* etc/init.d/services/*
+
+# https://github.com/tatsushid/docker-tinycore/blob/017b258a08a41399f65250c9865a163226c8e0bf/8.2/x86_64/Dockerfile
+RUN mkdir -p proc; \
+	touch proc/cmdline; \
+	mkdir -p tmp/tce/optional usr/local/tce.installed/optional; \
+	chown -R root:staff tmp/tce usr/local/tce.installed; \
+	chmod -R g+w tmp/tce; \
+	ln -sT ../../tmp/tce etc/sysconfig/tcedir; \
+	echo -n docker > etc/sysconfig/tcuser; \
+	tcl-chroot sh -c '. /etc/init.d/tc-functions && setupHome'
+
+# packages (and their deps) that we either need for our "tce-load" patches or that dep on "...-KERNEL" which we don't need (since we build our own kernel)
+# http://distro.ibiblio.org/tinycorelinux/8.x/x86_64/tcz/squashfs-tools.tcz.dep
+# http://distro.ibiblio.org/tinycorelinux/8.x/x86_64/tcz/squashfs-tools.tcz.md5.txt
+# updated via "update.sh"
+ENV TCL_PACKAGES="squashfs-tools.tcz liblzma.tcz lzo.tcz libzstd.tcz" TCL_PACKAGE_MD5__squashfs_tools_tcz="a44331fa2117314e62267147b6876a49" TCL_PACKAGE_MD5__liblzma_tcz="32b4958b9cb03d54d2d1d50df5bed699" TCL_PACKAGE_MD5__lzo_tcz="c9a1260675774c50cea1a490978b100d" TCL_PACKAGE_MD5__libzstd_tcz="a7f383473a4ced6c79e8b1a0cc9ad167"
+
+RUN for package in $TCL_PACKAGES; do \
+		eval 'md5="$TCL_PACKAGE_MD5__'"$(echo "$package" | sed -r 's/[^a-zA-Z0-9]+/_/g')"'"'; \
+		echo "$md5 *$package" > "usr/local/tce.installed/optional/$package.md5.txt"; \
+		for mirror in $TCL_MIRRORS; do \
+			if \
+				wget -O "usr/local/tce.installed/optional/$package" "$mirror/$TCL_MAJOR/x86_64/tcz/$package" \
+				&& ( cd usr/local/tce.installed/optional && md5sum -c "$package.md5.txt" ) \
+			; then \
+				break; \
+			fi; \
+		done; \
+		( cd usr/local/tce.installed/optional && md5sum -c "$package.md5.txt" ); \
+		unsquashfs -dest . -force "usr/local/tce.installed/optional/$package"; \
+		touch "usr/local/tce.installed/${package%.tcz}"; \
+# pretend this package has no deps (we already installed them)
+		touch "usr/local/tce.installed/optional/$package.dep"; \
+	done; \
 	\
-	&& find kmods/ -name '*.ko' -exec cp {} "$ROOTFS/lib/modules/$KERNEL_VERSION-boot2docker/" ';'
+	tcl-chroot ldconfig; \
+	for script in usr/local/tce.installed/*; do \
+		[ -f "$script" ] || continue; \
+		[ -x "$script" ] || continue; \
+		tcl-chroot "$script"; \
+	done; \
+	\
+	patch \
+		--input /tce-load.patch \
+		--strip 1 \
+		--verbose \
+	; \
+	\
+	{ \
+		echo '#!/bin/bash -Eeux'; \
+		echo 'tcl-chroot su -c "tce-load -wicl \"\$@\"" docker -- - "$@"'; \
+	} > /usr/local/bin/tcl-tce-load; \
+	chmod +x /usr/local/bin/tcl-tce-load
 
-# verify that all the above actually worked (at least producing a valid binary, so we don't repeat issue #1157)
-RUN chroot "$ROOTFS" prltoolsd -V
+RUN tcl-tce-load bash; \
+	tcl-chroot bash --version; \
+# delete all the TCL user-specific profile/rc files -- they have odd settings like auto-login from interactive root directly to "tcuser"
+# (and the bash-provided defaults are reasonably sane)
+	rm -vf \
+		home/docker/.ashrc \
+		home/docker/.bashrc \
+		home/docker/.profile \
+		root/.ashrc \
+		root/.bashrc \
+		root/.profile \
+	; \
+	echo 'source /etc/profile' > home/docker/.profile; \
+	echo 'source /etc/profile' > root/.profile; \
+# swap "docker" (and "root") user shell from /bin/sh to /bin/bash now that it exists
+	sed -ri '/^(docker|root):/ s!:[^:]*$!:/bin/bash!' etc/passwd; \
+	grep -E '^root:' etc/passwd | grep bash; \
+	grep -E '^docker:' etc/passwd | grep bash; \
+# /etc/profile has a minor root bug where it uses "\#" in PS1 instead of "\$" (so we get a counter in our prompt instead of a "#")
+# but also, does not use \[ and \] for escape sequences, so Bash readline gets confused, so let's replace it outright with something perty
+	grep '\\#' etc/profile; \
+	echo 'PS1='"'"'\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '"'"'' > etc/profile.d/boot2docker-ps1.sh; \
+	source etc/profile.d/boot2docker-ps1.sh; \
+	[ "$PS1" = '\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ ' ]
 
-# Build XenServer Tools
-ENV XEN_REPO https://github.com/xenserver/xe-guest-utilities
-ENV XEN_VERSION v6.6.80
+# https://www.kernel.org/category/signatures.html#important-fingerprints
+ENV LINUX_GPG_KEYS \
+# Linus Torvalds
+		ABAF11C65A2970B130ABE3C479BE3E4300411886 \
+# Greg Kroah-Hartman
+		647F28654894E3BD457199BE38DBBDC86092693E
 
-RUN set -ex \
-	&& git clone --single-branch -b "$XEN_VERSION" "$XEN_REPO" /xentools \
-	&& make -C /xentools \
-	&& tar xvf /xentools/build/dist/*.tgz -C "$ROOTFS"
+# updated via "update.sh"
+ENV LINUX_VERSION 4.14.69
 
-# TODO find a binary we can attempt running that will verify at least on the surface level that the xentools are working
+RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.xz"; \
+	wget -O /linux.tar.asc "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.sign"; \
+	\
+# decompress (signature is for the decompressed file)
+	xz --decompress /linux.tar.xz; \
+	[ -f /linux.tar ] && [ ! -f /linux.tar.xz ]; \
+	\
+# verify
+	export GNUPGHOME="$(mktemp -d)"; \
+	for key in $LINUX_GPG_KEYS; do \
+		for mirror in \
+			ha.pool.sks-keyservers.net \
+			pgp.mit.edu \
+			hkp://p80.pool.sks-keyservers.net:80 \
+			ipv4.pool.sks-keyservers.net \
+			keyserver.ubuntu.com \
+			hkp://keyserver.ubuntu.com:80 \
+		; do \
+			if gpg --verbose --keyserver "$mirror" --keyserver-options timeout=5 --recv-keys "$key"; then \
+				break; \
+			fi; \
+		done; \
+		gpg --fingerprint "$key"; \
+	done; \
+	gpg --batch --verify /linux.tar.asc /linux.tar; \
+	gpgconf --kill all; \
+	rm -rf "$GNUPGHOME"; \
+	\
+# extract
+	tar --extract --file /linux.tar --directory /usr/src; \
+	rm /linux.tar /linux.tar.asc; \
+	ln -sT "linux-$LINUX_VERSION" /usr/src/linux; \
+	[ -d /usr/src/linux ]
 
-# Build the Hyper-V KVP Daemon
-RUN set -ex \
-	&& make -C /linux-kernel headers_install \
-	&& cd /linux-kernel/tools/hv \
-	&& sed -i 's!\(^CFLAGS = .*\)!\1 -I/tmp/kheaders/include!' Makefile \
-	&& make hv_kvp_daemon \
-	&& cp hv_kvp_daemon $ROOTFS/usr/sbin \
-	&& rm -rf /tmp/kheaders
+RUN { \
+		echo '#!/usr/bin/env bash'; \
+		echo 'set -Eeuo pipefail'; \
+		echo 'while [ "$#" -gt 0 ]; do'; \
+		echo 'conf="${1%%=*}"; shift'; \
+		echo 'conf="${conf#CONFIG_}"'; \
+# https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt
+		echo 'find /usr/src/linux/ \
+			-name Kconfig \
+			-exec awk -v conf="$conf" '"'"' \
+				$1 ~ /^(menu)?config$/ && $2 == conf { \
+					yes = 1; \
+					printf "-- %s:%s --\n", FILENAME, FNR; \
+					print; \
+					next; \
+				} \
+				$1 ~ /^(end)?((menu)?config|choice|comment|menu|if|source)$/ { yes = 0; next } \
+# TODO parse help text properly (indentation-based) to avoid false positives when scraping deps
+				yes { print; next } \
+			'"'"' "{}" + \
+		'; \
+		echo 'done'; \
+	} > /usr/local/bin/linux-kconfig-info; \
+	chmod +x /usr/local/bin/linux-kconfig-info; \
+	linux-kconfig-info CGROUPS
 
-# Make sure that all the modules we might have added are recognized (especially VBox guest additions)
-RUN depmod -a -b "$ROOTFS" "$KERNEL_VERSION-boot2docker"
+COPY files/kernel-config.d /kernel-config.d
 
-COPY VERSION $ROOTFS/etc/version
-RUN cp -v "$ROOTFS/etc/version" /tmp/iso/version
+RUN setConfs="$(grep -vEh '^[#-]' /kernel-config.d/* | sort -u)"; \
+	unsetConfs="$(sed -n 's/^-//p' /kernel-config.d/* | sort -u)"; \
+	IFS=$'\n'; \
+	setConfs=( $setConfs ); \
+	unsetConfs=( $unsetConfs ); \
+	unset IFS; \
+	\
+	make -C /usr/src/linux \
+		defconfig \
+		kvmconfig \
+		xenconfig \
+		> /dev/null; \
+	\
+	( \
+		set +x; \
+		for conf in "${unsetConfs[@]}"; do \
+			sed -i -e "s!^$conf=.*\$!# $conf is not set!" /usr/src/linux/.config; \
+		done; \
+		for confV in "${setConfs[@]}"; do \
+			conf="${confV%%=*}"; \
+			sed -ri -e "s!^($conf=.*|# $conf is not set)\$!$confV!" /usr/src/linux/.config; \
+			if ! grep -q "^$confV\$" /usr/src/linux/.config; then \
+				echo "$confV" >> /usr/src/linux/.config; \
+			fi; \
+		done; \
+	); \
+	make -C /usr/src/linux olddefconfig; \
+	set +x; \
+	ret=; \
+	for conf in "${unsetConfs[@]}"; do \
+		if grep "^$conf=" /usr/src/linux/.config; then \
+			echo "$conf is set!"; \
+			ret=1; \
+		fi; \
+	done; \
+	for confV in "${setConfs[@]}"; do \
+		if ! grep -q "^$confV\$" /usr/src/linux/.config; then \
+			kconfig="$(linux-kconfig-info "$confV")"; \
+			echo >&2; \
+			echo >&2 "'$confV' is not set:"; \
+			echo >&2; \
+			echo >&2 "$kconfig"; \
+			echo >&2; \
+			for dep in $(awk '$1 == "depends" && $2 == "on" { $1 = ""; $2 = ""; gsub(/[^a-zA-Z0-9_-]+/, " "); print }' <<<"$kconfig"); do \
+				grep >&2 -E "^CONFIG_$dep=|^# CONFIG_$dep is not set$" /usr/src/linux/.config || :; \
+			done; \
+			echo >&2; \
+			ret=1; \
+		fi; \
+	done; \
+	[ -z "$ret" ] || exit "$ret"
 
-ENV DOCKER_CHANNEL edge
+RUN make -C /usr/src/linux -j "$(nproc)" bzImage modules; \
+	make -C /usr/src/linux INSTALL_MOD_PATH="$PWD" modules_install
+RUN mkdir -p /tmp/iso/boot; \
+	cp -vLT /usr/src/linux/arch/x86_64/boot/bzImage /tmp/iso/boot/vmlinuz
+
+RUN tcl-tce-load \
+		acpid \
+		bash-completion \
+		ca-certificates \
+		curl \
+		e2fsprogs \
+		git \
+		iproute2 \
+		iptables \
+		ncurses-terminfo \
+		nfs-utils \
+		openssh \
+		openssl \
+		parted \
+		procps \
+		rsync \
+		tar \
+		util-linux \
+		xz
+
+# bash-completion puts auto-load in /usr/local/etc/profile.d instead of /etc/profile.d
+# (this one-liner is the same as the loop at the end of /etc/profile with an adjusted search path)
+RUN echo 'for i in /usr/local/etc/profile.d/*.sh ; do if [ -r "$i" ]; then . $i; fi; done' > etc/profile.d/usr-local-etc-profile-d.sh; \
+# Docker expects to find certs in /etc/ssl
+	ln -svT ../usr/local/etc/ssl etc/ssl; \
+# make sure the Docker group exists and we're part of it
+	tcl-chroot sh -eux -c 'addgroup -S docker && addgroup docker docker'
+
+# install kernel headers so we can use them for building xen-utils, etc
+RUN make -C /usr/src/linux INSTALL_HDR_PATH=/usr/local headers_install
+
+# https://lkml.org/lkml/2018/4/12/711 (https://github.com/boot2docker/boot2docker/pull/1322)
+# https://github.com/jirka-h/haveged/releases
+ENV HAVEGED_VERSION 1.9.4
+RUN wget -O /haveged.tgz "https://github.com/jirka-h/haveged/archive/${HAVEGED_VERSION}.tar.gz"; \
+	mkdir /usr/src/haveged; \
+	tar --extract --file /haveged.tgz --directory /usr/src/haveged --strip-components 1; \
+	rm /haveged.tgz
+# https://debbugs.gnu.org/11064 (libtool eats "-static", gcc doesn't mind getting "--static" even more than once)
+RUN ( cd /usr/src/haveged && ./configure LDFLAGS='-static --static' ); \
+	make -C /usr/src/haveged/src -j "$(nproc)" haveged; \
+	cp -v /usr/src/haveged/src/haveged usr/local/sbin/; \
+	strip usr/local/sbin/haveged; \
+	tcl-chroot haveged --run 1
+
+# http://download.virtualbox.org/virtualbox/
+# updated via "update.sh"
+ENV VBOX_VERSION 5.2.18
+# https://www.virtualbox.org/download/hashes/$VBOX_VERSION/SHA256SUMS
+ENV VBOX_SHA256 f98b6ad7093ee0b27d26dea565b197a5f33fdac93c4b67e73824ce889d6c964c
+# (VBoxGuestAdditions_X.Y.Z.iso SHA256, for verification)
+
+RUN wget -O /vbox.iso "https://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso"; \
+	echo "$VBOX_SHA256 */vbox.iso" | sha256sum -c -; \
+	7z x -o/ /vbox.iso VBoxLinuxAdditions.run; \
+	rm /vbox.iso; \
+	sh /VBoxLinuxAdditions.run --noexec --target /usr/src/vbox; \
+	mkdir /usr/src/vbox/amd64; \
+	7z x -so /usr/src/vbox/VBoxGuestAdditions-amd64.tar.bz2 | tar --extract --directory /usr/src/vbox/amd64; \
+	rm /usr/src/vbox/VBoxGuestAdditions-*.tar.bz2; \
+	ln -sT "vboxguest-$VBOX_VERSION" /usr/src/vbox/amd64/src/vboxguest
+RUN make -C /usr/src/vbox/amd64/src/vboxguest -j "$(nproc)" \
+		KERN_DIR='/usr/src/linux' \
+		KERN_VER="$(< /usr/src/linux/include/config/kernel.release)" \
+	; \
+	cp -v /usr/src/vbox/amd64/src/vboxguest/*.ko lib/modules/*/; \
+# create hacky symlink so these binaries can work as-is
+	ln -sT lib lib64; \
+	cp -v /usr/src/vbox/amd64/other/mount.vboxsf /usr/src/vbox/amd64/sbin/VBoxService sbin/; \
+	cp -v /usr/src/vbox/amd64/bin/VBoxControl bin/
+
+# TCL includes VMware's open-vm-tools 10.2.0.1608+ (no reason to compile that ourselves)
+RUN tcl-tce-load open-vm-tools; \
+	tcl-chroot vmhgfs-fuse --version; \
+	tcl-chroot vmtoolsd --version
+
+ENV PARALLELS_VERSION 13.3.0-43321
+
+RUN wget -O /parallels.tgz "https://download.parallels.com/desktop/v${PARALLELS_VERSION%%.*}/$PARALLELS_VERSION/ParallelsTools-$PARALLELS_VERSION-boot2docker.tar.gz"; \
+	mkdir /usr/src/parallels; \
+	tar --extract --file /parallels.tgz --directory /usr/src/parallels --strip-components 1; \
+	rm /parallels.tgz
+RUN cp -vr /usr/src/parallels/tools/* ./; \
+	make -C /usr/src/parallels/kmods -f Makefile.kmods -j "$(nproc)" installme \
+		SRC='/usr/src/linux' \
+		KERNEL_DIR='/usr/src/linux' \
+		KVER="$(< /usr/src/linux/include/config/kernel.release)" \
+		PRL_FREEZE_SKIP=1 \
+	; \
+	find /usr/src/parallels/kmods -name '*.ko' -exec cp -v '{}' lib/modules/*/ ';'; \
+	tcl-chroot prltoolsd -V
+
+# https://github.com/xenserver/xe-guest-utilities/tags
+# updated via "update.sh"
+ENV XEN_VERSION 7.10.0
+
+RUN wget -O /xen.tgz "https://github.com/xenserver/xe-guest-utilities/archive/v$XEN_VERSION.tar.gz"; \
+	mkdir /usr/src/xen; \
+	tar --extract --file /xen.tgz --directory /usr/src/xen --strip-components 1; \
+	rm /xen.tgz
+RUN make -C /usr/src/xen -j "$(nproc)" PRODUCT_VERSION="$XEN_VERSION" RELEASE='boot2docker'; \
+	tar --extract --file "/usr/src/xen/build/dist/xe-guest-utilities_$XEN_VERSION-boot2docker_x86_64.tgz"; \
+	tcl-chroot xenstore || [ "$?" = 1 ]
+
+# Hyper-V KVP Daemon
+RUN make -C /usr/src/linux/tools/hv hv_kvp_daemon; \
+	cp /usr/src/linux/tools/hv/hv_kvp_daemon usr/local/sbin/; \
+	tcl-chroot hv_kvp_daemon --help || [ "$?" = 1 ]
+
+# scan all built modules for kernel loading
+RUN tcl-chroot depmod "$(< /usr/src/linux/include/config/kernel.release)"
+
+# https://github.com/tianon/cgroupfs-mount/releases
+ENV CGROUPFS_MOUNT_VERSION 1.4
+
+RUN wget -O usr/local/sbin/cgroupfs-mount "https://github.com/tianon/cgroupfs-mount/raw/${CGROUPFS_MOUNT_VERSION}/cgroupfs-mount"; \
+	chmod +x usr/local/sbin/cgroupfs-mount; \
+	tcl-chroot cgroupfs-mount
+
+ENV DOCKER_VERSION 18.09.0-ce-beta1
 
 # Get the Docker binaries with version that matches our boot2docker version.
-RUN set -ex; \
-	version="$(cat "$ROOTFS/etc/version")"; \
-	case "$version" in \
+RUN DOCKER_CHANNEL='edge'; \
+	case "$DOCKER_VERSION" in \
 # all the pre-releases go in the "test" channel
 		*-rc* | *-beta* | *-tp* ) DOCKER_CHANNEL='test' ;; \
 	esac; \
-	curl -fSL -o /tmp/dockerbin.tgz "https://download.docker.com/linux/static/$DOCKER_CHANNEL/x86_64/docker-$version.tgz"; \
-	tar -zxvf /tmp/dockerbin.tgz -C "$ROOTFS/usr/local/bin" --strip-components=1; \
-	rm /tmp/dockerbin.tgz; \
-	chroot "$ROOTFS" docker -v
+	\
+	wget -O /docker.tgz "https://download.docker.com/linux/static/$DOCKER_CHANNEL/x86_64/docker-$DOCKER_VERSION.tgz"; \
+	tar -zxvf /docker.tgz -C "usr/local/bin" --strip-components=1; \
+	rm /docker.tgz; \
+	\
+# download bash-completion too
+	wget -O usr/local/share/bash-completion/completions/docker "https://github.com/docker/docker-ce/raw/v${DOCKER_VERSION}/components/cli/contrib/completion/bash/docker"; \
+	\
+	for binary in \
+		docker \
+		docker-containerd \
+		docker-containerd-ctr \
+		docker-init \
+		docker-runc \
+		dockerd \
+	; do \
+		chroot . "$binary" --version; \
+	done
 
-# Copy our custom rootfs
-COPY rootfs/rootfs $ROOTFS
+# set up a few branding bits
+RUN { \
+		echo 'NAME=Boot2Docker'; \
+		echo "VERSION=$DOCKER_VERSION"; \
+		echo 'ID=boot2docker'; \
+		echo 'ID_LIKE=tcl'; \
+		echo "VERSION_ID=$DOCKER_VERSION"; \
+		echo "PRETTY_NAME=\"Boot2Docker $DOCKER_VERSION (TCL $TCL_VERSION)\""; \
+		echo 'ANSI_COLOR="1;34"'; \
+		echo 'HOME_URL="https://github.com/boot2docker/boot2docker"'; \
+		echo 'SUPPORT_URL="https://blog.docker.com/2016/11/introducing-docker-community-directory-docker-community-slack/"'; \
+		echo 'BUG_REPORT_URL="https://github.com/boot2docker/boot2docker/issues"'; \
+	} > etc/os-release; \
+	sed -i 's/HOSTNAME="box"/HOSTNAME="boot2docker"/g' usr/bin/sethostname; \
+	tcl-chroot sethostname; \
+	[ "$(< etc/hostname)" = 'boot2docker' ]; \
+	for num in 0 1 2 3; do \
+		echo "server $num.boot2docker.pool.ntp.org"; \
+	done > etc/ntp.conf; \
+	rm -v etc/sysconfig/ntpserver
 
-# setup acpi config dir &
-# tcl6's sshd is compiled without `/usr/local/sbin` in the path
-# Boot2Docker and Docker Machine need `ip`, so link it elsewhere
-RUN ln -svT /usr/local/etc/acpi "$ROOTFS/etc/acpi" \
-	&& ln -svT /usr/local/sbin/ip "$ROOTFS/usr/sbin/ip"
+COPY files/forgiving-getty files/shutdown ./usr/local/sbin/
 
-# These steps should only be run once, so can't be in make_iso.sh (which can be run in chained Dockerfiles)
-# see https://github.com/boot2docker/boot2docker/blob/master/doc/BUILD.md
+# getty/inittab setup
+RUN awk -F: ' \
+		$1 == "tty1" { \
+			print "tty1::respawn:/usr/local/sbin/forgiving-getty tty1"; \
+			print "ttyS0::respawn:/usr/local/sbin/forgiving-getty ttyS0"; \
+			next; \
+		} \
+		$1 ~ /^#?tty/ { next } \
+		{ print } \
+	' etc/inittab > etc/inittab.new; \
+	mv etc/inittab.new etc/inittab; \
+	grep forgiving-getty etc/inittab; \
+# /sbin/autologin likes to invoke getty directly, so we skip that noise (especially since we want to always autologin)
+# (and getty's "-l" argument cannot accept anything but a single command to "exec" directly -- no args)
+# (and getty's "-n" argument to autologin doesn't seem to work properly)
+	{ \
+		echo '#!/bin/sh'; \
+		echo 'user="$(cat /etc/sysconfig/tcuser 2>/dev/null)"'; \
+		echo 'exec login -f "${user:-docker}"'; \
+	} > usr/local/sbin/autologin; \
+	chmod +x usr/local/sbin/autologin
 
-# Make sure init scripts are executable
-RUN find "$ROOTFS/etc/rc.d/" "$ROOTFS/usr/local/etc/init.d/" -type f -exec chmod --changes +x '{}' +
+# ssh config prep
+RUN [ ! -f usr/local/etc/sshd_config ]; \
+	sed -r \
+		-e 's/^#(UseDNS[[:space:]])/\1/' \
+		-e 's/^#(PermitUserEnvironment)[[:space:]].*$/\1 yes/' \
+		usr/local/etc/ssh/sshd_config.orig \
+		> usr/local/etc/ssh/sshd_config; \
+	grep '^UseDNS no$' usr/local/etc/ssh/sshd_config; \
+# "This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
+# (and there are several important binaries in /usr/local/sbin that "docker-machine" needs to invoke like "ip" and "iptables")
+	grep '^PermitUserEnvironment yes$' usr/local/etc/ssh/sshd_config; \
+	mkdir -p home/docker/.ssh; \
+	echo 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' > home/docker/.ssh/environment; \
+# acpid prep (looks in the wrong path for /etc/acpi)
+	ln -sT ../usr/local/etc/acpi etc/acpi; \
+	[ -z "$(ls -A etc/acpi/events)" ]; \
+	{ echo 'event=button/power'; echo 'action=/usr/bin/env poweroff'; } > etc/acpi/events/power; \
+# explicit UTC timezone (especially for container bind-mounting)
+	echo 'UTC' > etc/timezone; \
+	cp -vL /usr/share/zoneinfo/UTC etc/localtime; \
+# "dockremap" user/group so "--userns-remap=default" works out-of-the-box
+	tcl-chroot addgroup -S dockremap; \
+	tcl-chroot adduser -S -G dockremap dockremap; \
+	echo 'dockremap:165536:65536' | tee etc/subuid | tee etc/subgid
 
-# move dhcp.sh out of init.d as we're triggering it manually so its ready a bit faster
-RUN mv -v "$ROOTFS/etc/init.d/dhcp.sh" "$ROOTFS/etc/rc.d/"
+RUN savedAptMark="$(apt-mark showmanual)"; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends \
+		isolinux \
+		syslinux-common \
+	; \
+	rm -rf /var/lib/apt/lists/*; \
+	mkdir -p /tmp/iso/isolinux; \
+	cp -v \
+		/usr/lib/ISOLINUX/isolinux.bin \
+		/usr/lib/syslinux/modules/bios/ldlinux.c32 \
+		/usr/lib/syslinux/modules/bios/libutil.c32 \
+		/usr/lib/syslinux/modules/bios/menu.c32 \
+		/tmp/iso/isolinux/ \
+	; \
+	cp -v /usr/lib/ISOLINUX/isohdpfx.bin /tmp/; \
+	apt-mark auto '.*' > /dev/null; \
+	apt-mark manual $savedAptMark; \
+	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
+COPY files/isolinux.cfg /tmp/iso/isolinux/
 
-# Add serial console
-RUN set -ex; \
-	for s in 0 1 2 3; do \
-		echo "ttyS${s}:2345:respawn:/usr/local/bin/forgiving-getty ttyS${s}" >> "$ROOTFS/etc/inittab"; \
-	done; \
-	cat "$ROOTFS/etc/inittab"
+COPY files/init.d/* ./etc/init.d/
+COPY files/bootsync.sh ./opt/
 
-# fix "su -"
-RUN echo root > "$ROOTFS/etc/sysconfig/superuser"
+# temporary boot debugging aid
+#RUN sed -i '2i set -x' etc/init.d/tc-config
 
-# add some timezone files so we're explicit about being UTC
-RUN echo 'UTC' > "$ROOTFS/etc/timezone" \
-	&& cp -vL /usr/share/zoneinfo/UTC "$ROOTFS/etc/localtime"
+COPY files/make-b2d-iso.sh /usr/local/bin/
+RUN time make-b2d-iso.sh; \
+	du -hs /tmp/boot2docker.iso
 
-# make sure the "docker" group exists already
-RUN chroot "$ROOTFS" addgroup -S docker
-
-# set up subuid/subgid so that "--userns-remap=default" works out-of-the-box
-# (see also rootfs/rootfs/etc/sub{uid,gid})
-RUN set -x \
-	&& chroot "$ROOTFS" addgroup -S dockremap \
-	&& chroot "$ROOTFS" adduser -S -G dockremap dockremap
-
-# Get the git versioning info
-COPY .git /git/.git
-RUN set -ex \
-	&& GIT_BRANCH="$(git -C /git rev-parse --abbrev-ref HEAD)" \
-	&& GITSHA1="$(git -C /git rev-parse --short HEAD)" \
-	&& DATE="$(date)" \
-	&& echo "${GIT_BRANCH} : ${GITSHA1} - ${DATE}" \
-		| tee "$ROOTFS/etc/boot2docker"
-
-# Copy boot params
-COPY rootfs/isolinux /tmp/iso/boot/isolinux
-
-COPY rootfs/make_iso.sh /tmp/make_iso.sh
-
-RUN /tmp/make_iso.sh
-
-CMD ["sh", "-c", "[ -t 1 ] && exec bash || exec cat boot2docker.iso"]
+CMD ["sh", "-c", "[ -t 1 ] && exec bash || exec cat /tmp/boot2docker.iso"]

@@ -1,0 +1,255 @@
+#!/bin/sh
+# dockerd start script
+
+if [ "$(id -u)" != 0 ]; then
+	echo >&2 "error: must be root to invoke $0"
+	exit 1
+fi
+
+#import settings from profile (e.g. HTTP_PROXY, HTTPS_PROXY)
+test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
+
+: ${DOCKER_STORAGE:=auto}
+: ${DOCKER_DIR:=/var/lib/docker}
+
+
+# before setting defaults, let's check what was in /var/lib/boot2docker/profile
+if [ -e '/var/lib/boot2docker/userdata.tar' ] && [ ! -e '/var/lib/boot2docker/profile' ]; then
+	# if userdata.tar exists and profile doesn't (yet), we must be using docker-machine, which expects to check that the daemon is up and running _before_ it configures TLS (?????)
+	DOCKER_REMOTE=yes
+	# https://github.com/docker/machine/blob/19035310d4ba1b58056aae427ea669d1db5fc618/libmachine/provision/boot2docker.go#L242-L246
+fi
+if { [ -n "$DOCKER_TLS" ] || [ -n "$DOCKER_HOST" ]; } && [ -z "$DOCKER_REMOTE" ]; then
+	# if /var/lib/boot2docker/profile sets either of DOCKER_TLS or DOCKER_HOST but not DOCKER_REMOTE, so let's assume the user intended for DOCKER_REMOTE=yes (backwards compat / Docker Machine compat)
+	DOCKER_REMOTE=yes
+	# https://github.com/docker/machine/blob/97c1136d1ec9ae4c3ab69fda615e3dd577809e5c/libmachine/provision/boot2docker.go#L143-L160
+fi
+
+: ${DOCKER_REMOTE:=no} # 'yes' or anything else for 'no'
+: ${DOCKER_TLS:=yes} # 'no' or anything else for 'yes' (obviously has no effect if DOCKER_REMOTE is not explicitly "yes")
+: ${CERT_INTERFACES:='eth0 eth1'}
+: ${CERTDIR:=/var/lib/boot2docker/tls}
+: ${CACERT:="${CERTDIR}/ca.pem"}
+: ${CAKEY:="${CERTDIR}/cakey.pem"}
+: ${CASRL:="${CERTDIR}/ca.srl"}
+: ${SERVERCERT:="${CERTDIR}/server.pem"}
+: ${SERVERKEY:="${CERTDIR}/serverkey.pem"}
+: ${SERVERCSR:="${CERTDIR}/server.csr"}
+: ${CERT:="${CERTDIR}/client.pem"}
+: ${KEY:="${CERTDIR}/clientkey.pem"}
+: ${CSR:="${CERTDIR}/client.csr"}
+: ${ORG:=Boot2Docker}
+: ${SERVERORG:="${ORG}"}
+: ${CAORG:="${ORG} CA"} # append 'CA'; see https://rt.openssl.org/Ticket/History.html?id=3979&user=guest&pass=guest
+
+USERHOME="$(awk -F: '$1 == "docker" { print $6; exit }' /etc/passwd)"
+: ${USERHOME:=/home/docker}
+USERUIDGID="$(awk -F: '$1 == "docker" { print $3 ":" $4; exit }' /etc/passwd)"
+: ${USERUIDGID:=docker}
+USERCFG="$USERHOME/.docker"
+
+PIDFILE='/var/run/docker.pid'
+pid() {
+	if [ -s "$PIDFILE" ]; then
+		local pid
+		pid="$(cat "$PIDFILE")"
+		if ps "$pid" > /dev/null 2>&1; then
+			echo "$pid"
+			return 0
+		fi
+	fi
+	return 1
+}
+
+start() {
+	if pid="$(pid)"; then
+		echo >&2 "error: Docker daemon is already running ($pid)"
+		exit 1
+	fi
+
+	if [ ! -e /etc/docker ]; then
+		echo 'Linking /etc/docker to /var/lib/boot2docker for persistence'
+		mkdir -p /var/lib/boot2docker/etc/docker
+		rm -rf /etc/docker
+		ln -sf /var/lib/boot2docker/etc/docker /etc/docker
+	fi
+
+	if [ 'yes' = "$DOCKER_REMOTE" ]; then
+		if [ 'no' = "$DOCKER_TLS" ]; then
+			[ -n "$DOCKER_HOST" ] || DOCKER_HOST='-H tcp://0.0.0.0:2375'
+			EXTRA_ARGS="$EXTRA_ARGS $DOCKER_HOST"
+		else
+			# see https://docs.docker.com/articles/https/
+			# and https://gist.github.com/Stono/7e6fed13cfd79598eb15
+			[ -n "$DOCKER_HOST" ] || DOCKER_HOST='-H tcp://0.0.0.0:2376'
+			EXTRA_ARGS="$EXTRA_ARGS $DOCKER_HOST --tlsverify"
+			mkdir -p "$CERTDIR"
+			chmod 700 "$CERTDIR"
+			if [ ! -f "$CAKEY" ]; then
+				echo "Generating $CAKEY"
+				openssl genrsa \
+					-out "$CAKEY" \
+					4096
+			fi
+			if [ ! -f "$CACERT" ]; then
+				echo "Generating $CACERT"
+				openssl req \
+					-new \
+					-key "$CAKEY" \
+					-x509 \
+					-days 365 \
+					-nodes \
+					-subj "/O=$CAORG" \
+					-out "$CACERT"
+			fi
+			EXTRA_ARGS="$EXTRA_ARGS --tlscacert=$CACERT"
+			if [ ! -f "$CASRL" ]; then
+				echo '01' > "$CASRL"
+			fi
+			if [ ! -f "$SERVERKEY" ]; then
+				echo "Generating $SERVERKEY"
+				openssl genrsa \
+					-out "$SERVERKEY" \
+					4096
+			fi
+			EXTRA_ARGS="$EXTRA_ARGS --tlskey=$SERVERKEY"
+			if [ ! -f "$SERVERCERT" ]; then
+				echo "Generating $SERVERCERT"
+				commonName="$(hostname -s)"
+				altName="IP:$(hostname -i)"
+				altName="$altName,IP:127.0.0.1"
+				altName="$altName,DNS:localhost,DNS:localhost.local"
+				altName="$altName,IP:::1"
+				altName="$altName,DNS:ip6-localhost,DNS:ip6-loopback"
+				for interface in $CERT_INTERFACES; do
+					ips=$(ip addr show "$interface" | awk -F '[/[:space:]]+' '$2 == "inet" { print $3 }')
+					for ip in $ips; do
+						altName="$altName,IP:$ip"
+					done
+				done
+				openssl req \
+					-new \
+					-key "$SERVERKEY" \
+					-subj "/O=$SERVERORG/CN=$commonName" \
+					-out "$SERVERCSR"
+				extfile="$CERTDIR/extfile.cnf"
+				echo "subjectAltName = $altName" > "$extfile"
+				openssl x509 \
+					-req \
+					-days 365 \
+					-in "$SERVERCSR" \
+					-CA "$CACERT" \
+					-CAkey "$CAKEY" \
+					-out "$SERVERCERT" \
+					-extfile "$extfile"
+				rm "$extfile"
+			fi
+			EXTRA_ARGS="$EXTRA_ARGS --tlscert=$SERVERCERT"
+			if [ ! -f "$KEY" ]; then
+				echo "Generating $KEY"
+				openssl genrsa \
+					-out "$KEY" \
+					4096
+			fi
+			if [ ! -f "$CERT" ]; then
+				echo "Generating $CERT"
+				openssl req \
+					-new \
+					-key "$KEY" \
+					-subj "/O=$ORG" \
+					-out "$CSR"
+				extfile="$CERTDIR/extfile.cnf"
+				echo 'extendedKeyUsage = clientAuth' > "$extfile"
+				openssl x509 \
+					-req \
+					-days 365 \
+					-in "$CSR" \
+					-CA "$CACERT" \
+					-CAkey "$CAKEY" \
+					-out "$CERT" \
+					-extfile "$extfile"
+				rm "$extfile"
+			fi
+			mkdir -p "$USERCFG"
+			chmod 700 "$USERCFG"
+			chown "$USERUIDGID" "$USERCFG"
+			cp "$CACERT" "$USERCFG/ca.pem"
+			chown "$USERUIDGID" "$USERCFG/ca.pem"
+			cp "$CERT" "$USERCFG/cert.pem"
+			chown "$USERUIDGID" "$USERCFG/cert.pem"
+			cp "$KEY" "$USERCFG/key.pem"
+			chmod 700 "$USERCFG/key.pem"
+			chown "$USERUIDGID" "$USERCFG/key.pem"
+		fi
+	fi
+
+	if [ "$DOCKER_STORAGE" = 'aufs' ]; then
+		echo >&2 "warning: '$DOCKER_STORAGE' is not a supported storage driver for this boot2docker install -- ignoring request!"
+		echo >&2 " - see https://github.com/boot2docker/boot2docker/issues/1326 for more details"
+		DOCKER_STORAGE='auto'
+	fi
+	if [ -n "$DOCKER_STORAGE" ] && [ "$DOCKER_STORAGE" != 'auto' ]; then
+		EXTRA_ARGS="$EXTRA_ARGS --storage-driver $DOCKER_STORAGE"
+	fi
+
+	# https://github.com/docker/docker-ce-packaging/blob/468d37e0d6d303b785eb9bfc42612397d683c7e5/deb/systemd/docker.service#L15-L19
+	ulimit -n 1048576   # LimitNOFILE
+	ulimit -p unlimited # LimitNPROC
+	ulimit -c unlimited # LimitCORE
+
+	mkdir -p /var/lib/boot2docker/log
+
+	echo 'Starting dockerd'
+	dockerd --data-root "$DOCKER_DIR" -H unix:// $EXTRA_ARGS --pidfile "$PIDFILE" >> /var/lib/boot2docker/log/docker.log 2>&1 &
+}
+
+stop() {
+	if pid="$(pid)"; then
+		echo "Stopping dockerd ($pid)"
+		kill "$pid"
+
+		i=30
+		while pid > /dev/null; do
+			sleep 1
+			i=$(expr $i - 1)
+			if [ "$i" -le 0 ]; then
+				echo >&2 'error: failed to stop Docker daemon'
+				exit 1
+			fi
+		done
+	fi
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	if ! pid="$(pid)"; then
+		echo >&2 'error: Docker daemon is not running'
+		exit 1
+	fi
+	kill -s HUP "$pid"
+}
+
+status() {
+	if pid > /dev/null; then
+		echo 'Docker daemon is running'
+		exit 0
+	else
+		echo 'Docker daemon is not running'
+		exit 1
+	fi
+}
+
+case "$1" in
+	start|stop|restart|reload|status)
+		"$1"
+		;;
+
+	*)
+		echo "Usage $0 {start|stop|restart|reload|status}"
+		exit 1
+		;;
+esac

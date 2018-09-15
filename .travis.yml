@@ -5,11 +5,14 @@ services:
   - docker
 
 script:
-  - docker build -t boot2docker/boot2docker .
-  - docker run --rm boot2docker/boot2docker > boot2docker.iso
+  - kernDups="$(files/kernel-config.d/.check-dups.sh)" && [ -z "$kernDups" ] || { echo >&2 "KERNEL CONFIG DUPLICATES!"; echo >&2 "$kernDups"; false; }
+  - |
+    set -e
+    docker build -t boot2docker/boot2docker .
+    docker run --rm boot2docker/boot2docker > boot2docker.iso
 
 after_script:
   - docker images
-  - ls -l *.iso
+  - ls -lh boot2docker.iso
 
 # vim:set et ts=2 sw=2:

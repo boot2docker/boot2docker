@@ -1,0 +1,26 @@
+#!/bin/sh
+
+usage() {
+	cat <<-'EOF'
+		Usage: shutdown [-rh] time
+		        -r: reboot after shutdown.
+		        -h: halt after shutdown.
+		  ** the "time" argument is mandatory! (try "now") **
+	EOF
+}
+
+case "$1" in
+	-r) CMD='reboot' ;;
+	-h) CMD='poweroff' ;;
+	*) usage >&2; exit 1 ;;
+esac
+
+shift
+
+case "$1" in
+	now|+0) ;;
+	+[0-9]*) CMD="$CMD -d $(( $1 * 60))" ;;
+	*) usage >&2; exit 1 ;;
+esac
+
+exec $CMD

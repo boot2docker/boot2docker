@@ -1,3 +1,7 @@
-*.iso__BROKEN
 *.iso
-persist.raw
+*.md
+*.qcow2
+*.sh
+.dockerignore
+.git
+Dockerfile

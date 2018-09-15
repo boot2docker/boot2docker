@@ -1,0 +1,5 @@
+# https://github.com/boot2docker/boot2docker/issues/1254
+CONFIG_CEPH_FS=m
+CONFIG_CEPH_FSCACHE=y
+CONFIG_CEPH_FS_POSIX_ACL=y
+CONFIG_FSCACHE=m
