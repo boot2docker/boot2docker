@@ -440,12 +440,12 @@ RUN DOCKER_CHANNEL='edge'; \
 	wget -O usr/local/share/bash-completion/completions/docker "https://github.com/docker/docker-ce/raw/v${DOCKER_VERSION}/components/cli/contrib/completion/bash/docker"; \
 	\
 	for binary in \
+		containerd \
+		ctr \
 		docker \
-		docker-containerd \
-		docker-containerd-ctr \
 		docker-init \
-		docker-runc \
 		dockerd \
+		runc \
 	; do \
 		chroot . "$binary" --version; \
 	done
