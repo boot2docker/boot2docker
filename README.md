@@ -8,7 +8,7 @@ Boot2Docker is a lightweight Linux distribution made specifically to run
 
 ## Important Note
 
-Boot2Docker is officialy in **maintenance mode** -- it is recommended that users transition from Boot2Docker over to [Docker for Mac](https://www.docker.com/docker-mac) or [Docker for Windows](https://www.docker.com/docker-windows) instead.
+Boot2Docker is officially in **maintenance mode** -- it is recommended that users transition from Boot2Docker over to [Docker for Mac](https://www.docker.com/docker-mac) or [Docker for Windows](https://www.docker.com/docker-windows) instead.
 
 ## Features
 
