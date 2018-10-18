@@ -10,6 +10,10 @@ Boot2Docker is a lightweight Linux distribution made specifically to run
 
 Boot2Docker is officially in **maintenance mode** -- it is recommended that users transition from Boot2Docker over to [Docker for Mac](https://www.docker.com/docker-mac) or [Docker for Windows](https://www.docker.com/docker-windows) instead.
 
+What this means concretely is new Docker releases, kernel updates, etc, but concerted attempts to keep new features/functionality to an absolute minimum to ensure continued maintainability for the few folks who can't yet transition to the better-suited Docker for Windows / Docker for Mac products (Windows 7 users who can't Docker for Windows at all, Windows 10 Home users who thus can't Hyper-V, VirtualBox users who thus can't Hyper-V, etc etc).
+
+See [docker/machine#4537](https://github.com/docker/machine/issues/4537) for some useful discussion around Docker Machine also being in a similar state.
+
 ## Features
 
 * Recent Linux Kernel, Docker pre-installed and ready-to-use
