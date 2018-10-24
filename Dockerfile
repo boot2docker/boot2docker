@@ -183,7 +183,7 @@ ENV LINUX_GPG_KEYS \
 		647F28654894E3BD457199BE38DBBDC86092693E
 
 # updated via "update.sh"
-ENV LINUX_VERSION 4.14.74
+ENV LINUX_VERSION 4.14.78
 
 RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.xz"; \
 	wget -O /linux.tar.asc "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.sign"; \
@@ -351,9 +351,9 @@ RUN ( cd /usr/src/haveged && ./configure LDFLAGS='-static --static' ); \
 
 # http://download.virtualbox.org/virtualbox/
 # updated via "update.sh"
-ENV VBOX_VERSION 5.2.18
+ENV VBOX_VERSION 5.2.20
 # https://www.virtualbox.org/download/hashes/$VBOX_VERSION/SHA256SUMS
-ENV VBOX_SHA256 f98b6ad7093ee0b27d26dea565b197a5f33fdac93c4b67e73824ce889d6c964c
+ENV VBOX_SHA256 d3c4a0f79a1ff0c35190c530612d83b81a2035eb9f056237888d8b056c07005f
 # (VBoxGuestAdditions_X.Y.Z.iso SHA256, for verification)
 
 RUN wget -O /vbox.iso "https://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso"; \
