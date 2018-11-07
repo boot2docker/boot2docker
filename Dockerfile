@@ -41,7 +41,7 @@ ENV TCL_VERSION 8.2.1
 # updated via "update.sh"
 ENV TCL_ROOTFS="rootfs64.gz" TCL_ROOTFS_MD5="b4991d3c07b88649b61616f86f2f079f"
 
-COPY files/tce-load.patch /
+COPY files/tce-load.patch files/udhcpc.patch /tcl-patches/
 
 RUN for mirror in $TCL_MIRRORS; do \
 		if \
@@ -62,6 +62,14 @@ RUN for mirror in $TCL_MIRRORS; do \
 	; \
 	rm /rootfs.gz; \
 	\
+	for patch in /tcl-patches/*.patch; do \
+		patch \
+			--input "$patch" \
+			--strip 1 \
+			--verbose \
+		; \
+	done; \
+	\
 	{ \
 		echo '# https://1.1.1.1/'; \
 		echo 'nameserver 1.1.1.1'; \
@@ -71,6 +79,7 @@ RUN for mirror in $TCL_MIRRORS; do \
 		echo 'nameserver 8.8.8.8'; \
 		echo 'nameserver 8.8.4.4'; \
 	} > etc/resolv.conf; \
+	cp etc/resolv.conf etc/resolv.conf.b2d; \
 	{ \
 		echo '#!/usr/bin/env bash'; \
 		echo 'set -Eeuo pipefail'; \
@@ -137,12 +146,6 @@ RUN for package in $TCL_PACKAGES; do \
 		[ -x "$script" ] || continue; \
 		tcl-chroot "$script"; \
 	done; \
-	\
-	patch \
-		--input /tce-load.patch \
-		--strip 1 \
-		--verbose \
-	; \
 	\
 	{ \
 		echo '#!/bin/bash -Eeux'; \
