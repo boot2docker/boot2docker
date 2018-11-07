@@ -1,0 +1,17 @@
+Description: only empty "resolv.conf" when we get DNS from DHCP
+Author: "aheissenberger", Tianon Gravi
+Origin: http://forum.tinycorelinux.net/index.php/topic,16482.msg98078.html#msg98078
+
+diff --git a/usr/share/udhcpc/default.script b/usr/share/udhcpc/default.script
+index 98ebc15..abe4178 100755
+--- a/usr/share/udhcpc/default.script
++++ b/usr/share/udhcpc/default.script
+@@ -28,7 +28,7 @@ case "$1" in
+ 			done
+ 		fi
+ 
+-		echo -n > $RESOLV_CONF
++		[ -n "$dns" ] && echo -n > $RESOLV_CONF
+ 		[ -n "$domain" ] && echo search $domain >> $RESOLV_CONF
+ 		for i in $dns ; do
+ 			echo adding dns $i

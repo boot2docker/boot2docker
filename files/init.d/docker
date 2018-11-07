@@ -61,11 +61,21 @@ pid() {
 	return 1
 }
 
+_ensure_resolvconf() {
+	# sometimes (especially on VBox), "/etc/resolv.conf" ends up empty
+	# we detect that here and replace it with our original version since Docker needs it
+	if [ ! -s /etc/resolv.conf ]; then
+		cp -fT /etc/resolv.conf.b2d /etc/resolv.conf
+	fi
+}
+
 start() {
 	if pid="$(pid)"; then
 		echo >&2 "error: Docker daemon is already running ($pid)"
 		exit 1
 	fi
+
+	_ensure_resolvconf
 
 	if [ ! -e /etc/docker ]; then
 		echo 'Linking /etc/docker to /var/lib/boot2docker for persistence'
