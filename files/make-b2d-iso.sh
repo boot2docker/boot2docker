@@ -6,9 +6,12 @@ find -not -name '*.tcz' \
 	| xz -9 --format=lzma --verbose --verbose --threads=0 --extreme \
 	> /tmp/iso/boot/initrd.img
 
+# volume label (https://github.com/boot2docker/boot2docker/issues/1347)
+volumeLabel="b2d-v$DOCKER_VERSION"
+
 xorriso \
 	-as mkisofs -o /tmp/boot2docker.iso \
-	-A 'Boot2Docker' -V 'Boot2Docker' \
+	-A 'Boot2Docker' -V "$volumeLabel" \
 	-isohybrid-mbr /tmp/isohdpfx.bin \
 	-partition_offset 16 \
 	-b isolinux/isolinux.bin \
