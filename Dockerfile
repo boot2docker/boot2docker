@@ -206,11 +206,11 @@ RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERS
 			keyserver.ubuntu.com \
 			hkp://keyserver.ubuntu.com:80 \
 		; do \
-			if gpg --verbose --keyserver "$mirror" --keyserver-options timeout=5 --recv-keys "$key"; then \
+			if gpg --batch --verbose --keyserver "$mirror" --keyserver-options timeout=5 --recv-keys "$key"; then \
 				break; \
 			fi; \
 		done; \
-		gpg --fingerprint "$key"; \
+		gpg --batch --fingerprint "$key"; \
 	done; \
 	gpg --batch --verify /linux.tar.asc /linux.tar; \
 	gpgconf --kill all; \
