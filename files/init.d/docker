@@ -12,17 +12,31 @@ test -f '/var/lib/boot2docker/profile' && . '/var/lib/boot2docker/profile'
 : ${DOCKER_STORAGE:=auto}
 : ${DOCKER_DIR:=/var/lib/docker}
 
-
-# before setting defaults, let's check what was in /var/lib/boot2docker/profile
-if [ -e '/var/lib/boot2docker/userdata.tar' ] && [ ! -e '/var/lib/boot2docker/profile' ]; then
+_backwards_compat_should_remote() {
 	# if userdata.tar exists and profile doesn't (yet), we must be using docker-machine, which expects to check that the daemon is up and running _before_ it configures TLS (?????)
-	DOCKER_REMOTE=yes
 	# https://github.com/docker/machine/blob/19035310d4ba1b58056aae427ea669d1db5fc618/libmachine/provision/boot2docker.go#L242-L246
-fi
-if { [ -n "$DOCKER_TLS" ] || [ -n "$DOCKER_HOST" ]; } && [ -z "$DOCKER_REMOTE" ]; then
+	if [ -e '/var/lib/boot2docker/userdata.tar' ] && [ ! -e '/var/lib/boot2docker/profile' ]; then
+		return 0
+	fi
+
 	# if /var/lib/boot2docker/profile sets either of DOCKER_TLS or DOCKER_HOST but not DOCKER_REMOTE, so let's assume the user intended for DOCKER_REMOTE=yes (backwards compat / Docker Machine compat)
-	DOCKER_REMOTE=yes
 	# https://github.com/docker/machine/blob/97c1136d1ec9ae4c3ab69fda615e3dd577809e5c/libmachine/provision/boot2docker.go#L143-L160
+	if { [ -n "$DOCKER_TLS" ] || [ -n "$DOCKER_HOST" ]; } && [ -z "$DOCKER_REMOTE" ]; then
+		return 0
+	fi
+
+	# vmware drivers don't create a disk image (so no "userdata.tar") -- they copy "userdata.tar" after startup and then look for 2376 in netstat, so checking only for "userdata.tar" creates a race
+	# https://github.com/machine-drivers/docker-machine-driver-vmware/blob/abd4e62c279b39fdb3fec9b23e8e2b1f2abd3f60/pkg/drivers/vmware/driver.go#L301-L308
+	if grep -qi vmware /sys/class/dmi/id/sys_vendor 2>/dev/null; then
+		return 0
+	fi
+
+	return 1
+}
+
+# before setting defaults, check whether we need to default DOCKER_REMOTE to "yes"
+if _backwards_compat_should_remote; then
+	DOCKER_REMOTE=yes
 fi
 
 : ${DOCKER_REMOTE:=no} # 'yes' or anything else for 'no'
