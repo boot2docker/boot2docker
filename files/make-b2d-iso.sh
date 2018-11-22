@@ -11,9 +11,9 @@ volumeLabel="b2d-v$DOCKER_VERSION"
 
 xorriso \
 	-as mkisofs -o /tmp/boot2docker.iso \
-	-A 'Boot2Docker' -V "$volumeLabel" \
+	-A 'Boot2Docker' \
+	-V "$volumeLabel" \
 	-isohybrid-mbr /tmp/isohdpfx.bin \
-	-partition_offset 16 \
 	-b isolinux/isolinux.bin \
 	-c isolinux/boot.cat \
 	-no-emul-boot \
