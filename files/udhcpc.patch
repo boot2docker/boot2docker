@@ -1,12 +1,38 @@
-Description: only empty "resolv.conf" when we get DNS from DHCP
+Description: DHCP adjustments; only empty "resolv.conf" when we get DNS from DHCP, run DHCP synchronously, use NTP servers from DHCP
 Author: "aheissenberger", Tianon Gravi
-Origin: http://forum.tinycorelinux.net/index.php/topic,16482.msg98078.html#msg98078
+Origin: http://forum.tinycorelinux.net/index.php/topic,16482.msg98078.html#msg98078 (partial)
 
+diff --git a/etc/init.d/dhcp.sh b/etc/init.d/dhcp.sh
+index f4ef2a4..c7b59fd 100755
+--- a/etc/init.d/dhcp.sh
++++ b/etc/init.d/dhcp.sh
+@@ -12,7 +12,7 @@ for DEVICE in $NETDEVICES; do
+   if [ "$?" != 0 ]; then
+ #   echo -e "\n${GREEN}Network device ${MAGENTA}$DEVICE${GREEN} detected, DHCP broadcasting for IP.${NORMAL}"
+     trap 2 3 11
+-    /sbin/udhcpc -b -i $DEVICE -x hostname:$(/bin/hostname) -p /var/run/udhcpc.$DEVICE.pid >/dev/null 2>&1 &
++    /sbin/udhcpc -b -i $DEVICE -x hostname:$(/bin/hostname) -p /var/run/udhcpc.$DEVICE.pid > /var/log/dhcp.log 2>&1
+     trap "" 2 3 11
+     sleep 1
+   fi
+diff --git a/etc/init.d/tc-config b/etc/init.d/tc-config
+index f1f9785..0a5088a 100755
+--- a/etc/init.d/tc-config
++++ b/etc/init.d/tc-config
+@@ -612,7 +612,7 @@ fi
+ if [ -n "$NODHCP" ]; then
+ 	echo "${GREEN}Skipping DHCP broadcast/network detection as requested on boot commandline.${NORMAL}"
+ else
+-	[ -z "$DHCP_RAN" ] && /etc/init.d/dhcp.sh &
++	[ -z "$DHCP_RAN" ] && /etc/init.d/dhcp.sh
+ 	[ -z "$NORTC" ] || /etc/init.d/settime.sh &
+ fi
+ 
 diff --git a/usr/share/udhcpc/default.script b/usr/share/udhcpc/default.script
-index 98ebc15..abe4178 100755
+index 98ebc15..ab71278 100755
 --- a/usr/share/udhcpc/default.script
 +++ b/usr/share/udhcpc/default.script
-@@ -28,7 +28,7 @@ case "$1" in
+@@ -28,12 +28,22 @@ case "$1" in
  			done
  		fi
  
@@ -15,3 +41,18 @@ index 98ebc15..abe4178 100755
  		[ -n "$domain" ] && echo search $domain >> $RESOLV_CONF
  		for i in $dns ; do
  			echo adding dns $i
+ 			echo nameserver $i >> $RESOLV_CONF
+ 		done
++
++		# https://udhcp.busybox.net/README.udhcpc
++		if [ -n "$ntpsrv" ]; then
++			NTP_CONF='/etc/ntp.conf'
++			echo -n > "$NTP_CONF"
++			for svr in $ntpsrv; do
++				echo "adding NTP $svr"
++				echo "server $svr" >> "$NTP_CONF"
++			done
++		fi
+ 		;;
+ esac
+ 
