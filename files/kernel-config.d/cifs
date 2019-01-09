@@ -1,9 +1,11 @@
 CONFIG_CIFS=m
 CONFIG_CIFS_ACL=y
 CONFIG_CIFS_FSCACHE=y
-CONFIG_CIFS_POSIX=y
 CONFIG_CIFS_SMB311=y
 CONFIG_CIFS_XATTR=y
 
 # https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/commit/?id=2a38e12053b760a8f5e85030eb89512660077c15
 #CONFIG_CIFS_SMB2=y
+
+# https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/commit/?id=6e785302dad32228819d8066e5376acd15d0e6ba
+#CONFIG_CIFS_POSIX=y
