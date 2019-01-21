@@ -1,0 +1,3 @@
+# LsiLogic SAS storage controller support (https://github.com/boot2docker/boot2docker/issues/1375)
+CONFIG_FUSION=y
+CONFIG_FUSION_SAS=m
