@@ -229,6 +229,7 @@ RUN { \
 		echo 'conf="${1%%=*}"; shift'; \
 		echo 'conf="${conf#CONFIG_}"'; \
 # https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt
+# TODO somehow capture "if" directives (https://github.com/torvalds/linux/blob/52e60b754438f34d23348698534e9ca63cd751d7/drivers/message/fusion/Kconfig#L12) since they're dependency related (can't set "CONFIG_FUSION_SAS" without first setting "CONFIG_FUSION")
 		echo 'find /usr/src/linux/ \
 			-name Kconfig \
 			-exec awk -v conf="$conf" '"'"' \
