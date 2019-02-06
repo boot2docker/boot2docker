@@ -186,7 +186,7 @@ ENV LINUX_GPG_KEYS \
 		647F28654894E3BD457199BE38DBBDC86092693E
 
 # updated via "update.sh"
-ENV LINUX_VERSION 4.14.92
+ENV LINUX_VERSION 4.14.97
 
 RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.xz"; \
 	wget -O /linux.tar.asc "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.sign"; \
@@ -355,9 +355,9 @@ RUN ( cd /usr/src/haveged && ./configure LDFLAGS='-static --static' ); \
 
 # http://download.virtualbox.org/virtualbox/
 # updated via "update.sh"
-ENV VBOX_VERSION 5.2.22
+ENV VBOX_VERSION 5.2.26
 # https://www.virtualbox.org/download/hashes/$VBOX_VERSION/SHA256SUMS
-ENV VBOX_SHA256 e51e33500a265b5c2d7bb2d03d32208df880523dfcb1e2dde2c78a0e0daa0603
+ENV VBOX_SHA256 b927c5d0d4c97a9da2522daad41fe96b616ed06bfb0c883f9c42aad2244f7c38
 # (VBoxGuestAdditions_X.Y.Z.iso SHA256, for verification)
 
 RUN wget -O /vbox.iso "https://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso"; \
@@ -403,7 +403,7 @@ RUN cp -vr /usr/src/parallels/tools/* ./; \
 
 # https://github.com/xenserver/xe-guest-utilities/tags
 # updated via "update.sh"
-ENV XEN_VERSION 7.10.0
+ENV XEN_VERSION 7.11.0
 
 RUN wget -O /xen.tgz "https://github.com/xenserver/xe-guest-utilities/archive/v$XEN_VERSION.tar.gz"; \
 	mkdir /usr/src/xen; \
