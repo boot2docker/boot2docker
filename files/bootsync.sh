@@ -15,6 +15,9 @@ cgroupfs-mount
 mkdir -p /var/lib/boot2docker/log
 chown docker /var/lib/boot2docker/log
 
+mkdir -p /var/lib/boot2docker/etc
+chown docker /var/lib/boot2docker/etc
+
 # wouldn't it be great if ntpd had a "log to XYZ file" option? (like crond does!)
 ntpd -d -n -q >> /var/lib/boot2docker/log/ntp.log 2>&1
 ntpd -d -n >> /var/lib/boot2docker/log/ntp.log 2>&1 &
