@@ -7,9 +7,7 @@ chown docker:docker /var/lib/boot2docker
 # make sure "/var/lib/boot2docker/etc" exists for docker-machine to write into and read "hostname" from it if it exists from a previous boot
 # https://github.com/docker/machine/blob/7a9ce457496353549916e840874012a97e3d2782/libmachine/provision/boot2docker.go#L113
 mkdir -p /var/lib/boot2docker/etc
-
 if [ -s /var/lib/boot2docker/etc/hostname ]; then
-	# https://github.com/docker/machine/blob/97c1136d1ec9ae4c3ab69fda615e3dd577809e5c/libmachine/provision/boot2docker.go#L113
 	hostname="$(cat /var/lib/boot2docker/etc/hostname)"
 	sethostname "$hostname"
 fi
