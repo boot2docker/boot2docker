@@ -1,0 +1,4 @@
+CONFIG_TUN=y
+
+# https://github.com/boot2docker/boot2docker/issues/1384
+CONFIG_NET_SCH_NETEM=m
