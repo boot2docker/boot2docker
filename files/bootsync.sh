@@ -79,7 +79,8 @@ if [ -e /var/lib/boot2docker/bootsync.sh ]; then
 	sh /var/lib/boot2docker/bootsync.sh
 fi
 
-/etc/init.d/docker start
+# "env -i" thanks to https://github.com/moby/moby/issues/39009 ...
+env -i PATH="$PATH" /etc/init.d/docker start
 
 if [ -e /var/lib/boot2docker/bootlocal.sh ]; then
 	sh /var/lib/boot2docker/bootlocal.sh &
