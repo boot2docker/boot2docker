@@ -34,12 +34,12 @@ WORKDIR /rootfs
 
 # updated via "update.sh"
 ENV TCL_MIRRORS http://distro.ibiblio.org/tinycorelinux http://repo.tinycorelinux.net
-ENV TCL_MAJOR 8.x
-ENV TCL_VERSION 8.2.1
+ENV TCL_MAJOR 10.x
+ENV TCL_VERSION 10.0
 
 # http://distro.ibiblio.org/tinycorelinux/8.x/x86_64/archive/8.2.1/distribution_files/rootfs64.gz.md5.txt
 # updated via "update.sh"
-ENV TCL_ROOTFS="rootfs64.gz" TCL_ROOTFS_MD5="b4991d3c07b88649b61616f86f2f079f"
+ENV TCL_ROOTFS="rootfs64.gz" TCL_ROOTFS_MD5="534e09719f8a7ffaef4a9a0f847131a0"
 
 COPY files/tce-load.patch files/udhcpc.patch /tcl-patches/
 
@@ -120,7 +120,7 @@ RUN mkdir -p proc; \
 # http://distro.ibiblio.org/tinycorelinux/8.x/x86_64/tcz/squashfs-tools.tcz.dep
 # http://distro.ibiblio.org/tinycorelinux/8.x/x86_64/tcz/squashfs-tools.tcz.md5.txt
 # updated via "update.sh"
-ENV TCL_PACKAGES="squashfs-tools.tcz liblzma.tcz lzo.tcz libzstd.tcz" TCL_PACKAGE_MD5__squashfs_tools_tcz="a44331fa2117314e62267147b6876a49" TCL_PACKAGE_MD5__liblzma_tcz="32b4958b9cb03d54d2d1d50df5bed699" TCL_PACKAGE_MD5__lzo_tcz="c9a1260675774c50cea1a490978b100d" TCL_PACKAGE_MD5__libzstd_tcz="a7f383473a4ced6c79e8b1a0cc9ad167"
+ENV TCL_PACKAGES="squashfs-tools.tcz liblzma.tcz lzo.tcz libzstd.tcz" TCL_PACKAGE_MD5__squashfs_tools_tcz="a44331fa2117314e62267147b6876a49" TCL_PACKAGE_MD5__liblzma_tcz="846ce1b68690e46f61aff2f952da433f" TCL_PACKAGE_MD5__lzo_tcz="c9a1260675774c50cea1a490978b100d" TCL_PACKAGE_MD5__libzstd_tcz="a7f383473a4ced6c79e8b1a0cc9ad167"
 
 RUN for package in $TCL_PACKAGES; do \
 		eval 'md5="$TCL_PACKAGE_MD5__'"$(echo "$package" | sed -r 's/[^a-zA-Z0-9]+/_/g')"'"'; \
@@ -322,7 +322,7 @@ RUN tcl-tce-load \
 		openssh \
 		openssl \
 		parted \
-		procps \
+		procps-ng \
 		rsync \
 		tar \
 		util-linux \

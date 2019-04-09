@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 
 # TODO http://distro.ibiblio.org/tinycorelinux/latest-x86_64
-major='8.x'
-version='8.2.1' # TODO auto-detect latest
+major='10.x'
+version='10.0' # TODO auto-detect latest
 # 9.x doesn't seem to use ".../archive/X.Y.Z/..." in the same way as 8.x :(
 
 packages=(
