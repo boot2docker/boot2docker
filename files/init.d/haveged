@@ -52,12 +52,24 @@ restart() {
 
 # only start the daemon if it's determined that we probably need to
 conditional() {
-	currentEntropy="$(cat /proc/sys/kernel/random/entropy_avail)"
-	# given the default poolsize of 4096, 120 is ~3% of the total pool
-	if [ "$currentEntropy" -lt 120 ]; then
-		# TODO detect whether we're in a VM? maybe not that important really
-		start
+	# https://bugs.debian.org/923675#72
+	if [ -e /sys/devices/virtual/misc/hw_random/rng_current ] && rngCurrent="$(cat /sys/devices/virtual/misc/hw_random/rng_current)" && [ "${rngCurrent:-none}" != 'none' ]; then
+		# hardware RNG likely present, do not start software RNG
+		return
 	fi
+	if grep -q '^flags\b.*\brdrand\b' /proc/cpuinfo; then
+		# CPU has RNG functionality, do not start software RNG
+		return
+	fi
+
+	# given the default poolsize of 4096, 120 is ~3% of the total pool
+	if currentEntropy="$(cat /proc/sys/kernel/random/entropy_avail)" && [ "$currentEntropy" -gt 120 ]; then
+		# if we appear to have an OK amount of entropy already, skip software RNG
+		return
+	fi
+
+	# "fire it up"
+	start
 }
 
 case "$1" in
