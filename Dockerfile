@@ -524,6 +524,14 @@ RUN [ ! -f usr/local/etc/sshd_config ]; \
 	tcl-chroot adduser -S -G dockremap dockremap; \
 	echo 'dockremap:165536:65536' | tee etc/subuid | tee etc/subgid
 
+# udhcpc startup script modification with explicit DNS servers
+# respecting the default MAXNS=3 compile time constant
+RUN UDHCPC_SCRIPT="usr/share/udhcpc/default.script"; \
+	NS="echo nameserver"; \
+    SEARCH="$NS \$i"; \
+	sed -i "/$SEARCH/a $NS 8.8.8.8 >> \$RESOLV_CONF" "$UDHCPC_SCRIPT"; \
+	sed -i "/$SEARCH/a $NS 1.1.1.1 >> \$RESOLV_CONF" "$UDHCPC_SCRIPT"
+
 RUN savedAptMark="$(apt-mark showmanual)"; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends \
