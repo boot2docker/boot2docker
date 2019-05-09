@@ -1,6 +1,5 @@
 # Required for Rancher to set up networking in stacks correctly
 # https://github.com/rancher/rancher/issues/10499#issuecomment-393297923
-CONFIG_IP_NF_FILTER=m
 CONFIG_IP_NF_MANGLE=m
 CONFIG_IP_NF_RAW=m
 CONFIG_IP_SET=m
