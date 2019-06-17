@@ -39,7 +39,7 @@ ENV TCL_VERSION 10.1
 
 # http://distro.ibiblio.org/tinycorelinux/8.x/x86_64/archive/8.2.1/distribution_files/rootfs64.gz.md5.txt
 # updated via "update.sh"
-ENV TCL_ROOTFS="rootfs64.gz" TCL_ROOTFS_MD5="534e09719f8a7ffaef4a9a0f847131a0"
+ENV TCL_ROOTFS="rootfs64.gz" TCL_ROOTFS_MD5="ec65d3b2bbb64f62a171f60439c84127"
 
 COPY files/tce-load.patch files/udhcpc.patch /tcl-patches/
 
