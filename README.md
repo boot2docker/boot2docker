@@ -5,9 +5,11 @@ This repository based on the basic [boot2docker repository](https://github.com/b
 ## What I changed
 
 1. Go back to commit `c7e5c3`
-2. Annotated `rm -rf ./*/kernel/drivers/media/* && \` at [Dockerfile](./Dockerfile)
-3. Added conditions at [kernel_config](./kernel_config) like below:
-```
+2. Annotated `rm -rf ./*/kernel/drivers/media/* && \` at [Dockerfile #L86](./Dockerfile#L86)
+3. Changed libcap2 url at [Dockerfile #L95](./Dockerfile#L85)
+4. Added conditions at [kernel_config](./kernel_config) like below:
+
+```sh
 #
 # Additional Configuration
 #
@@ -72,4 +74,5 @@ CONFIG_CONFIGFS_FS=m
 ```
 
 ## Author
+
 [@jetsbee](https://github.com/jetsbee) [@gzupark](https://github.com/gzupark)
