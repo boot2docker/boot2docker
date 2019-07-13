@@ -101,7 +101,10 @@ docker-machine create -d virtualbox \
 12. Run `eval $(docker-machine env ${YOUR_DOCKER_MACHINE_ENV_NAME})`
 13. Run `vboxmanage list webcams`
 14. Run `vboxmanage controlvm "${YOUR_DOCKER_MACHINE_ENV_NAME}" webcam attach .1`
-15. On the Xquartz terminal or another terminal, Run `socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"$DISPLAY\"`
+15. On the Xquartz terminal or another terminal, Run 
+```sh
+socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"$DISPLAY\"
+```
 16. Test
 	- `docker run --rm -it -e DISPLAY=$ip:0 gns3/xeyes`
 	- `docker run --rm -it -e DISPLAY=$ip:0 -v /tmp/.X11-unix:/tmp/.X11-unix jess/firefox`
