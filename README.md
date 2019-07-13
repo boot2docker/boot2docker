@@ -7,7 +7,7 @@ This repository based on the basic [boot2docker repository](https://github.com/b
 1. Go back to commit `c7e5c3`
 2. Annotated `rm -rf ./*/kernel/drivers/media/* && \` at [Dockerfile #L86](./Dockerfile#L86)
 3. Changed libcap2 url at [Dockerfile #L95](./Dockerfile#L85)
-4. Added conditions at [kernel_config](./kernel_config) like below:
+4. Added conditions at [kernel_config](./kernel_config#L5062) like below:
 
 ```sh
 #
@@ -72,6 +72,40 @@ CONFIG_USB_CONFIGFS_F_UVC=y
 #
 CONFIG_CONFIGFS_FS=m
 ```
+
+## How to use
+
+1. Run `brew install socat`
+2. Run `brew install xquartz`
+3. Run `open -a Xquartz`
+4. XQuartz Preferences -> Security -> check allow all (Allow connections from network clients)
+5. Run `defaults write org.macosforge.xquartz.X11 enable_iglx -bool true`
+6. Run `ip=$(ifconfig en0 | grep inet | awk '$1=="inet" {print $2}')`
+7. Run `xhost + $ip`
+8. Install VirtualBox and its Extension pack
+9. Create new docker-machine environment using VirtualBox like below:
+```sh
+docker-machine create -d virtualbox \
+	--virtualbox-cpu-count=2 \
+	--virtualbox-memory=2048 \
+	--virtualbox-disk-size=100000 \
+	--virtualbox-boot2docker-url https://github.com/gzupark/boot2docker-webcam-mac/releases/download/18.06.1-ce-usb/boot2docker.iso \
+	${YOUR_DOCKER_MACHINE_ENV_NAME}
+```
+10. Configure the VirtualBox image that you created
+    - Display -> Video memory (max)
+	- Display -> Acceleration -> Enable 3D acceleration (check)
+	- Ports -> USB -> Enable USB controller (check) -> USB 2.0 (select)
+	- Shared folders -> Add -> Folder Path set root path = / or Folder name you want
+11. Run `docker-machine start ${YOUR_DOCKER_MACHINE_ENV_NAME}`
+12. Run `eval $(docker-machine env ${YOUR_DOCKER_MACHINE_ENV_NAME})`
+13. Run `vboxmanage list webcams`
+14. Run `vboxmanage controlvm "${YOUR_DOCKER_MACHINE_ENV_NAME}" webcam attach .1`
+15. On the Xquartz terminal or another terminal, Run `socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"$DISPLAY\"`
+16. Test
+	- `docker run --rm -it -e DISPLAY=$ip:0 gns3/xeyes`
+	- `docker run --rm -it -e DISPLAY=$ip:0 -v /tmp/.X11-unix:/tmp/.X11-unix jess/firefox`
+
 
 ## Author
 
