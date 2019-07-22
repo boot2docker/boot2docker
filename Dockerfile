@@ -355,9 +355,9 @@ RUN ( cd /usr/src/haveged && ./configure LDFLAGS='-static --static' ); \
 
 # http://download.virtualbox.org/virtualbox/
 # updated via "update.sh"
-ENV VBOX_VERSION 5.2.30
+ENV VBOX_VERSION 6.0.10
 # https://www.virtualbox.org/download/hashes/$VBOX_VERSION/SHA256SUMS
-ENV VBOX_SHA256 dd07da975f346608b0f6843f4be4bfdf48b4610ef49a0c0e6aa689ef81c1bd69
+ENV VBOX_SHA256 c8a686f8c7ad9ca8375961ab19815cec6b1f0d2496900a356a38ce86fe8a1325
 # (VBoxGuestAdditions_X.Y.Z.iso SHA256, for verification)
 
 RUN wget -O /vbox.iso "https://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso"; \
