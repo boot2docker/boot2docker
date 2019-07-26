@@ -114,12 +114,14 @@ seds+=(
 
 # PARALLELS_VERSION: https://github.com/boot2docker/boot2docker/pull/1332#issuecomment-420273330
 
+# TODO figure out what's up with 7.14.0 and why it fails to build
 xenVersion="$(
 	git ls-remote --tags 'https://github.com/xenserver/xe-guest-utilities.git' \
 		| cut -d/ -f3 \
 		| cut -d^ -f1 \
 		| grep -E '^v[0-9]+' \
 		| cut -dv -f2- \
+		| grep -E '^7[.]13[.]' \
 		| sort -rV \
 		| head -1
 )"
