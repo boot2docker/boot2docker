@@ -75,40 +75,71 @@ CONFIG_CONFIGFS_FS=m
 
 ## How to use
 
-1. Run `brew install socat`
-2. Run `brew install xquartz`
-3. Run `open -a Xquartz`
-4. XQuartz Preferences -> Security -> check allow all (Allow connections from network clients)
-5. Run `defaults write org.macosforge.xquartz.X11 enable_iglx -bool true`
-6. Run `ip=$(ifconfig en0 | grep inet | awk '$1=="inet" {print $2}')`
-7. Run `xhost + $ip`
-8. Install VirtualBox and its Extension pack
+### Prerequisite
+
+1. Install: `brew install socat`
+2. Install: `brew install xquartz`
+3. Run: `open -a XQuartz`
+4. Setting: XQuartz Preferences -> Security -> check allow all (Allow connections from network clients)
+5. Run: `defaults write org.macosforge.xquartz.X11 enable_iglx -bool true`
+6. Run: `IP=$(ifconfig en0 | grep inet | awk '$1=="inet" {print $2}')`
+7. Run: `xhost + $IP`
+8. Install [VirtualBox](https://www.virtualbox.org/) and its Extension pack
 9. Create new docker-machine environment using VirtualBox like below:
-```sh
-docker-machine create -d virtualbox \
-	--virtualbox-cpu-count=2 \
-	--virtualbox-memory=2048 \
-	--virtualbox-disk-size=100000 \
-	--virtualbox-boot2docker-url https://github.com/gzupark/boot2docker-webcam-mac/releases/download/18.06.1-ce-usb/boot2docker.iso \
-	${YOUR_DOCKER_MACHINE_ENV_NAME}
-```
-10. Configure the VirtualBox image that you created
+
+	```sh
+	docker-machine create -d virtualbox \
+		--virtualbox-cpu-count=2 \
+		--virtualbox-memory=2048 \
+		--virtualbox-disk-size=100000 \
+		--virtualbox-boot2docker-url https://github.com/gzupark/boot2docker-webcam-mac/releases/download/18.06.1-ce-usb/boot2docker.iso \
+		${YOUR_DOCKER_MACHINE_ENV_NAME}
+	```
+
+10. Run: `docker-machine stop ${YOUR_DOCKER_MACHINE_ENV_NAME}`
+11. Configure the VirtualBox image that you created
     - Display -> Video memory (max)
 	- Display -> Acceleration -> Enable 3D acceleration (check)
 	- Ports -> USB -> Enable USB controller (check) -> USB 2.0 (select)
 	- Shared folders -> Add -> Folder Path set root path = / or Folder name you want
-11. Run `docker-machine start ${YOUR_DOCKER_MACHINE_ENV_NAME}`
-12. Run `eval $(docker-machine env ${YOUR_DOCKER_MACHINE_ENV_NAME})`
-13. Run `vboxmanage list webcams`
-14. Run `vboxmanage controlvm "${YOUR_DOCKER_MACHINE_ENV_NAME}" webcam attach .1`
-15. On the Xquartz terminal or another terminal, Run 
-```sh
-socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"$DISPLAY\"
-```
-16. Test
-	- `docker run --rm -it -e DISPLAY=$ip:0 gns3/xeyes`
-	- `docker run --rm -it -e DISPLAY=$ip:0 -v /tmp/.X11-unix:/tmp/.X11-unix jess/firefox`
 
+### Follow steps
+
+- To run below steps everytime when you want to use webcams with docker
+- Assume normal terminal session is __T1__, and XQuartz terminal or 2nd terminal session is __T2__
+
+1. Run __T1__: `open -a XQuartz`
+2. Run __T2__: `socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"$DISPLAY\"`
+	- if it occurs an error, please check with `lsof -i tcp:6000` and `kill` the PID
+3. Run __T1__: `IP=$(ifconfig en0 | grep inet | awk '$1=="inet" {print $2}')`
+4. Run __T1__: `xhost + $IP`
+5. Run __T1__: `docker-machine start ${YOUR_DOCKER_MACHINE_ENV_NAME}`
+6. Run __T1__: `eval $(docker-machine env ${YOUR_DOCKER_MACHINE_ENV_NAME})`
+7. Run __T1__: `vboxmanage list webcams` and check a list
+8. Run __T1__: `vboxmanage controlvm "${YOUR_DOCKER_MACHINE_ENV_NAME}" webcam attach .1` or others referenced a list
+
+### Test - XQuartz
+
+- xeyes
+
+  ```sh
+  docker run --rm -it -e DISPLAY=$IP:0 gns3/xeyes
+  ```
+
+- firefox
+
+  ```sh
+  docker run --rm -it -e DISPLAY=$IP:0 -v /tmp/.X11-unix:/tmp/.X11-unix jess/firefox
+  ```
+
+### Run - example
+
+```sh
+docker run --rm -it --device=/dev/video0:/dev/video0 \
+	-v /tmp/.X11-unix:/tmp/.X11-unix \
+	-e DISPLAY=$IP:0 \
+	${YOUR_DOCKER_IMAGE}
+```
 
 ## Author
 
