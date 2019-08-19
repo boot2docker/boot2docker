@@ -44,7 +44,7 @@ start() {
 			return 0
 		}
 
-		shares="$(VBoxControl --nologo sharedfolder list --automount | tail -n+3 | cut  -d ' ' -f 3)"
+		shares="$(VBoxControl --nologo sharedfolder list -automount | tail -n+3 | cut  -d ' ' -f 3)"
 		for line in $shares; do
 			try_mount_share "$line"
 		done
