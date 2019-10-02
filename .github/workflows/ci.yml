@@ -1,0 +1,48 @@
+name: GitHub CI
+
+on:
+
+  pull_request:
+
+  push:
+
+  schedule:
+    - cron: 0 0 * * 0
+
+jobs:
+
+  build-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Prepare Environment
+        run: docker system prune --all --force --volumes
+      - name: Happy Eyeballs
+        run: wget -qO- 'https://github.com/tianon/pgp-happy-eyeballs/raw/master/hack-my-builds.sh' | bash
+
+      - name: Check Kernel Config
+        run: |
+          kernDups="$(files/kernel-config.d/.check-dups.sh)"
+          if [ -n "$kernDups" ]; then
+            echo >&2 "KERNEL CONFIG DUPLICATES!"
+            echo >&2 "$kernDups"
+            exit 1
+          fi
+
+      - name: Build ISO
+        run: |
+          set -Eeuo pipefail -x
+          docker build -t boot2docker/boot2docker .
+          docker run --rm boot2docker/boot2docker > boot2docker.iso
+
+      - name: '"ls"'
+        run: ls -lh boot2docker.iso
+
+      - name: '"docker images"'
+        run: docker images
