@@ -4,6 +4,10 @@ dist: xenial
 services:
   - docker
 
+before_script:
+  - env | sort
+  - wget -qO- 'https://github.com/tianon/pgp-happy-eyeballs/raw/master/hack-my-builds.sh' | bash
+
 script:
   - kernDups="$(files/kernel-config.d/.check-dups.sh)" && [ -z "$kernDups" ] || { echo >&2 "KERNEL CONFIG DUPLICATES!"; echo >&2 "$kernDups"; false; }
   - |
