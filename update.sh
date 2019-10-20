@@ -6,15 +6,6 @@ major='10.x'
 version='10.1' # TODO auto-detect latest
 # 9.x doesn't seem to use ".../archive/X.Y.Z/..." in the same way as 8.x :(
 
-packages=(
-	# needed for "tce-load.patch"
-	squashfs-tools.tcz
-
-	# required for Docker, deps on "xyz-KERNEL.tcz"
-	#iptables.tcz
-	# fixed via tce-load patch instead (more sustainable)
-)
-
 mirrors=(
 	http://distro.ibiblio.org/tinycorelinux
 	http://repo.tinycorelinux.net
@@ -65,34 +56,6 @@ rootfsMd5="$(
 rootfsMd5="${rootfsMd5%% *}"
 seds+=(
 	-e 's/^ENV TCL_ROOTFS.*/ENV TCL_ROOTFS="'"$rootfs"'" TCL_ROOTFS_MD5="'"$rootfsMd5"'"/'
-)
-
-archPackages=()
-archPackagesMd5s=()
-declare -A seen=()
-set -- "${packages[@]}"
-while [ "$#" -gt 0 ]; do
-	package="$1"; shift
-	[ -z "${seen[$package]:-}" ] || continue
-	seen[$package]=1
-
-	packageMd5="$(fetch "$arch/tcz/$package.md5.txt")"
-	packageMd5="${packageMd5%% *}"
-
-	archPackages+=( "$package" )
-	archPackagesMd5s+=(
-		'TCL_PACKAGE_MD5__'"$(echo "$package" | sed -r 's/[^a-zA-Z0-9]+/_/g')"'="'"$packageMd5"'"'
-	)
-
-	if packageDeps="$(
-		fetch "$arch/tcz/$package.dep" \
-			| grep -vE -- '-KERNEL'
-	)"; then
-		set -- $packageDeps "$@"
-	fi
-done
-seds+=(
-	-e 's!^ENV TCL_PACKAGES.*!ENV TCL_PACKAGES="'"${archPackages[*]}"'" '"${archPackagesMd5s[*]}"'!'
 )
 
 kernelVersion="$(

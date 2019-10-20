@@ -1,6 +1,7 @@
 Description: replace "mount" with "unsquashfs" and ignore "-KERNEL" deps
 Author: Tatsushi Demachi, Tianon Gravi
 Partial-Origin: https://github.com/tatsushid/docker-tinycore/blob/017b258a08a41399f65250c9865a163226c8e0bf/8.2/x86_64/src/tce-load.patch
+Unpatched-Source: https://github.com/tinycorelinux/Core-scripts/blob/19fed4fa59585899ef47163424b15f59f15d3e4d/usr/bin/tce-load
 
 diff --git a/usr/bin/tce-load b/usr/bin/tce-load
 index 1378b90..fea2aa8 100755
@@ -11,7 +12,7 @@ index 1378b90..fea2aa8 100755
  copyInstall() {
  	[ -d /mnt/test ] || sudo /bin/mkdir -p /mnt/test
 -	sudo /bin/mount $1 /mnt/test -t squashfs -o loop,ro,bs=4096
-+	sudo /usr/local/bin/unsquashfs -f -d /mnt/test $1
++	sudo /usr/local/bin/unsquashfs -force -dest /mnt/test $1 || exit 1
  	if [ "$?" == 0 ]; then
  		if [ "$(ls -A /mnt/test)" ]; then
  			yes "$FORCE" | sudo /bin/cp -ai /mnt/test/. / 2>/dev/null
