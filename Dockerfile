@@ -116,38 +116,27 @@ RUN mkdir -p proc; \
 	echo -n docker > etc/sysconfig/tcuser; \
 	tcl-chroot sh -c '. /etc/init.d/tc-functions && setupHome'
 
-# packages (and their deps) that we either need for our "tce-load" patches or that dep on "...-KERNEL" which we don't need (since we build our own kernel)
-# http://distro.ibiblio.org/tinycorelinux/8.x/x86_64/tcz/squashfs-tools.tcz.dep
-# http://distro.ibiblio.org/tinycorelinux/8.x/x86_64/tcz/squashfs-tools.tcz.md5.txt
-# updated via "update.sh"
-ENV TCL_PACKAGES="squashfs-tools.tcz liblzma.tcz lzo.tcz libzstd.tcz" TCL_PACKAGE_MD5__squashfs_tools_tcz="a44331fa2117314e62267147b6876a49" TCL_PACKAGE_MD5__liblzma_tcz="846ce1b68690e46f61aff2f952da433f" TCL_PACKAGE_MD5__lzo_tcz="c9a1260675774c50cea1a490978b100d" TCL_PACKAGE_MD5__libzstd_tcz="a7f383473a4ced6c79e8b1a0cc9ad167"
+# as of squashfs-tools 4.4, TCL's unsquashfs is broken... (fails to unsquashfs *many* core tcz files)
+# https://github.com/plougher/squashfs-tools/releases
+ENV SQUASHFS_VERSION 4.4
+RUN wget -O squashfs.tgz "https://github.com/plougher/squashfs-tools/archive/$SQUASHFS_VERSION.tar.gz"; \
+	tar --directory=/usr/src --extract --file=squashfs.tgz; \
+	make -C "/usr/src/squashfs-tools-$SQUASHFS_VERSION/squashfs-tools" \
+		-j "$(nproc)" \
+# https://github.com/plougher/squashfs-tools/blob/4.4/squashfs-tools/Makefile#L1
+		GZIP_SUPPORT=1 \
+#		XZ_SUPPORT=1 \
+#		LZO_SUPPORT=1 \
+#		LZ4_SUPPORT=1 \
+#		ZSTD_SUPPORT=1 \
+		EXTRA_CFLAGS='-static' \
+		EXTRA_LDFLAGS='-static' \
+		INSTALL_DIR="$PWD/usr/local/bin" \
+		install \
+	; \
+	tcl-chroot unsquashfs -v || :
 
-RUN for package in $TCL_PACKAGES; do \
-		eval 'md5="$TCL_PACKAGE_MD5__'"$(echo "$package" | sed -r 's/[^a-zA-Z0-9]+/_/g')"'"'; \
-		echo "$md5 *$package" > "usr/local/tce.installed/optional/$package.md5.txt"; \
-		for mirror in $TCL_MIRRORS; do \
-			if \
-				wget -O "usr/local/tce.installed/optional/$package" "$mirror/$TCL_MAJOR/x86_64/tcz/$package" \
-				&& ( cd usr/local/tce.installed/optional && md5sum -c "$package.md5.txt" ) \
-			; then \
-				break; \
-			fi; \
-		done; \
-		( cd usr/local/tce.installed/optional && md5sum -c "$package.md5.txt" ); \
-		unsquashfs -dest . -force "usr/local/tce.installed/optional/$package"; \
-		touch "usr/local/tce.installed/${package%.tcz}"; \
-# pretend this package has no deps (we already installed them)
-		touch "usr/local/tce.installed/optional/$package.dep"; \
-	done; \
-	\
-	tcl-chroot ldconfig; \
-	for script in usr/local/tce.installed/*; do \
-		[ -f "$script" ] || continue; \
-		[ -x "$script" ] || continue; \
-		tcl-chroot "$script"; \
-	done; \
-	\
-	{ \
+RUN { \
 		echo '#!/bin/bash -Eeux'; \
 		echo 'tcl-chroot su -c "tce-load -wicl \"\$@\"" docker -- - "$@"'; \
 	} > /usr/local/bin/tcl-tce-load; \
