@@ -214,6 +214,15 @@ RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERS
 	ln -sT "linux-$LINUX_VERSION" /usr/src/linux; \
 	[ -d /usr/src/linux ]
 
+# apply kernel entropy patch from 5.4; this same patch was backported in Debian in 5.3.9-1
+#   - https://git.kernel.org/linus/50ee7529ec4500c88f8664560770a7a1b65db72b
+#   - https://salsa.debian.org/kernel-team/linux/commit/c323c453b2485a33bfb33635a07f3a50bc1db1ee
+#   - https://lists.debian.org/debian-boot/2019/11/msg00077.html
+# specifically, this solves the problem of early-boot entropy (SSH key generation, for example), avoiding the need for userspace solutions like haveged
+RUN wget -O kernel-entropy.patch 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/patch/?id=50ee7529ec4500c88f8664560770a7a1b65db72b'; \
+	patch -p1 --input "$PWD/kernel-entropy.patch" --directory /usr/src/linux; \
+	rm kernel-entropy.patch
+
 RUN { \
 		echo '#!/usr/bin/env bash'; \
 		echo 'set -Eeuo pipefail'; \
@@ -330,20 +339,6 @@ RUN echo 'for i in /usr/local/etc/profile.d/*.sh ; do if [ -r "$i" ]; then . $i;
 
 # install kernel headers so we can use them for building xen-utils, etc
 RUN make -C /usr/src/linux INSTALL_HDR_PATH=/usr/local headers_install
-
-# https://lkml.org/lkml/2018/4/12/711 (https://github.com/boot2docker/boot2docker/pull/1322)
-# https://github.com/jirka-h/haveged/releases
-ENV HAVEGED_VERSION 1.9.4
-RUN wget -O /haveged.tgz "https://github.com/jirka-h/haveged/archive/${HAVEGED_VERSION}.tar.gz"; \
-	mkdir /usr/src/haveged; \
-	tar --extract --file /haveged.tgz --directory /usr/src/haveged --strip-components 1; \
-	rm /haveged.tgz
-# https://debbugs.gnu.org/11064 (libtool eats "-static", gcc doesn't mind getting "--static" even more than once)
-RUN ( cd /usr/src/haveged && ./configure LDFLAGS='-static --static' ); \
-	make -C /usr/src/haveged/src -j "$(nproc)" haveged; \
-	cp -v /usr/src/haveged/src/haveged usr/local/sbin/; \
-	strip usr/local/sbin/haveged; \
-	tcl-chroot haveged --run 1
 
 # http://download.virtualbox.org/virtualbox/
 # updated via "update.sh"
