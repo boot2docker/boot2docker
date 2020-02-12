@@ -37,12 +37,12 @@ WORKDIR /rootfs
 
 # updated via "update.sh"
 ENV TCL_MIRRORS http://distro.ibiblio.org/tinycorelinux http://repo.tinycorelinux.net
-ENV TCL_MAJOR 10.x
-ENV TCL_VERSION 10.1
+ENV TCL_MAJOR 11.x
+ENV TCL_VERSION 11.0
 
 # http://distro.ibiblio.org/tinycorelinux/8.x/x86_64/archive/8.2.1/distribution_files/rootfs64.gz.md5.txt
 # updated via "update.sh"
-ENV TCL_ROOTFS="rootfs64.gz" TCL_ROOTFS_MD5="ec65d3b2bbb64f62a171f60439c84127"
+ENV TCL_ROOTFS="rootfs64.gz" TCL_ROOTFS_MD5="ea8699a39115289ed00d807eac4c3118"
 
 COPY files/tce-load.patch files/udhcpc.patch /tcl-patches/
 
@@ -178,7 +178,7 @@ ENV LINUX_GPG_KEYS \
 		647F28654894E3BD457199BE38DBBDC86092693E
 
 # updated via "update.sh"
-ENV LINUX_VERSION 4.19.84
+ENV LINUX_VERSION 4.19.103
 
 RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.xz"; \
 	wget -O /linux.tar.asc "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.sign"; \
@@ -213,15 +213,6 @@ RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERS
 	rm /linux.tar /linux.tar.asc; \
 	ln -sT "linux-$LINUX_VERSION" /usr/src/linux; \
 	[ -d /usr/src/linux ]
-
-# apply kernel entropy patch from 5.4; this same patch was backported in Debian in 5.3.9-1
-#   - https://git.kernel.org/linus/50ee7529ec4500c88f8664560770a7a1b65db72b
-#   - https://salsa.debian.org/kernel-team/linux/commit/c323c453b2485a33bfb33635a07f3a50bc1db1ee
-#   - https://lists.debian.org/debian-boot/2019/11/msg00077.html
-# specifically, this solves the problem of early-boot entropy (SSH key generation, for example), avoiding the need for userspace solutions like haveged
-RUN wget -O kernel-entropy.patch 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/patch/?id=50ee7529ec4500c88f8664560770a7a1b65db72b'; \
-	patch -p1 --input "$PWD/kernel-entropy.patch" --directory /usr/src/linux; \
-	rm kernel-entropy.patch
 
 RUN { \
 		echo '#!/usr/bin/env bash'; \
@@ -318,10 +309,10 @@ RUN tcl-tce-load \
 		git \
 		iproute2 \
 		iptables \
-		ncurses-terminfo \
+		ncursesw-terminfo \
 		nfs-utils \
 		openssh \
-		openssl \
+		openssl-1.1.1 \
 		parted \
 		procps-ng \
 		rsync \
@@ -342,9 +333,9 @@ RUN make -C /usr/src/linux INSTALL_HDR_PATH=/usr/local headers_install
 
 # http://download.virtualbox.org/virtualbox/
 # updated via "update.sh"
-ENV VBOX_VERSION 5.2.34
+ENV VBOX_VERSION 5.2.36
 # https://www.virtualbox.org/download/hashes/$VBOX_VERSION/SHA256SUMS
-ENV VBOX_SHA256 d1b63891abca37fd78f5c8af1764e10e5754b1eecabd1fcfe7599c29a93ba007
+ENV VBOX_SHA256 6124287b7a1790436a9b0b2601154b50c6cd6e680aeff45c61d03ee1158f3eb9
 # (VBoxGuestAdditions_X.Y.Z.iso SHA256, for verification)
 
 RUN wget -O /vbox.iso "https://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso"; \
@@ -390,7 +381,7 @@ RUN cp -vr /usr/src/parallels/tools/* ./; \
 
 # https://github.com/xenserver/xe-guest-utilities/tags
 # updated via "update.sh"
-ENV XEN_VERSION 7.16.0
+ENV XEN_VERSION 7.18.0
 
 RUN wget -O /xen.tgz "https://github.com/xenserver/xe-guest-utilities/archive/v$XEN_VERSION.tar.gz"; \
 	mkdir /usr/src/xen; \
@@ -421,7 +412,7 @@ RUN wget -O usr/local/sbin/cgroupfs-mount "https://github.com/tianon/cgroupfs-mo
 	chmod +x usr/local/sbin/cgroupfs-mount; \
 	tcl-chroot cgroupfs-mount
 
-ENV DOCKER_VERSION 19.03.5
+ENV DOCKER_VERSION 19.03.6-rc2
 
 # Get the Docker binaries with version that matches our boot2docker version.
 RUN DOCKER_CHANNEL='edge'; \
