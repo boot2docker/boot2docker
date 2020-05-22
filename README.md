@@ -1,3 +1,9 @@
+# DEPRECATED
+
+Boot2Docker is officially deprecated and unmaintained.  It is recommended that users transition from Boot2Docker over to [Docker Desktop](https://www.docker.com/products/docker-desktop) instead (especially with [the new WSL2 backend, which supports Windows 10 Home](https://www.docker.com/blog/docker-desktop-for-windows-home-is-here/)).
+
+These days there are a *lot* of tools designed to help spin up environments, and it's relatively easy to get something up and running with Docker installed with minimal effort.
+
 # Boot2Docker
 
 [![Build Status](https://travis-ci.org/boot2docker/boot2docker.svg?branch=master)](https://travis-ci.org/boot2docker/boot2docker)
@@ -5,14 +11,6 @@
 Boot2Docker is a lightweight Linux distribution made specifically to run
 [Docker](https://www.docker.com/) containers. It runs completely from RAM, is a
 ~45MB download and boots quickly.
-
-## Important Note
-
-Boot2Docker is officially in **maintenance mode** -- it is recommended that users transition from Boot2Docker over to [Docker for Mac](https://www.docker.com/docker-mac) or [Docker for Windows](https://www.docker.com/docker-windows) instead.
-
-What this means concretely is new Docker releases, kernel updates, etc, but concerted attempts to keep new features/functionality to an absolute minimum to ensure continued maintainability for the few folks who can't yet transition to the better-suited Docker for Windows / Docker for Mac products (Windows 7 users who can't Docker for Windows at all, Windows 10 Home users who thus can't Hyper-V, VirtualBox users who thus can't Hyper-V, etc etc).
-
-See [docker/machine#4537](https://github.com/docker/machine/issues/4537) for some useful discussion around Docker Machine also being in a similar state.
 
 ## Features
 
