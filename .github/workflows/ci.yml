@@ -38,11 +38,11 @@ jobs:
       - name: Build ISO
         run: |
           set -Eeuo pipefail -x
-          docker build -t boot2docker/boot2docker .
-          docker run --rm boot2docker/boot2docker > boot2docker.iso
+          docker build -t kw-boot2docker/boot2docker .
+          docker run --rm kw-boot2docker/boot2docker > kw-boot2docker.iso
 
       - name: '"ls"'
-        run: ls -lh boot2docker.iso
+        run: ls -lh kw-boot2docker.iso
 
       - name: '"docker images"'
         run: docker images

@@ -14,6 +14,11 @@ fi
 
 cgroupfs-mount
 
+# proposed fix for https://github.com/docker/for-linux/issues/219
+mkdir /sys/fs/cgroup/systemd
+mount -t cgroup -o none,name=systemd cgroup /sys/fs/cgroup/systemd
+# end of fix 
+
 mkdir -p /var/lib/boot2docker/log
 chown docker /var/lib/boot2docker/log
 
