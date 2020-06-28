@@ -1,0 +1,101 @@
+FROM boot2docker/boot2docker
+
+# "TinyCore is Core + Xvesa.tcz + Xprogs.tcz + aterm.tcz + fltk-1.3.tcz + flwm.tcz + wbar.tcz"
+ENV TCZ_DEPS \
+pixman \
+openssl \
+expat2 \
+libepoxy \
+libfontenc \
+pcre \
+libffi \
+glib2 \
+harfbuzz \
+libpng \
+freetype \
+libXfont \
+libxshmfence \
+udev-lib \
+libpciaccess \
+libdrm \
+libXdmcp \
+libXau \
+libxcb \
+libX11 \
+libXext \
+libXxf86vm \
+libXfixes \
+libXdamage \
+libGL \
+libEGL \
+xorg-server \
+xkeyboard-config \
+xf86-video-vesa \
+libevdev \
+mtdev \
+xf86-input-evdev \
+xcursor-themes \
+Xorg-fonts \
+libxkbfile \
+libXxf86dga \
+libXv \
+libXvmc \
+libXi \
+libXtst \
+libXss \
+libXres \
+libXrender \
+libXrandr \
+libXinerama \
+fontconfig \
+libXft \
+libXcursor \
+libXcomposite \
+libXpm \
+libSM \
+libICE \
+libXt \
+libXmu \
+libXaw \
+libFS \
+Xorg-7.7-lib \
+libdmx \
+Xorg-7.7-bin \
+libjpeg-turbo \
+imlib2 \
+imlib2-bin \
+fltk-1.3 \
+Xlibs \
+Xprogs \
+Xorg-7.7 \
+aterm \
+flwm_topside \
+wbar
+
+# Install the TCZ dependencies
+RUN set -ex; \
+	for dep in $TCZ_DEPS; do \
+		echo "Download $TCL_REPO_BASE/tcz/$dep.tcz"; \
+		curl -fL -o "/tmp/$dep.tcz" "$TCL_REPO_BASE/tcz/$dep.tcz" \
+			|| curl -fL -o "/tmp/$dep.tcz" "$TCL_REPO_FALLBACK/tcz/$dep.tcz"; \
+		unsquashfs -f -d "$ROOTFS" "/tmp/$dep.tcz"; \
+		rm -f "/tmp/$dep.tcz"; \
+	done
+
+RUN set -x && \
+    touch "$ROOTFS/etc/sysconfig/Xserver" && \
+    rm "$ROOTFS/etc/sysconfig/superuser"
+
+RUN sed -e 's|superuser|superuser -a -z "$SUDO_USER"|' -i "$ROOTFS/root/.profile"
+
+COPY boot2docker.png "$ROOTFS/usr/local/share/pixmaps/logo.png"
+
+RUN set -x && \
+    ( echo 'test -n "$DISPLAY" || DISPLAY=:0'; echo 'export DISPLAY' ) >> "$ROOTFS/etc/skel/.profile"; \
+    ( echo 'xset m 1/1' ) >> "$ROOTFS/etc/skel/.xinitrc"
+
+RUN set -x && \
+    sed -e '/^#X11Forwarding/a X11Forwarding yes' -i "$ROOTFS/usr/local/etc/ssh/sshd_config.orig"; \
+    sed -e '/^#X11UseLocalhost/a X11UseLocalhost no' -i "$ROOTFS/usr/local/etc/ssh/sshd_config.orig"
+
+RUN /tmp/make_iso.sh
