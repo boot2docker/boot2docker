@@ -170,15 +170,8 @@ RUN tcl-tce-load bash; \
 	source etc/profile.d/boot2docker-ps1.sh; \
 	[ "$PS1" = '\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ ' ]
 
-# https://www.kernel.org/category/signatures.html#important-fingerprints
-ENV LINUX_GPG_KEYS \
-# Linus Torvalds
-		ABAF11C65A2970B130ABE3C479BE3E4300411886 \
-# Greg Kroah-Hartman
-		647F28654894E3BD457199BE38DBBDC86092693E
-
 # updated via "update.sh"
-ENV LINUX_VERSION 4.19.87
+ENV LINUX_VERSION 4.19.130
 
 RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.xz"; \
 	wget -O /linux.tar.asc "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERSION%%.*}.x/linux-${LINUX_VERSION}.tar.sign"; \
@@ -189,21 +182,8 @@ RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERS
 	\
 # verify
 	export GNUPGHOME="$(mktemp -d)"; \
-	for key in $LINUX_GPG_KEYS; do \
-		for mirror in \
-			ha.pool.sks-keyservers.net \
-			pgp.mit.edu \
-			hkp://p80.pool.sks-keyservers.net:80 \
-			ipv4.pool.sks-keyservers.net \
-			keyserver.ubuntu.com \
-			hkp://keyserver.ubuntu.com:80 \
-		; do \
-			if gpg --batch --verbose --keyserver "$mirror" --keyserver-options timeout=5 --recv-keys "$key"; then \
-				break; \
-			fi; \
-		done; \
-		gpg --batch --fingerprint "$key"; \
-	done; \
+# kernel developer keys are blasted by signature attacks and thus 502/503 the keyservers, so we use WKD to fetch them instead (https://www.kernel.org/doc/html/v4.16/process/maintainer-pgp-guide.html#configure-auto-key-retrieval-using-wkd-and-dane)
+	gpg --auto-key-locate wkd --locate-keys torvalds@kernel.org gregkh@kernel.org; \
 	gpg --batch --verify /linux.tar.asc /linux.tar; \
 	gpgconf --kill all; \
 	rm -rf "$GNUPGHOME"; \
@@ -213,15 +193,6 @@ RUN wget -O /linux.tar.xz "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VERS
 	rm /linux.tar /linux.tar.asc; \
 	ln -sT "linux-$LINUX_VERSION" /usr/src/linux; \
 	[ -d /usr/src/linux ]
-
-# apply kernel entropy patch from 5.4; this same patch was backported in Debian in 5.3.9-1
-#   - https://git.kernel.org/linus/50ee7529ec4500c88f8664560770a7a1b65db72b
-#   - https://salsa.debian.org/kernel-team/linux/commit/c323c453b2485a33bfb33635a07f3a50bc1db1ee
-#   - https://lists.debian.org/debian-boot/2019/11/msg00077.html
-# specifically, this solves the problem of early-boot entropy (SSH key generation, for example), avoiding the need for userspace solutions like haveged
-RUN wget -O kernel-entropy.patch 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/patch/?id=50ee7529ec4500c88f8664560770a7a1b65db72b'; \
-	patch -p1 --input "$PWD/kernel-entropy.patch" --directory /usr/src/linux; \
-	rm kernel-entropy.patch
 
 RUN { \
 		echo '#!/usr/bin/env bash'; \
